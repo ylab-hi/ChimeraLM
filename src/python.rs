@@ -1,5 +1,12 @@
+use deepbiop::utils;
 use log::{debug, error, info, warn};
 use pyo3::prelude::*;
+
+#[pyfunction]
+fn test_deepbiop() {
+    let segment = utils::interval::Segment::new("chr2", 100, 2000).unwrap();
+    println!("{:?}", segment);
+}
 
 #[pyfunction]
 fn test_log() {
@@ -18,5 +25,6 @@ fn add(a: i32, b: i32) -> i32 {
 fn chimera(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(test_log, m)?)?;
     m.add_function(wrap_pyfunction!(add, m)?)?;
+    m.add_function(wrap_pyfunction!(test_deepbiop, m)?)?;
     Ok(())
 }

@@ -13,6 +13,11 @@ debug = 1
 
 
 [dependencies]
+deepbiop = { git = "https://github.com/cauliyang/DeepBioP", branch = "chimeric", features = [
+    "fastq",
+    "bam",
+    "utils",
+] }
 thiserror = "1.0"
 anyhow = "1.0"
 walkdir = { version = "2.4" }
@@ -26,7 +31,7 @@ pyo3 = { version = "0.21.0", features = [
 ctrlc = "3.4"
 log = "0.4"
 pyo3-log = "0.10"
-noodles = { version = "0.78.0", features = [
+noodles = { version = "0.79.0", features = [
     "bgzf",
     "core",
     "csi",
