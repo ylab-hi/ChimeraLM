@@ -1,11 +1,11 @@
 [package]
-name = "deepchopper"
+name = "chimera"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-name = "deepchopper"
+name = "chimera"
 crate-type = ["cdylib", "rlib"]
 
 [profile.dev]
@@ -58,7 +58,7 @@ lazy_static = "1.4.0"
 tempfile = "3.10"
 parquet = "52.0.0"
 arrow = "52.0"
-candle-core = { git = "https://github.com/huggingface/candle.git", version = "0.5.1" }
+candle-core = { git = "https://github.com/huggingface/candle.git", version = "0.6.0" }
 colored = "2"
 textwrap = "0.16"
 flate2 = { version = "1.0.30", features = [
