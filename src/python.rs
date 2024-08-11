@@ -4,7 +4,7 @@ use pyo3::prelude::*;
 
 #[pyfunction]
 fn test_deepbiop() {
-    let segment = utils::interval::Segment::new("chr2", 100, 2000).unwrap();
+    let segment = utils::interval::GenomicInterval::new("chr2", 100, 2000).unwrap();
     println!("{:?}", segment);
 }
 
@@ -20,6 +20,7 @@ fn test_log() {
 fn add(a: i32, b: i32) -> i32 {
     a + b
 }
+
 /// A Python module implemented in Rust.
 #[pymodule]
 fn chimera(m: &Bound<'_, PyModule>) -> PyResult<()> {

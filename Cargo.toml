@@ -8,12 +8,12 @@ edition = "2021"
 name = "chimera"
 crate-type = ["cdylib", "rlib"]
 
-[profile.dev]
-debug = 1
+# [profile.dev]
+# debug = 1
 
 
 [dependencies]
-deepbiop = { git = "https://github.com/cauliyang/DeepBioP", branch = "chimeric", features = [
+deepbiop = { git = "https://github.com/cauliyang/DeepBioP", branch = "bam", features = [
     "fastq",
     "bam",
     "utils",
@@ -30,7 +30,7 @@ pyo3 = { version = "0.21.0", features = [
 
 ctrlc = "3.4"
 log = "0.4"
-pyo3-log = "0.10"
+pyo3-log = "0.11"
 noodles = { version = "0.79.0", features = [
     "bgzf",
     "core",
@@ -76,9 +76,6 @@ clap = { version = "4.5.4", features = ["derive"] }
 env_logger = "0.11"
 stringzilla = ">=3"
 human-panic = "2.0"
-
-
-[dev-dependencies]
 
 
 [build-dependencies]
