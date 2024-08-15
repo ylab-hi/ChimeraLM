@@ -121,18 +121,18 @@ fn annote(cbam: &[PathBuf], dbam: &[PathBuf], threads: Option<usize>) -> Result<
         .collect();
 
     let all_sups_result: HashMap<PathBuf, HashMap<String, Vec<String>>> =
-        cbam_chimeric_events_per_bam
+        dbam_chimeric_events_per_bam
             .par_iter()
             .map(|(path, events)| {
                 let read_sups = events
                     .par_iter()
                     .map(|event| {
-                        let sup_paths = dbam_chimeric_events_per_bam
+                        let sup_paths = cbam_chimeric_events_per_bam
                             .par_iter()
-                            .filter_map(|(dbam_path, dbam_chimeric_events)| {
-                                if check_chimeric_events_sup(event, dbam_chimeric_events) {
+                            .filter_map(|(cbam_path, cbam_chimeric_events)| {
+                                if check_chimeric_events_sup(event, cbam_chimeric_events) {
                                     Some(
-                                        dbam_path
+                                        cbam_path
                                             .file_name()
                                             .unwrap()
                                             .to_string_lossy()
