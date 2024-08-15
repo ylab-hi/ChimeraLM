@@ -13,7 +13,7 @@ crate-type = ["cdylib", "rlib"]
 
 
 [dependencies]
-deepbiop = { git = "https://github.com/cauliyang/DeepBioP", branch = "bam", features = [
+deepbiop = { git = "https://github.com/cauliyang/DeepBioP", branch = "dev", features = [
     "fastq",
     "bam",
     "utils",
