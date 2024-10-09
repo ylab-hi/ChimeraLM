@@ -22,7 +22,7 @@ thiserror = "1.0"
 anyhow = "1.0"
 walkdir = { version = "2.5" }
 rayon = { version = "1.10" }
-pyo3 = { version = "0.22.3", features = [
+pyo3 = { version = "0.21.2", features = [
     "abi3-py310",
     "extension-module",
     "anyhow",
