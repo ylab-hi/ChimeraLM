@@ -40,7 +40,6 @@ fn is_same_chimeric_event(
     dbam_chimeric_event: &ChimericEvent,
 ) -> bool {
     cbam_chimeric_event.len() == dbam_chimeric_event.len()
-        && cbam_chimeric_event.name == dbam_chimeric_event.name
         && cbam_chimeric_event
             .intervals
             .iter()
@@ -91,9 +90,9 @@ fn annote(cbam: &[PathBuf], dbam: &[PathBuf], threads: Option<usize>) -> Result<
                 .unwrap();
 
             chimeric_events.par_iter_mut().for_each(|event| {
-                event
-                    .intervals
-                    .sort_by_key(|interval| interval.chr.to_string());
+                event.intervals.sort_by_key(|interval| {
+                    (interval.chr.to_string(), interval.start, interval.end)
+                });
             });
 
             (path.clone(), chimeric_events)
