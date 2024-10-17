@@ -36,25 +36,25 @@ struct Cli {
 }
 
 fn is_same_chimeric_event(
-    cbam_chimeric_event: &ChimericEvent,
-    dbam_chimeric_event: &ChimericEvent,
+    bam_chimeric_event1: &ChimericEvent,
+    bam_chimeric_event2: &ChimericEvent,
 ) -> bool {
-    cbam_chimeric_event.len() == dbam_chimeric_event.len()
-        && cbam_chimeric_event
+    bam_chimeric_event1.len() == bam_chimeric_event2.len()
+        && bam_chimeric_event1
             .intervals
             .iter()
-            .zip_eq(&dbam_chimeric_event.intervals)
+            .zip_eq(&bam_chimeric_event2.intervals)
             .all(|(event1, event2)| event1.overlap(event2))
 }
 
 fn check_chimeric_events_sup(
-    cbam_chimeric_event: &ChimericEvent,
-    dbam_chimeric_events: &[ChimericEvent],
+    dbam_chimeric_event: &ChimericEvent,
+    cbam_chimeric_events: &[ChimericEvent],
 ) -> bool {
     // check dbam chimeric events include cbam, and early stop
-    dbam_chimeric_events
+    cbam_chimeric_events
         .par_iter()
-        .any(|dbam_chimeric_event| is_same_chimeric_event(cbam_chimeric_event, dbam_chimeric_event))
+        .any(|cbam_chimeric_event| is_same_chimeric_event(dbam_chimeric_event, cbam_chimeric_event))
 }
 
 fn write_results(results: &HashMap<PathBuf, HashMap<String, Vec<String>>>) -> Result<()> {
