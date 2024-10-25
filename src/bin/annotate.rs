@@ -60,7 +60,7 @@ fn check_chimeric_events_sup(
 fn write_results(results: &HashMap<PathBuf, HashMap<String, Vec<String>>>) -> Result<()> {
     for (cbam_path, read_sups) in results.iter() {
         let output_path = cbam_path.with_extension("sup.txt");
-        info!("writing to {:?}", output_path);
+        info!("writing {} reads to {:?}", read_sups.len(), output_path);
 
         let mut buf_writer = std::io::BufWriter::new(std::fs::File::create(output_path)?);
 
@@ -99,6 +99,10 @@ fn annote(cbam: &[PathBuf], dbam: &[PathBuf], threads: Option<usize>) -> Result<
         })
         .collect();
 
+    for (path, events) in cbam_chimeric_events_per_bam.iter() {
+        info!("{:?} collect {} chimeric events", path, events.len());
+    }
+
     let dbam_chimeric_events_per_bam: HashMap<PathBuf, Vec<ChimericEvent>> = dbam
         .par_iter()
         .map(|path| {
@@ -118,6 +122,10 @@ fn annote(cbam: &[PathBuf], dbam: &[PathBuf], threads: Option<usize>) -> Result<
             (path.clone(), chimeric_events)
         })
         .collect();
+
+    for (path, events) in dbam_chimeric_events_per_bam.iter() {
+        info!("{:?} collect {} chimeric events", path, events.len());
+    }
 
     let all_sups_result: HashMap<PathBuf, HashMap<String, Vec<String>>> =
         dbam_chimeric_events_per_bam
@@ -178,5 +186,6 @@ fn main() -> Result<()> {
 
     let elapsed = start.elapsed();
     log::info!("elapsed time: {:.2?}", elapsed);
+
     Ok(())
 }
