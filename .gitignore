@@ -192,3 +192,4 @@ Cargo.lock
 tmp/
 data/
 analysis/
+notebook
