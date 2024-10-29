@@ -2,7 +2,7 @@ use ahash::HashMap;
 use anyhow::Result;
 use clap::Parser;
 use deepbiop::bam::chimeric::ChimericEvent;
-use deepbiop::utils::interval::Overlap;
+use deepbiop::utils::interval::{GenomicInterval, Overlap};
 use itertools::Itertools;
 use log::info;
 use rayon::prelude::*;
@@ -54,9 +54,9 @@ fn check_overlap(
 
     // Calculate distance between intervals
     if interval1.end < interval2.start {
-        interval2.start - interval1.end <= threshold
+        interval2.start - interval1.end < threshold
     } else {
-        interval1.start - interval2.end <= threshold
+        interval1.start - interval2.end < threshold
     }
 }
 
@@ -163,6 +163,11 @@ fn annote(cbam: &[PathBuf], dbam: &[PathBuf], threads: Option<usize>) -> Result<
                             .par_iter()
                             .filter_map(|(cbam_path, cbam_chimeric_events)| {
                                 if check_chimeric_events_sup(event, cbam_chimeric_events) {
+                                    log::debug!(
+                                        "found sup for {} in {:?}",
+                                        event.name.as_ref().unwrap().to_string(),
+                                        cbam_path
+                                    );
                                     Some(
                                         cbam_path
                                             .file_name()
@@ -213,4 +218,44 @@ fn main() -> Result<()> {
     log::info!("elapsed time: {:.2?}", elapsed);
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_check_overlap_direct_overlap() {
+        let interval1 = GenomicInterval {
+            chr: "chr1".into(),
+            start: 100,
+            end: 200,
+        };
+        let interval2 = GenomicInterval {
+            chr: "chr1".into(),
+            start: 150,
+            end: 250,
+        };
+        let threshold = 0;
+        assert!(check_overlap(&interval1, &interval2, threshold));
+    }
+
+    #[test]
+    fn test_check_overlap_no_overlap_within_threshold() {
+        let interval1 = GenomicInterval {
+            chr: "chr1".into(),
+            start: 100,
+            end: 200,
+        };
+        let interval2 = GenomicInterval {
+            chr: "chr1".into(),
+            start: 300,
+            end: 400,
+        };
+        let threshold = 100;
+
+        println!("overlap: {}", interval1.overlap(&interval2));
+
+        assert!(!check_overlap(&interval1, &interval2, threshold));
+    }
 }
