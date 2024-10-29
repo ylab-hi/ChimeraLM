@@ -55,6 +55,17 @@ fn summary<P: AsRef<Path>>(path: P) -> Result<HashMap<String, usize>> {
     Ok(result)
 }
 
+fn stat(result: &HashMap<String, usize>) -> Result<HashMap<usize, usize>> {
+    // count values by frequences
+    let mut count_map = HashMap::new();
+
+    for count in result.values() {
+        *count_map.entry(*count).or_insert(0) += 1;
+    }
+
+    Ok(count_map)
+}
+
 fn main() -> Result<()> {
     let start = std::time::Instant::now();
     let cli = Cli::parse();
@@ -77,8 +88,11 @@ fn main() -> Result<()> {
 
     let result = summary(cli.support_file.clone())?;
 
-    // write to json
+    // stat 0,1,2,3
+    let stat_result = stat(&result)?;
+    info!("{:?}", stat_result);
 
+    // write to json
     let output_prefix = cli.output_prefix.unwrap_or_else(|| {
         cli.support_file
             .file_stem()
@@ -88,7 +102,7 @@ fn main() -> Result<()> {
     });
 
     let output_file = format!("{}.json", output_prefix);
-    let mut writer = std::io::BufWriter::new(std::fs::File::create(output_file)?);
+    let writer = std::io::BufWriter::new(std::fs::File::create(output_file)?);
     serde_json::to_writer(writer, &result)?;
 
     let elapsed = start.elapsed();

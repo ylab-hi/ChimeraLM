@@ -84,7 +84,8 @@ fn check_chimeric_events_sup(
 
 fn write_results(results: &HashMap<PathBuf, HashMap<String, Vec<String>>>) -> Result<()> {
     for (cbam_path, read_sups) in results.iter() {
-        let output_path = cbam_path.with_extension("sup.txt");
+        let suffix = format!("threshold_{}.sup.txt", OVERLAP_THRESHOLD);
+        let output_path = cbam_path.with_extension(suffix);
         info!("writing {} reads to {:?}", read_sups.len(), output_path);
 
         let mut buf_writer = std::io::BufWriter::new(std::fs::File::create(output_path)?);
