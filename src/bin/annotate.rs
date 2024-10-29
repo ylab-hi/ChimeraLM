@@ -35,6 +35,31 @@ struct Cli {
     debug: u8,
 }
 
+const OVERLAP_THRESHOLD: usize = 5000;
+
+fn check_overlap(
+    interval1: &GenomicInterval,
+    interval2: &GenomicInterval,
+    threshold: usize,
+) -> bool {
+    // Early return if chromosomes don't match
+    if interval1.chr != interval2.chr {
+        return false;
+    }
+
+    // Check direct overlap first
+    if interval1.overlap(interval2) {
+        return true;
+    }
+
+    // Calculate distance between intervals
+    if interval1.end < interval2.start {
+        interval2.start - interval1.end <= threshold
+    } else {
+        interval1.start - interval2.end <= threshold
+    }
+}
+
 fn is_same_chimeric_event(
     bam_chimeric_event1: &ChimericEvent,
     bam_chimeric_event2: &ChimericEvent,
@@ -44,7 +69,7 @@ fn is_same_chimeric_event(
             .intervals
             .iter()
             .zip_eq(&bam_chimeric_event2.intervals)
-            .all(|(event1, event2)| event1.overlap(event2))
+            .all(|(interval1, interval2)| check_overlap(interval1, interval2, OVERLAP_THRESHOLD))
 }
 
 fn check_chimeric_events_sup(
