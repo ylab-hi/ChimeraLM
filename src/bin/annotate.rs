@@ -4,10 +4,11 @@ use clap::Parser;
 use deepbiop::bam::chimeric::ChimericEvent;
 use deepbiop::utils::interval::{GenomicInterval, Overlap};
 use itertools::Itertools;
+use log::debug;
 use log::info;
 use rayon::prelude::*;
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use noodles::bam;
 
@@ -22,6 +23,10 @@ struct Cli {
     #[arg(long="dbam", value_name = "dirty bam", action = clap::ArgAction::Append)]
     dbam: Vec<PathBuf>,
 
+    /// overlap threshold
+    #[arg(short, long, default_value = "5000")]
+    ovr_threshold: usize,
+
     /// threads number
     #[arg(short, long, default_value = "2")]
     threads: Option<usize>,
@@ -34,8 +39,6 @@ struct Cli {
     #[arg(short, long, action = clap::ArgAction::Count)]
     debug: u8,
 }
-
-const OVERLAP_THRESHOLD: usize = 5000;
 
 fn check_overlap(
     interval1: &GenomicInterval,
@@ -63,28 +66,71 @@ fn check_overlap(
 fn is_same_chimeric_event(
     bam_chimeric_event1: &ChimericEvent,
     bam_chimeric_event2: &ChimericEvent,
+    ovr_threshold: usize,
 ) -> bool {
-    bam_chimeric_event1.len() == bam_chimeric_event2.len()
-        && bam_chimeric_event1
-            .intervals
-            .iter()
-            .zip_eq(&bam_chimeric_event2.intervals)
-            .all(|(interval1, interval2)| check_overlap(interval1, interval2, OVERLAP_THRESHOLD))
+    debug!(
+        "checking chimeric events: {:?} vs {:?}",
+        bam_chimeric_event1.name.as_ref(),
+        bam_chimeric_event2.name.as_ref()
+    );
+
+    if bam_chimeric_event1.len() != bam_chimeric_event2.len() {
+        return false;
+    }
+
+    bam_chimeric_event1
+        .intervals
+        .iter()
+        .zip_eq(&bam_chimeric_event2.intervals)
+        .all(|(interval1, interval2)| check_overlap(interval1, interval2, ovr_threshold))
 }
 
 fn check_chimeric_events_sup(
     dbam_chimeric_event: &ChimericEvent,
     cbam_chimeric_events: &[ChimericEvent],
+    ovr_threshold: usize,
 ) -> bool {
     // check dbam chimeric events include cbam, and early stop
-    cbam_chimeric_events
-        .par_iter()
-        .any(|cbam_chimeric_event| is_same_chimeric_event(dbam_chimeric_event, cbam_chimeric_event))
+    cbam_chimeric_events.par_iter().any(|cbam_chimeric_event| {
+        is_same_chimeric_event(dbam_chimeric_event, cbam_chimeric_event, ovr_threshold)
+    })
 }
 
-fn write_results(results: &HashMap<PathBuf, HashMap<String, Vec<String>>>) -> Result<()> {
+fn write_chimeirc_events_to_file<P: AsRef<Path>>(
+    cbam_chimeric_events: &[ChimericEvent],
+    output_path: P,
+) -> Result<()> {
+    let mut buf_writer = std::io::BufWriter::new(std::fs::File::create(output_path.as_ref())?);
+    for event in cbam_chimeric_events {
+        let intervals = event
+            .intervals
+            .iter()
+            .map(|interval| format!("{}:{}-{}", interval.chr, interval.start, interval.end))
+            .collect::<Vec<_>>()
+            .join(",");
+
+        let line = format!(
+            "{}\t{}\t{}\n",
+            event.name.as_ref().unwrap(),
+            event.intervals.len(),
+            intervals
+        );
+        buf_writer.write_all(line.as_bytes())?;
+    }
+    info!(
+        "write {} chimeric events to {:?}",
+        cbam_chimeric_events.len(),
+        output_path.as_ref()
+    );
+    Ok(())
+}
+
+fn write_results(
+    results: &HashMap<PathBuf, HashMap<String, Vec<String>>>,
+    ovr_threshold: usize,
+) -> Result<()> {
     for (cbam_path, read_sups) in results.iter() {
-        let suffix = format!("threshold_{}.sup.txt", OVERLAP_THRESHOLD);
+        let suffix = format!("threshold_{}.sup.txt", ovr_threshold);
         let output_path = cbam_path.with_extension(suffix);
         info!("writing {} reads to {:?}", read_sups.len(), output_path);
 
@@ -103,7 +149,12 @@ fn write_results(results: &HashMap<PathBuf, HashMap<String, Vec<String>>>) -> Re
     Ok(())
 }
 
-fn annote(cbam: &[PathBuf], dbam: &[PathBuf], threads: Option<usize>) -> Result<()> {
+fn annote(
+    cbam: &[PathBuf],
+    dbam: &[PathBuf],
+    ovr_threshold: usize,
+    threads: Option<usize>,
+) -> Result<()> {
     let cbam_chimeric_events_per_bam: HashMap<PathBuf, Vec<ChimericEvent>> = cbam
         .par_iter()
         .map(|path| {
@@ -127,6 +178,7 @@ fn annote(cbam: &[PathBuf], dbam: &[PathBuf], threads: Option<usize>) -> Result<
 
     for (path, events) in cbam_chimeric_events_per_bam.iter() {
         info!("{:?} collect {} chimeric events", path, events.len());
+        write_chimeirc_events_to_file(events, path.with_extension("chimeric_events.txt"))?;
     }
 
     let dbam_chimeric_events_per_bam: HashMap<PathBuf, Vec<ChimericEvent>> = dbam
@@ -151,6 +203,7 @@ fn annote(cbam: &[PathBuf], dbam: &[PathBuf], threads: Option<usize>) -> Result<
 
     for (path, events) in dbam_chimeric_events_per_bam.iter() {
         info!("{:?} collect {} chimeric events", path, events.len());
+        write_chimeirc_events_to_file(events, path.with_extension("chimeric_events.txt"))?;
     }
 
     let all_sups_result: HashMap<PathBuf, HashMap<String, Vec<String>>> =
@@ -163,7 +216,11 @@ fn annote(cbam: &[PathBuf], dbam: &[PathBuf], threads: Option<usize>) -> Result<
                         let sup_paths = cbam_chimeric_events_per_bam
                             .par_iter()
                             .filter_map(|(cbam_path, cbam_chimeric_events)| {
-                                if check_chimeric_events_sup(event, cbam_chimeric_events) {
+                                if check_chimeric_events_sup(
+                                    event,
+                                    cbam_chimeric_events,
+                                    ovr_threshold,
+                                ) {
                                     log::debug!(
                                         "found sup for {} in {:?}",
                                         event.name.as_ref().unwrap().to_string(),
@@ -189,7 +246,7 @@ fn annote(cbam: &[PathBuf], dbam: &[PathBuf], threads: Option<usize>) -> Result<
                 (path.clone(), read_sups)
             })
             .collect();
-    write_results(&all_sups_result)?;
+    write_results(&all_sups_result, ovr_threshold)?;
     Ok(())
 }
 
@@ -213,7 +270,7 @@ fn main() -> Result<()> {
 
     info!("{:?}", cli);
 
-    annote(&cli.cbam, &cli.dbam, None).unwrap();
+    annote(&cli.cbam, &cli.dbam, cli.ovr_threshold, None).unwrap();
 
     let elapsed = start.elapsed();
     log::info!("elapsed time: {:.2?}", elapsed);
