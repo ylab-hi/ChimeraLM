@@ -48,16 +48,17 @@ fn parse_rname(rname: &str) -> Vec<String> {
 }
 
 fn write_results(results: &HashMap<String, Vec<String>>, file_name: &str) -> Result<()> {
-    let suffix = format!("{}.sv.read.sup.txt", file_name);
-    let output_path = suffix;
+    let output_path = format!("{}.sv.read.sup.txt", file_name);
+    info!("results written to {}", &output_path);
     let mut buf_writer = std::io::BufWriter::new(std::fs::File::create(output_path)?);
 
-    for (svtype, reads) in results.iter() {
-        for read in reads.iter() {
-            let line = format!("{}\t{}\n", read, svtype);
+    for (read, svtypes) in results.iter() {
+        for sv in svtypes.iter() {
+            let line = format!("{}\t{}\n", read, sv);
             buf_writer.write_all(line.as_bytes())?;
         }
     }
+
     Ok(())
 }
 
@@ -70,12 +71,17 @@ fn worker<P: AsRef<Path>>(vcf_path: P) -> Result<()> {
 
     let mut result = HashMap::new();
 
+    let mut ind = 0;
+
     while buffer_reader.read_line(&mut line)? > 0 {
         // igore comment lines
         if line.starts_with("#") {
             line.clear();
             continue;
         }
+
+        ind += 1;
+
         let columns = line.split('\t').collect::<Vec<&str>>();
         // get info field
         let info_field = columns[7];
@@ -88,9 +94,17 @@ fn worker<P: AsRef<Path>>(vcf_path: P) -> Result<()> {
         let svtype_str = find_needle("SVTYPE", &infos);
         let svtype = svtype_str.strip_prefix("SVTYPE=").unwrap();
 
-        result.insert(svtype.to_string(), read_names);
+        for read in read_names.iter() {
+            result
+                .entry(read.clone())
+                .or_insert_with(Vec::new)
+                .push(svtype.to_string());
+        }
+
         line.clear();
     }
+
+    info!("read {} svs, summary {} reads", ind, result.len());
 
     write_results(&result, vcf_path.as_ref().to_str().unwrap())?;
     Ok(())
