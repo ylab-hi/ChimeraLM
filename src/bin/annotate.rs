@@ -24,12 +24,16 @@ struct Cli {
     dbam: Vec<PathBuf>,
 
     /// overlap threshold
-    #[arg(short, long, default_value = "5000")]
+    #[arg(long, default_value = "5000")]
     ovr_threshold: usize,
 
     /// threads number
     #[arg(short, long, default_value = "2")]
     threads: Option<usize>,
+
+    /// if output chiemric events
+    #[arg(long, default_value = "false")]
+    output_chimeric_events: bool,
 
     /// prefix for output files
     #[arg(short, long)]
@@ -153,6 +157,7 @@ fn annote(
     cbam: &[PathBuf],
     dbam: &[PathBuf],
     ovr_threshold: usize,
+    output_chimeric_events: bool,
     threads: Option<usize>,
 ) -> Result<()> {
     let cbam_chimeric_events_per_bam: HashMap<PathBuf, Vec<ChimericEvent>> = cbam
@@ -178,7 +183,9 @@ fn annote(
 
     for (path, events) in cbam_chimeric_events_per_bam.iter() {
         info!("{:?} collect {} chimeric events", path, events.len());
-        write_chimeirc_events_to_file(events, path.with_extension("chimeric_events.txt"))?;
+        if output_chimeric_events {
+            write_chimeirc_events_to_file(events, path.with_extension("chimeric_events.txt"))?;
+        }
     }
 
     let dbam_chimeric_events_per_bam: HashMap<PathBuf, Vec<ChimericEvent>> = dbam
@@ -203,7 +210,9 @@ fn annote(
 
     for (path, events) in dbam_chimeric_events_per_bam.iter() {
         info!("{:?} collect {} chimeric events", path, events.len());
-        write_chimeirc_events_to_file(events, path.with_extension("chimeric_events.txt"))?;
+        if output_chimeric_events {
+            write_chimeirc_events_to_file(events, path.with_extension("chimeric_events.txt"))?;
+        }
     }
 
     let all_sups_result: HashMap<PathBuf, HashMap<String, Vec<String>>> =
@@ -270,7 +279,14 @@ fn main() -> Result<()> {
 
     info!("{:?}", cli);
 
-    annote(&cli.cbam, &cli.dbam, cli.ovr_threshold, None).unwrap();
+    annote(
+        &cli.cbam,
+        &cli.dbam,
+        cli.ovr_threshold,
+        cli.output_chimeric_events,
+        None,
+    )
+    .unwrap();
 
     let elapsed = start.elapsed();
     log::info!("elapsed time: {:.2?}", elapsed);
