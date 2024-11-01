@@ -35,7 +35,6 @@ fn worker<P: AsRef<Path>>(path: P) -> Result<Vec<deepbiop::bam::chimeric::Chimer
         debug!("parse {}", line);
         let fields = line.trim().split('\t').collect::<Vec<&str>>();
         assert_eq!(fields.len(), 3);
-        let count: usize = lexical::parse(fields[1])?;
         let event = deepbiop::bam::chimeric::ChimericEvent::parse_list_pos(fields[2], fields[0])?;
         res.push(event);
         line.clear();

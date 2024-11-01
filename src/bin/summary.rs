@@ -3,8 +3,7 @@ use ahash::HashMapExt;
 use anyhow::Result;
 use clap::Parser;
 use log::info;
-use rayon::prelude::*;
-use std::io::{BufRead, Write};
+use std::io::BufRead;
 use std::path::{Path, PathBuf};
 
 // 515077e1-bd35-4244-9dbe-55d3a9808d34    0
