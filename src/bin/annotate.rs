@@ -1,3 +1,8 @@
+//! Annotate chimeric events in dirty bam with clean bam
+//!
+//! The output is a table with the following columns:
+//! read_name support_number support_bam1,support_bam2,...
+
 use ahash::HashMap;
 use anyhow::Result;
 use clap::Parser;

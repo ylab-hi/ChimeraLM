@@ -1,3 +1,7 @@
+//! Summary the annotated result geting from `annotate`
+//!
+//! The output is a json file, which contains the summary of the annotated result.
+
 use ahash::HashMap;
 use ahash::HashMapExt;
 use anyhow::Result;

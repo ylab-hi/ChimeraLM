@@ -1,3 +1,8 @@
+//! This program is used to extract SVs from vcf file.
+//!
+//! The output include:
+//! read_name sv_type
+
 use ahash::HashMap;
 use ahash::HashMapExt;
 use anyhow::Result;
