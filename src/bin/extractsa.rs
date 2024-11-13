@@ -1,3 +1,5 @@
+//! Extract chimeric reads from a bam file
+
 use deepbiop::bam::chimeric::{is_chimeric_record, is_retain_record};
 use noodles::{bam, bgzf};
 use rayon::prelude::*;

@@ -42,8 +42,6 @@ noodles = { version = "0.85.0", features = [
 ] }
 
 bio = "2.0"
-needletail = "0.6"
-
 
 ahash = "0.8.11"
 numpy = "0.21"

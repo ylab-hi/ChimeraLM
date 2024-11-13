@@ -1,8 +1,4 @@
 //! Queries a chimeric event
-//!
-//! The input BAM must have an index in the same directory.
-//!
-//! The result matches the output of `samtools view <src> <region>`.
 
 use ahash::HashMap;
 use anyhow::Result;

@@ -1,3 +1,5 @@
+//!  Read chimeric events from file and compare them.
+
 use anyhow::Result;
 use clap::Parser;
 use log::debug;
