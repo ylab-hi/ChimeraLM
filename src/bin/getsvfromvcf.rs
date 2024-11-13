@@ -7,6 +7,7 @@ use ahash::HashMap;
 use ahash::HashMapExt;
 use anyhow::Result;
 use clap::Parser;
+use log::debug;
 use log::info;
 use rayon::prelude::*;
 use std::io::{BufRead, Write};
@@ -84,6 +85,8 @@ fn worker<P: AsRef<Path>>(vcf_path: P) -> Result<()> {
             line.clear();
             continue;
         }
+
+        debug!("line: {}", line);
 
         ind += 1;
 
