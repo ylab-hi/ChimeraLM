@@ -1,1 +1,4 @@
-from .chimera import *  # noqa: F403from .deepchopper import *  # noqa: F403
+from . import data, models, utils
+from .chimera import *
+
+__all__ = ["data", "models", "utils"]
