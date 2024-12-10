@@ -207,11 +207,11 @@ extend-immutable-calls = ["typer.Argument", "typer.Option"]
 allow-star-arg-any = true
 
 [tool.ruff.lint.per-file-ignores]
-"deepchopper/data/mnist_datamodule.py" = ["ARG002", "PLR0913", "D205", "D402"]
-"deepchopper/models/mnist_module.py" = ["ARG002", "A002"]
-"deepchopper/utils/pylogger.py" = ["D205", "PLR5501", "SIM114"]
-"deepchopper/models/components/simple_dense_net.py" = ["ARG002", "PLR0913"]
-"deepchopper/eval.py" = ["S101"]
+"chimera/data/mnist_datamodule.py" = ["ARG002", "PLR0913", "D205", "D402"]
+"chimera/models/mnist_module.py" = ["ARG002", "A002"]
+"chimera/utils/pylogger.py" = ["D205", "PLR5501", "SIM114"]
+"chimera/models/components/simple_dense_net.py" = ["ARG002", "PLR0913"]
+"chimera/eval.py" = ["S101"]
 
 [tool.ruff.lint.pydocstyle]
 convention = 'google'
@@ -221,7 +221,7 @@ tests = ["tests", "*/tests"]
 
 [tool.coverage.run]
 branch = true
-source = ["deepchopper"]
+source = ["chimera"]
 omit = ["tests/*"]
 
 [tool.coverage.report]

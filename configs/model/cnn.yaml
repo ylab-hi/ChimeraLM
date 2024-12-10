@@ -1,4 +1,4 @@
-_target_: deepchopper.models.basic_module.TokenClassificationLit
+_target_: chimera.models.basic_module.TokenClassificationLit
 
 optimizer:
   _target_: torch.optim.Adam
@@ -14,7 +14,7 @@ scheduler:
   patience: 10
 
 net:
-  _target_: deepchopper.models.cnn.BenchmarkCNN
+  _target_: chimera.models.cnn.BenchmarkCNN
   number_of_classes: 2
   vocab_size: 11
   num_filters: [128, 256, 512]
@@ -22,7 +22,7 @@ net:
   embedding_dim: 100
 
 criterion:
-  _target_: deepchopper.models.basic_module.ContinuousIntervalLoss
+  _target_: chimera.models.basic_module.ContinuousIntervalLoss
   lambda_penalty: 0
 
 # compile model for faster training with pytorch 2.0
