@@ -18,6 +18,7 @@ fn test_log() {
 
 #[pyfunction]
 fn add(a: i32, b: i32) -> i32 {
+    println!("Adding {} + {}", a, b);
     a + b
 }
 
