@@ -3,11 +3,11 @@
 //! The output is a table with the following columns:
 
 use ahash::HashMap;
+use ahash::HashMapExt;
 
 use anyhow::Result;
 use clap::Parser;
 use deepbiop::utils::sv;
-use itertools::Itertools;
 use log::debug;
 use log::info;
 use rayon::prelude::*;
@@ -180,77 +180,75 @@ fn write_result<P: AsRef<Path>>(
 }
 
 fn worker(cvcfs: &[PathBuf], dvcfs: &[PathBuf], threshold: usize) -> Result<()> {
-    let clean_svs: HashMap<PathBuf, Vec<(sv::StructuralVariant, Vec<String>)>> = cvcfs
+    // Load clean SVs with error handling
+    let clean_svs: Result<HashMap<PathBuf, Vec<(sv::StructuralVariant, Vec<String>)>>> = cvcfs
         .par_iter()
-        .map(|cvcf| {
-            let svs = get_sv_from_vcf(cvcf).unwrap();
-            (cvcf.clone(), svs)
-        })
+        .map(|cvcf| get_sv_from_vcf(cvcf).map(|svs| (cvcf.clone(), svs)))
         .collect();
+    let clean_svs = clean_svs?;
 
-    let dirty_svs: HashMap<PathBuf, Vec<(sv::StructuralVariant, Vec<String>)>> = dvcfs
+    // Load dirty SVs with error handling
+    let dirty_svs: Result<HashMap<PathBuf, Vec<(sv::StructuralVariant, Vec<String>)>>> = dvcfs
         .par_iter()
-        .map(|dvcf| {
-            let svs = get_sv_from_vcf(dvcf).unwrap();
-            (dvcf.clone(), svs)
-        })
+        .map(|dvcf| get_sv_from_vcf(dvcf).map(|svs| (dvcf.clone(), svs)))
         .collect();
+    let dirty_svs = dirty_svs?;
 
-    // compare each dirty sv with all clean sv, and check if they are the same.
-    // And count the number of same svs, and which clean sv they are matched to.
-    // the output is a table with the following columns:
-    // dirty_sv,  dirty_sv_type, clean_sv, matched_read_names_in_dirty
-    //
-    // The dirty_sv is the path to the dirty vcf file.
-    // The dirty_sv_type is the original dirty sv type, for example, DEL, INV, etc.
-    // The clean_sv is separated by comma if there are multiple matched clean svs.
-    // The clean_sv is the path to the clean vcf file.
-    // The matched_read_names_in_dirty is the read names in the dirty bam that are support the dirty sv.
+    // Pre-allocate result HashMap with capacity
+    let mut result = HashMap::with_capacity(dirty_svs.len());
 
-    let result: HashMap<PathBuf, Vec<_>> = dirty_svs
-        .par_iter()
-        .map(|(dvcf, dirty_svs)| {
-            let infos = dirty_svs
-                .par_iter()
-                .map(|(dirty_sv, dirty_read_names)| {
-                    let matched_cvcfs: Vec<_> = clean_svs
-                        .par_iter()
-                        .filter_map(|(cvcf, clean_svs)| {
-                            if clean_svs.iter().any(|(clean_sv, _clean_read_names)| {
-                                compare_sv(clean_sv, dirty_sv, threshold)
-                            }) {
-                                Some(cvcf)
-                            } else {
-                                None
-                            }
-                        })
-                        .collect();
+    // Process each dirty SV file
+    for (dvcf, dirty_svs) in dirty_svs {
+        let infos = dirty_svs
+            .par_iter()
+            .map(|(dirty_sv, dirty_read_names)| {
+                // Find matching clean SVs
+                let matched_cvcfs: Vec<_> = clean_svs
+                    .par_iter()
+                    .filter_map(|(cvcf, clean_svs)| {
+                        // Use any_parallel for better performance on large lists
+                        if clean_svs
+                            .par_iter()
+                            .any(|(clean_sv, _)| compare_sv(clean_sv, dirty_sv, threshold))
+                        {
+                            Some(cvcf)
+                        } else {
+                            None
+                        }
+                    })
+                    .collect();
 
-                    let matched_cvcfs = matched_cvcfs.iter().map(|s| s.to_str().unwrap()).join(",");
-                    let joined_dirty_read_names = dirty_read_names.join(",");
+                // Join results with error handling
+                let matched_cvcfs = matched_cvcfs
+                    .iter()
+                    .filter_map(|s| s.to_str())
+                    .collect::<Vec<_>>()
+                    .join(",");
 
-                    // Create owned copies instead of references
-                    (
-                        dvcf.clone(),
-                        dirty_sv.clone(),
-                        matched_cvcfs,
-                        joined_dirty_read_names,
-                    )
-                })
-                .collect::<Vec<_>>();
+                let joined_dirty_read_names = dirty_read_names.join(",");
 
-            (dvcf.clone(), infos)
-        })
-        .collect();
+                (
+                    dvcf.clone(),
+                    dirty_sv.clone(),
+                    matched_cvcfs,
+                    joined_dirty_read_names,
+                )
+            })
+            .collect::<Vec<_>>();
 
-    for ele in result.into_iter() {
-        let output_prefix = format!(
-            "{}_{}",
-            ele.0.file_stem().unwrap().to_str().unwrap(),
-            "annotated_sv"
-        );
-        info!("write annotated sv result to {}.tsv", output_prefix);
-        write_result(output_prefix, &ele.1)?;
+        result.insert(dvcf, infos);
+    }
+
+    // Write results
+    for (vcf_path, results) in result {
+        let stem = vcf_path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .ok_or_else(|| anyhow::anyhow!("Invalid file name"))?;
+
+        let output_prefix = format!("{}_annotated_sv", stem);
+        info!("Writing annotated SV result to {}.tsv", output_prefix);
+        write_result(&output_prefix, &results)?;
     }
 
     Ok(())
