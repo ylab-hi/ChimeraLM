@@ -35,10 +35,6 @@ struct Cli {
     #[arg(short, long, default_value = "2")]
     threads: Option<usize>,
 
-    /// prefix for output files
-    #[arg(short, long)]
-    output_prefix: Option<String>,
-
     /// Turn debugging information on
     #[arg(short, long, action = clap::ArgAction::Count)]
     debug: u8,
