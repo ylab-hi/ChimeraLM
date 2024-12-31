@@ -609,7 +609,7 @@ dependencies = [
 [[package]]
 name = "candle-core"
 version = "0.8.1"
-source = "git+https://github.com/huggingface/candle.git#460616fc845f8b8540d00e4ef00bcc38f5cdbf0e"
+source = "git+https://github.com/huggingface/candle.git#b12c7c2888c49e7f133bb2dc29f8fdbb04a37e10"
 dependencies = [
  "byteorder",
  "gemm",
@@ -922,7 +922,7 @@ dependencies = [
 [[package]]
 name = "deepbiop"
 version = "0.1.11"
-source = "git+https://github.com/cauliyang/DeepBioP?branch=dev#6dcb28195a983156ad1804a3757c7df903f0a60c"
+source = "git+https://github.com/cauliyang/DeepBioP?branch=dev#96f68b71c22ec77b5ae16eec8c7221d8081a9c09"
 dependencies = [
  "deepbiop-bam",
  "deepbiop-fq",
@@ -932,7 +932,7 @@ dependencies = [
 [[package]]
 name = "deepbiop-bam"
 version = "0.1.11"
-source = "git+https://github.com/cauliyang/DeepBioP?branch=dev#6dcb28195a983156ad1804a3757c7df903f0a60c"
+source = "git+https://github.com/cauliyang/DeepBioP?branch=dev#96f68b71c22ec77b5ae16eec8c7221d8081a9c09"
 dependencies = [
  "ahash",
  "anyhow",
@@ -952,7 +952,7 @@ dependencies = [
 [[package]]
 name = "deepbiop-fq"
 version = "0.1.11"
-source = "git+https://github.com/cauliyang/DeepBioP?branch=dev#6dcb28195a983156ad1804a3757c7df903f0a60c"
+source = "git+https://github.com/cauliyang/DeepBioP?branch=dev#96f68b71c22ec77b5ae16eec8c7221d8081a9c09"
 dependencies = [
  "ahash",
  "anyhow",
@@ -982,7 +982,7 @@ dependencies = [
 [[package]]
 name = "deepbiop-utils"
 version = "0.1.11"
-source = "git+https://github.com/cauliyang/DeepBioP?branch=dev#6dcb28195a983156ad1804a3757c7df903f0a60c"
+source = "git+https://github.com/cauliyang/DeepBioP?branch=dev#96f68b71c22ec77b5ae16eec8c7221d8081a9c09"
 dependencies = [
  "ahash",
  "anyhow",
@@ -3316,9 +3316,9 @@ checksum = "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec"
 
 [[package]]
 name = "winnow"
-version = "0.6.20"
+version = "0.6.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "36c1fec1a2bb5866f07c25f68c26e565c4c200aebb96d7e55710c19d3e8ac49b"
+checksum = "e6f5bb5257f2407a5425c6e749bfd9692192a73e70a6060516ac04f889087d68"
 dependencies = [
  "memchr",
 ]

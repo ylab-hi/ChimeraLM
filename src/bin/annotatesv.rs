@@ -1,6 +1,4 @@
 //! Annotate structral variant events in dirty bam with clean bam
-//!
-//! The output is a table with the following columns:
 
 use ahash::HashMap;
 use ahash::HashMapExt;
@@ -41,11 +39,11 @@ struct Cli {
 }
 
 //GL000225.1      95637   cuteSV.DEL.76   GATGTCACTTTTGTCAAGGATATGGCTACAGGGACATTGTGACATGTAAATGCACGATCACACATCT       G       0.0     q5      IMPRECISE;SVTYPE=DEL;SVLEN=-66;END=95703;CIPOS=-0,0;CILEN=-0,0;RE=4;RNAMES=c21b6509-04d2-4fc9-ba53-9ad2c86a72fa,660e9194-477c-491e-9cb5-f0a84aff44a9,34dd3621-66ae-41cb-a8c9-5526ced04cb3,66ed5297-bde8-43df-8553-5693d36eda31;AF=0.1739;STRAND=+-  GT:DR:DV:PL:GQ    0/0:19:4:0,21,143:20
-fn find_needle<'a>(needle: &'a str, haystack: &[&'a str]) -> &'a str {
+fn find_needle<'a>(needle: &'a str, haystack: &[&'a str]) -> Option<&'a str> {
     haystack
         .par_iter()
         .find_first(|&&x| x.starts_with(needle))
-        .unwrap()
+        .copied()
 }
 
 // RNAMES=8c43bf15-f889-4fab-8af1-489da9179818,c241a190-48de-4756-9c10-c22153de49
@@ -84,7 +82,6 @@ fn get_sv_from_vcf<P: AsRef<Path>>(
             line.clear();
             continue;
         }
-        debug!("line: {}", line);
 
         let columns = line.split('\t').collect::<Vec<&str>>();
 
@@ -98,13 +95,34 @@ fn get_sv_from_vcf<P: AsRef<Path>>(
         let infos = info_field.split(';').collect::<Vec<&str>>();
 
         let rname = find_needle("RNAMES", &infos);
-        let read_names = parse_rname(rname);
+
+        if rname.is_none() {
+            debug!("no RNAMES in {:?}", line);
+            line.clear();
+            continue;
+        }
+        let read_names = parse_rname(rname.unwrap());
 
         let svtype_str = find_needle("SVTYPE", &infos);
-        let svtype = svtype_str.strip_prefix("SVTYPE=").unwrap();
+
+        if svtype_str.is_none() {
+            debug!("no SVTYPE in {:?}", line);
+            line.clear();
+            continue;
+        }
+
+        let svtype = svtype_str.unwrap().strip_prefix("SVTYPE=").unwrap();
 
         let breakpoint2_str = find_needle("END", &infos);
+
+        if breakpoint2_str.is_none() {
+            debug!("no END in {:?}", line);
+            line.clear();
+            continue;
+        }
+
         let breakpoint2 = breakpoint2_str
+            .unwrap()
             .strip_prefix("END=")
             .unwrap()
             .parse::<usize>()
@@ -124,8 +142,7 @@ fn get_sv_from_vcf<P: AsRef<Path>>(
         line.clear();
     }
 
-    info!("read {} svs", result.len());
-
+    info!("read {} svs from {:?}", result.len(), vcf_path.as_ref());
     Ok(result)
 }
 
@@ -150,23 +167,23 @@ fn compare_sv(sv1: &sv::StructuralVariant, sv2: &sv::StructuralVariant, threshol
 }
 
 fn write_result<P: AsRef<Path>>(
-    output_prefix: P,
+    output_path: P,
     result: &[(PathBuf, sv::StructuralVariant, String, String)],
 ) -> Result<()> {
-    let output_path = output_prefix.as_ref().with_extension("tsv");
     let mut writer = std::fs::File::create(output_path)?;
 
     writeln!(
         writer,
-        "dirty_sv\tdirty_sv_type\tclean_sv\tmatched_read_names_in_dirty"
+        "dirty_sv\tdirty_sv_type\tnumber_clean_sv\tclean_sv\tmatched_read_names_in_dirty"
     )?;
 
     for (dirty_sv, dirty_sv_type, clean_sv, matched_read_names_in_dirty) in result {
         writeln!(
             writer,
-            "{}\t{:?}\t{}\t{}",
+            "{}\t{}\t{}\t{}\t{}",
             dirty_sv.to_str().unwrap(),
             dirty_sv_type,
+            clean_sv.split_terminator(',').count(),
             clean_sv,
             matched_read_names_in_dirty
         )?;
@@ -237,13 +254,9 @@ fn worker(cvcfs: &[PathBuf], dvcfs: &[PathBuf], threshold: usize) -> Result<()> 
 
     // Write results
     for (vcf_path, results) in result {
-        let stem = vcf_path
-            .file_stem()
-            .and_then(|s| s.to_str())
-            .ok_or_else(|| anyhow::anyhow!("Invalid file name"))?;
-
-        let output_prefix = format!("{}_annotated_sv", stem);
-        info!("Writing annotated SV result to {}.tsv", output_prefix);
+        let extension = format!("annotated_sv_{}.tsv", threshold);
+        let output_prefix = vcf_path.with_extension(extension);
+        info!("Writing annotated SV result to {:?}", output_prefix);
         write_result(&output_prefix, &results)?;
     }
 
