@@ -103,6 +103,7 @@ exclude = [
     "node_modules",
     "venv",
     "tasks.py",
+    "notebooks/data.ipynb",
 ]
 
 [tool.ruff.lint]
