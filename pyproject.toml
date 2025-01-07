@@ -8,6 +8,7 @@ description = "deep learning artificial read detector"
 authors = [{ name = "Yangyang Li", email = "<yangyang.li@northwestern.edu>" }]
 readme = "README.md"
 requires-python = ">=3.10"
+version = "0.1.0"
 license = { file = "LICENSE" }
 keywords = ["deep learning", "bioinformatics", "rust"]
 classifiers = [
@@ -35,6 +36,7 @@ dependencies = [
     "torchmetrics>=1.6.0",
     "typer>=0.15.1",
 ]
+
 
 [project.scripts]
 
@@ -163,7 +165,6 @@ ignore = [
     "D203",
     "D100",
     "D401",
-    "ANN101",
     "ANN102",
     "ANN001",
     "ANN002",
