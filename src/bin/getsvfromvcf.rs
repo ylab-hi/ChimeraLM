@@ -81,7 +81,7 @@ fn worker<P: AsRef<Path>>(vcf_path: P) -> Result<()> {
     let mut ind = 0;
 
     while buffer_reader.read_line(&mut line)? > 0 {
-        // igore comment lines
+        // ignore comment lines
         if line.starts_with("#") {
             line.clear();
             continue;

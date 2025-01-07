@@ -158,7 +158,7 @@ fn write_results(
     Ok(())
 }
 
-fn annote(
+fn annotate(
     cbam: &[PathBuf],
     dbam: &[PathBuf],
     ovr_threshold: usize,
@@ -284,7 +284,7 @@ fn main() -> Result<()> {
 
     info!("{:?}", cli);
 
-    annote(
+    annotate(
         &cli.cbam,
         &cli.dbam,
         cli.ovr_threshold,

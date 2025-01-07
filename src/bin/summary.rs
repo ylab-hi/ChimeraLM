@@ -1,4 +1,4 @@
-//! Summary the annotated result geting from `annotate`
+//! Summary the annotated result getting from `annotate`
 //!
 //! The output is a json file, which contains the summary of the annotated result.
 
@@ -59,7 +59,7 @@ fn summary<P: AsRef<Path>>(path: P) -> Result<HashMap<String, usize>> {
 }
 
 fn stat(result: &HashMap<String, usize>) -> Result<HashMap<usize, usize>> {
-    // count values by frequences
+    // count values by frequencies
     let mut count_map = HashMap::new();
 
     for count in result.values() {
