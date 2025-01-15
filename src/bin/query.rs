@@ -1,6 +1,5 @@
 //! Queries a chimeric event
 
-use ahash::HashMap;
 use anyhow::Result;
 use clap::Parser;
 use deepbiop::bam::chimeric::ChimericEvent;
