@@ -47,7 +47,7 @@ fn worker<P: AsRef<Path>>(fq: P, pos: P, neg: P, threads: Option<usize>) -> Resu
     let neg_reads = load_reads(neg)?;
     info!("neg reads: {}", neg_reads.len());
 
-    let mut records = deepbiop::fastq::io::read_noodel_records_from_fq_or_zip_fq(&fq)?;
+    let mut records = deepbiop::fastq::io::read_noodle_records(&fq)?;
 
     info!("add target for records: {}", records.len());
 
@@ -69,7 +69,7 @@ fn worker<P: AsRef<Path>>(fq: P, pos: P, neg: P, threads: Option<usize>) -> Resu
 
     info!("write to {}", &result_path);
 
-    deepbiop::fastq::io::write_bzip_fq_parallel_for_noodle_record(
+    deepbiop::fastq::io::write_bgzip_fq_parallel_for_noodle_record(
         &records,
         result_path.into(),
         threads,

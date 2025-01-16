@@ -9,7 +9,7 @@ name = "chimera"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-deepbiop = { git = "https://github.com/cauliyang/DeepBioP", branch = "dev", features = [
+deepbiop = { git = "https://github.com/cauliyang/DeepBioP", branch = "feat", features = [
     "fastq",
     "bam",
     "utils",
@@ -57,7 +57,7 @@ lazy_static = "1.5.0"
 tempfile = "3.13"
 parquet = "54.0"
 arrow = "54.0"
-colored = "2"
+colored = "3"
 textwrap = "0.16"
 flate2 = { version = "1.0.34", features = [
     "zlib-ng",
