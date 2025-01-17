@@ -250,9 +250,8 @@ def pad_without_fast_tokenizer_warning(tokenizer, *pad_args, **pad_kwargs):
 
 class DataCollator(DataCollatorWithPadding):
     def torch_call(self, features):
-        import torch
-
         import ipdb
+        import torch
 
         ipdb.set_trace()
 

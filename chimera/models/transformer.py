@@ -103,9 +103,7 @@ class SequenceTransformer(nn.Module):
         decoder_output = self.transformer_decoder(decoder_input, memory, memory_key_padding_mask=padding_mask)
 
         # Use the decoder output for classification
-        logits = self.classifier(decoder_output.squeeze(1))
-
-        return logits
+        return self.classifier(decoder_output.squeeze(1))
 
 
 class PositionalEncoding(nn.Module):

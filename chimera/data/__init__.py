@@ -1,2 +1,1 @@
-from . import tokenizer
-from . import fq
+from . import fq, tokenizer
