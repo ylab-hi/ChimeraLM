@@ -37,6 +37,7 @@ dependencies = [
     "torchmetrics>=1.6.0",
     "typer>=0.15.1",
     "deepbiop",
+    "transformers>=4.47.1",
 ]
 
 [tool.uv.sources]
@@ -170,7 +171,6 @@ ignore = [
     "D203",
     "D100",
     "D401",
-    "ANN102",
     "ANN001",
     "ANN002",
     "ANN003",

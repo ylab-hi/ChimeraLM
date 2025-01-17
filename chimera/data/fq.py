@@ -1,33 +1,18 @@
-from __future__ import annotations
-
 import multiprocessing
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from datasets import Dataset as HuggingFaceDataset
 from datasets import load_dataset
-from deepchopper.models.llm import (
-    DataCollatorForTokenClassificationWithQual,
-    tokenize_and_align_labels_and_quals,
-    tokenize_and_align_labels_and_quals_ids,
-)
 from lightning import LightningDataModule
 from torch.utils.data import DataLoader, Dataset
 
-if TYPE_CHECKING:
-    from transformers import AutoTokenizer
+from chimera.data.tokenizer import DataCollator
 
 
 class FqDataModule(LightningDataModule):
-    """`LightningDataModule` for the MNIST dataset.
-
-    The MNIST database of handwritten digits has a training set of 60,000 examples, and a test set of 10,000 examples.
-    It is a subset of a larger set available from NIST. The digits have been size-normalized and centered in a
-    fixed-size image. The original black and white images from NIST were size normalized to fit in a 20x20 pixel box
-    while preserving their aspect ratio. The resulting images contain grey levels as a result of the anti-aliasing
-    technique used by the normalization algorithm. the images were centered in a 28x28 image by computing the center of
-    mass of the pixels, and translating the image so as to position this point at the center of the 28x28 field.
+    """`LightningDataModule` for the fq dataset.
 
     A `LightningDataModule` implements 7 key methods:
 
@@ -66,12 +51,12 @@ class FqDataModule(LightningDataModule):
 
     def __init__(
         self,
-        tokenizer: AutoTokenizer,
+        tokenizer,
         train_data_path: Path,
         val_data_path: Path | None = None,
         test_data_path: Path | None = None,
         predict_data_path: Path | None = None,
-        train_val_test_split: tuple[float, float, float] = (0.8, 0.1, 0.1),
+        train_val_test_split: tuple[float, float, float] = (0.7, 0.2, 0.1),
         batch_size: int = 12,
         num_workers: int = 0,
         max_train_samples: int | None = None,
@@ -98,14 +83,11 @@ class FqDataModule(LightningDataModule):
         self.data_val: Dataset | None = None
         self.data_test: Dataset | None = None
         self.batch_size_per_device = batch_size
-        self.data_collator = DataCollatorForTokenClassificationWithQual(tokenizer)
+        self.data_collator = DataCollator(tokenizer)
 
     @property
     def num_classes(self) -> int:
-        """Get the number of classes.
-
-        :return: The number of MNIST classes (10).
-        """
+        """Get the number of classes."""
         return 2
 
     def prepare_data(self) -> None:
@@ -251,7 +233,7 @@ class FqDataModule(LightningDataModule):
                     max_length=self.hparams.tokenizer.max_len_single_sentence,
                 ),
                 num_proc=max(1, num_proc),  # type: ignore
-            ).remove_columns(["id", "seq", "qual", "target"])
+            ).remove_columns(["id", "seq", "qual"])
 
             self.data_val = val_dataset.map(
                 partial(
@@ -260,7 +242,7 @@ class FqDataModule(LightningDataModule):
                     max_length=self.hparams.tokenizer.max_len_single_sentence,
                 ),
                 num_proc=max(1, num_proc),  # type: ignore
-            ).remove_columns(["id", "seq", "qual", "target"])
+            ).remove_columns(["id", "seq", "qual"])
 
             self.data_test = test_dataset.map(
                 partial(
@@ -269,7 +251,7 @@ class FqDataModule(LightningDataModule):
                     max_length=self.hparams.tokenizer.max_len_single_sentence,
                 ),
                 num_proc=max(1, num_proc),  # type: ignore
-            ).remove_columns(["id", "seq", "qual", "target"])
+            ).remove_columns(["id", "seq", "qual"])
 
             del train_dataset, val_dataset, test_dataset
 
