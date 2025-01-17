@@ -8,10 +8,14 @@ from datasets import load_dataset
 from lightning import LightningDataModule
 from torch.utils.data import DataLoader, Dataset
 
-from chimera.data.tokenizer import DataCollator
+from chimera.data.tokenizer import (
+    DataCollator,
+    tokenize_and_align_labels_and_quals,
+    tokenize_and_align_labels_and_quals_ids,
+)
 
 
-class FqDataModule(LightningDataModule):
+class DataModule(LightningDataModule):
     """`LightningDataModule` for the fq dataset.
 
     A `LightningDataModule` implements 7 key methods:
@@ -182,7 +186,7 @@ class FqDataModule(LightningDataModule):
                 data_files["test"] = self.hparams.test_data_path
 
             if self.hparams.val_data_path is None or self.hparams.test_data_path is None:
-                split_percent = self.hparams.train_val_test_split
+                split_percent = [int(i * 100) for i in self.hparams.train_val_test_split]
 
                 train_dataset = load_dataset(
                     "parquet",

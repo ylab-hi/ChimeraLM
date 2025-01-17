@@ -5,6 +5,7 @@ from datasets import Dataset
 from deepbiop import fq
 from transformers import (
     DataCollatorWithPadding,
+    PreTrainedTokenizer,
 )
 
 IGNORE_INDEX = -100
@@ -97,9 +98,6 @@ def tokenize_dataset(dataset, tokenizer, max_length):
     return dataset.map(
         partial(tokenize_and_align_labels_and_quals, tokenizer=tokenizer, max_length=max_length)
     ).remove_columns(["id", "seq", "qual"])
-
-
-from transformers import PreTrainedTokenizer
 
 
 class Tokenizer(PreTrainedTokenizer):
@@ -253,6 +251,10 @@ def pad_without_fast_tokenizer_warning(tokenizer, *pad_args, **pad_kwargs):
 class DataCollator(DataCollatorWithPadding):
     def torch_call(self, features):
         import torch
+
+        import ipdb
+
+        ipdb.set_trace()
 
         label_name = "label" if "label" in features[0] else "labels"
         labels = [feature[label_name] for feature in features] if label_name in features[0] else None

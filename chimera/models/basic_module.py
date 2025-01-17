@@ -8,25 +8,6 @@ from torchmetrics import MaxMetric, MeanMetric
 from torchmetrics.classification import F1Score, Precision, Recall
 
 
-class ContinuousIntervalLoss(nn.Module):
-    """A custom loss function that penalizes the model for predicting different classes in consecutive positions."""
-
-    def __init__(self, lambda_penalty: float = 0, **kwargs):
-        super().__init__()
-        self.base = torch.nn.CrossEntropyLoss(**kwargs)
-        self.lambda_penalty = lambda_penalty
-
-    def forward(self, pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-        loss = self.base(pred, target)
-        if self.lambda_penalty == 0:
-            return loss
-        valid_mask = target != self.ignore_index
-        true_pred = pred.argmax(-1)[valid_mask]
-        true_target = target[valid_mask]
-        penalty = self.lambda_penalty * (true_pred[1:] != true_target[:-1]).float().mean()
-        return loss + penalty
-
-
 class ClassificationLit(LightningModule, PyTorchModelHubMixin):
     """A PyTorch Lightning module for training a token classification model."""
 
