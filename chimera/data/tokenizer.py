@@ -19,7 +19,13 @@ label2id = {"NEGATIVE": 0, "POSITIVE": 1}
 
 def parse_target(name):
     """Parse the target name to get the name and the target."""
-    rid, target = name.split("|")
+    number_of_item = 2
+    content = name.split("|")
+    if len(content) < number_of_item:
+        msg = f"Invalid target name: {name}"
+        raise ValueError(msg)
+
+    rid, target = content
     return rid, int(target)
 
 
