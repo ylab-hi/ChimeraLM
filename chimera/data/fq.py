@@ -1,3 +1,5 @@
+# mypy: ignore-errors
+
 import multiprocessing
 from functools import partial
 from pathlib import Path

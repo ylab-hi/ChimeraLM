@@ -155,3 +155,4 @@ configs/local/default.yaml
 uv.lock
 tmp/
 analysis/
+.cursorrules

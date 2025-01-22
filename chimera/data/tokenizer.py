@@ -102,7 +102,7 @@ def tokenize_dataset(dataset, tokenizer, max_length):
     ).remove_columns(["id", "seq", "qual"])
 
 
-class Tokenizer(PreTrainedTokenizer):
+class CharacterTokenizer(PreTrainedTokenizer):
     """Character tokenizer."""
 
     model_input_names = ["input_ids"]
@@ -220,7 +220,7 @@ class Tokenizer(PreTrainedTokenizer):
         """Get the vocabulary."""
         return self._vocab_str_to_int
 
-    def decode(self, token_ids, *, skip_special_tokens=False, **kwargs):
+    def decode(self, token_ids, *, skip_special_tokens=True, **kwargs):
         """Decode ids back to sequence string."""
         if isinstance(token_ids, dict):
             token_ids = token_ids["input_ids"]
@@ -232,6 +232,188 @@ class Tokenizer(PreTrainedTokenizer):
             token_ids = token_ids[0]  # Take first sequence if batch
 
         tokens = [self._convert_id_to_token(i) for i in token_ids["input_ids"]]
+        if skip_special_tokens:
+            tokens = [token for token in tokens if token not in self.all_special_tokens]
+
+        return self.convert_tokens_to_string(tokens)
+
+
+class KmerTokenizer(PreTrainedTokenizer):
+    """K-mer based tokenizer for DNA sequences.
+
+    A tokenizer that splits DNA sequences into overlapping k-mers and converts them into token IDs.
+    Inherits from PreTrainedTokenizer to integrate with the Hugging Face transformers library.
+
+    The tokenizer handles special tokens like [CLS], [SEP], [PAD], etc. and can encode/decode
+    between DNA sequences and token IDs.
+
+    Example:
+        >>> tokenizer = KmerTokenizer(k=6, model_max_length=512)
+        >>> sequence = "ACGTACGTACGT"  # Input DNA sequence
+        >>> encoded = tokenizer(sequence)  # Returns dict with input_ids
+        >>> decoded = tokenizer.decode(encoded)  # Recovers original sequence
+    """
+
+    model_input_names = ["input_ids"]
+
+    def __init__(
+        self,
+        k: int = 6,
+        model_max_length: int = 512,
+        bos_token="[BOS]",
+        eos_token="[SEP]",
+        sep_token="[SEP]",
+        cls_token="[CLS]",
+        pad_token="[PAD]",
+        mask_token="[MASK]",
+        unk_token="[UNK]",
+        **kwargs,
+    ):
+        """K-mer tokenizer for Hugging Face transformers.
+
+        Args:
+            k (int): Length of k-mers (default: 6)
+            model_max_length (int): Maximum sequence length
+            **kwargs: Additional arguments passed to PreTrainedTokenizer
+        """
+        self.k = k
+        self.model_max_length = model_max_length
+
+        # Generate all possible k-mers
+        nucleotides = ["A", "C", "G", "T", "N"]
+        kmers = self._generate_kmers(nucleotides, k)
+
+        # Create vocabulary mappings
+        self._vocab_str_to_int = {
+            "[CLS]": 0,
+            "[SEP]": 1,
+            "[BOS]": 2,
+            "[MASK]": 3,
+            "[PAD]": 4,
+            "[RESERVED]": 5,
+            "[UNK]": 6,
+            **{kmer: i + 7 for i, kmer in enumerate(kmers)},
+        }
+        self._vocab_int_to_str = {v: k for k, v in self._vocab_str_to_int.items()}
+
+        add_prefix_space = kwargs.pop("add_prefix_space", False)
+        padding_side = kwargs.pop("padding_side", "right")
+
+        super().__init__(
+            bos_token=bos_token,
+            eos_token=eos_token,
+            sep_token=sep_token,
+            cls_token=cls_token,
+            pad_token=pad_token,
+            mask_token=mask_token,
+            unk_token=unk_token,
+            add_prefix_space=add_prefix_space,
+            model_max_length=model_max_length,
+            padding_side=padding_side,
+            **kwargs,
+        )
+
+    def _generate_kmers(self, alphabet, k):
+        """Generate all possible k-mers from given alphabet."""
+        if k == 1:
+            return alphabet
+        kmers = []
+        for letter in alphabet:
+            for smaller_kmer in self._generate_kmers(alphabet, k - 1):
+                kmers.append(letter + smaller_kmer)
+        return sorted(kmers)
+
+    @property
+    def vocab_size(self) -> int:
+        """Returns the size of vocabulary."""
+        return len(self._vocab_str_to_int)
+
+    def _tokenize(self, text: str) -> list[str]:
+        """Convert text into k-mers."""
+        # Generate overlapping k-mers
+        kmers = [text[i : i + self.k] for i in range(len(text) - self.k + 1)]
+        # Handle sequences shorter than k
+        if not kmers:
+            return [text + "N" * (self.k - len(text)) if len(text) < self.k else text[: self.k]]
+        return kmers
+
+    def _convert_token_to_id(self, token: str) -> int:
+        """Convert token to id, using UNK token for unknown k-mers."""
+        return self._vocab_str_to_int.get(token, self._vocab_str_to_int["[UNK]"])
+
+    def _convert_id_to_token(self, index: int) -> str:
+        """Convert id back to token."""
+        return self._vocab_int_to_str[index]
+
+    def convert_tokens_to_string(self, tokens: list[str]) -> str:
+        """Convert k-mers back to sequence, handling overlaps."""
+        if not tokens:
+            return ""
+        sequence = tokens[0]
+        for token in tokens[1:]:
+            sequence += token[-1]
+        return sequence
+
+    def get_special_tokens_mask(
+        self,
+        token_ids_0: list[int],
+        token_ids_1: list[int] | None = None,
+        *,
+        already_has_special_tokens: bool = False,
+    ) -> list[int]:
+        """Retrieve sequence ids from a token list that corresponds to special tokens."""
+        if already_has_special_tokens:
+            return super().get_special_tokens_mask(
+                token_ids_0=token_ids_0,
+                token_ids_1=token_ids_1,
+                already_has_special_tokens=True,
+            )
+
+        result = ([0] * len(token_ids_0)) + [1]
+        if token_ids_1 is not None:
+            result += ([0] * len(token_ids_1)) + [1]
+        return result
+
+    def build_inputs_with_special_tokens(
+        self, token_ids_0: list[int], token_ids_1: list[int] | None = None
+    ) -> list[int]:
+        """Build model inputs from a sequence or a pair of sequences for sequence classification tasks by concatenating."""
+        sep = [self.sep_token_id]
+        cls = [self.cls_token_id]
+        result = cls + token_ids_0 + sep
+        if token_ids_1 is not None:
+            result += token_ids_1 + sep
+        return result
+
+    def get_vocab(self) -> dict[str, int]:
+        """Get the vocabulary."""
+        return self._vocab_str_to_int
+
+    def decode(self, token_ids, *, skip_special_tokens=False, **kwargs):
+        """Decode a list of token IDs back to a string.
+
+        Args:
+            token_ids: List of token IDs to decode
+            skip_special_tokens: Whether to remove special tokens from the decoded string
+            kwargs: Additional keyword arguments passed to convert_tokens_to_string()
+
+        Returns:
+            Decoded string
+        """
+
+    def decode(self, token_ids, *, skip_special_tokens=True, **kwargs):
+        """Decode ids back to sequence string."""
+        if isinstance(token_ids, dict):
+            token_ids = token_ids["input_ids"]
+
+        if isinstance(token_ids, torch.Tensor):
+            token_ids = token_ids.tolist()
+
+        if isinstance(token_ids, list) and isinstance(token_ids[0], list):
+            token_ids = token_ids[0]  # Take first sequence if batch
+
+        tokens = [self._convert_id_to_token(i) for i in token_ids["input_ids"]]
+
         if skip_special_tokens:
             tokens = [token for token in tokens if token not in self.all_special_tokens]
 
