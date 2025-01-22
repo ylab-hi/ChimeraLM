@@ -12,7 +12,6 @@ from transformers import (
 
 IGNORE_INDEX = -100
 
-
 id2label = {0: "NEGATIVE", 1: "POSITIVE"}
 label2id = {"NEGATIVE": 0, "POSITIVE": 1}
 
@@ -37,16 +36,14 @@ def encode_qual(qual, offset=33):
 def tokenize_and_align_labels_and_quals(data, tokenizer, max_length, pad_qual=0):
     """Tokenize the input data and align the labels and qualities."""
     tokenized_inputs = tokenizer(data["seq"], max_length=max_length, truncation=True, padding=True)
-    if len(data["seq"]) >= max_length:
-        quals = torch.cat((data["qual"][: max_length - 1], torch.tensor([pad_qual]))).float()
-        normalized_quals = torch.nn.functional.normalize(quals, dim=0)
+    seq_len = len(data["seq"])
+    if seq_len >= max_length:
+        quals = torch.cat((data["qual"][: max_length - 1], torch.tensor([pad_qual])))
     else:
-        quals = torch.cat((data["qual"], torch.tensor([pad_qual]))).float()
-        normalized_quals = torch.nn.functional.normalize(quals, dim=0)
+        quals = torch.cat((data["qual"], torch.tensor([pad_qual])))
 
-    # change id to ascii values
+    normalized_quals = torch.nn.functional.normalize(quals.float(), dim=0)
     rid, target = parse_target(data["id"])
-
     tokenized_inputs.update({"input_quals": normalized_quals, "label": target})
     return tokenized_inputs
 
@@ -56,26 +53,22 @@ def tokenize_and_align_labels_and_quals_ids(
 ):
     """Tokenize the input data and align the labels and qualities."""
     tokenized_inputs = tokenizer(data["seq"], max_length=max_length, truncation=True, padding=True)
-    truncation = False
 
-    if len(data["seq"]) >= max_length:
-        truncation = True
-        quals = torch.cat((data["qual"][: max_length - 1], torch.tensor([pad_qual]))).float()
-        normalized_quals = torch.nn.functional.normalize(quals, dim=0)
+    seq_len = len(data["seq"])
+    truncation = seq_len >= max_length
+
+    if truncation:
+        quals = torch.cat((data["qual"][: max_length - 1], torch.tensor([pad_qual])))
     else:
-        quals = torch.cat((data["qual"], torch.tensor([pad_qual]))).float()
-        normalized_quals = torch.nn.functional.normalize(quals, dim=0)
+        quals = torch.cat((data["qual"], torch.tensor([pad_qual])))
 
-    # change id to ascii values
+    normalized_quals = torch.nn.functional.normalize(quals.float(), dim=0)
+
     rid, target = parse_target(data["id"])
+    id_len = len(data["id"])
 
-    new_id = [len(data["id"]), int(truncation)]
-    new_id += [ord(char) for char in rid]
-
-    if len(new_id) > max_id_length:
-        new_id = new_id[:max_id_length]
-    elif len(new_id) < max_id_length:
-        new_id += [0] * (max_id_length - len(new_id))
+    new_id = [id_len, int(truncation)] + [ord(char) for char in rid]
+    new_id = new_id[:max_id_length] if len(new_id) > max_id_length else new_id + [0] * (max_id_length - len(new_id))
 
     tokenized_inputs.update({"input_quals": normalized_quals, "id": new_id, "label": target})
     return tokenized_inputs
@@ -395,18 +388,6 @@ class KmerTokenizer(PreTrainedTokenizer):
     def get_vocab(self) -> dict[str, int]:
         """Get the vocabulary."""
         return self._vocab_str_to_int
-
-    def decode(self, token_ids, *, skip_special_tokens=False, **kwargs):
-        """Decode a list of token IDs back to a string.
-
-        Args:
-            token_ids: List of token IDs to decode
-            skip_special_tokens: Whether to remove special tokens from the decoded string
-            kwargs: Additional keyword arguments passed to convert_tokens_to_string()
-
-        Returns:
-            Decoded string
-        """
 
     def decode(self, token_ids, *, skip_special_tokens=True, **kwargs):
         """Decode ids back to sequence string."""
