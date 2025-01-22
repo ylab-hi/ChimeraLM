@@ -1,3 +1,5 @@
+# ruff: noqa: S107
+
 from functools import partial
 
 import torch
@@ -101,6 +103,8 @@ def tokenize_dataset(dataset, tokenizer, max_length):
 
 
 class Tokenizer(PreTrainedTokenizer):
+    """Character tokenizer."""
+
     model_input_names = ["input_ids"]
 
     def __init__(
@@ -165,6 +169,7 @@ class Tokenizer(PreTrainedTokenizer):
 
     @property
     def vocab_size(self) -> int:
+        """Returns the size of the vocabulary."""
         return len(self._vocab_str_to_int)
 
     def _tokenize(self, text: str) -> list[str]:
@@ -177,6 +182,7 @@ class Tokenizer(PreTrainedTokenizer):
         return self._vocab_int_to_str[index]
 
     def convert_tokens_to_string(self, tokens):
+        """Converts a sequence of tokens to a single string."""
         return "".join(tokens)
 
     def get_special_tokens_mask(
@@ -186,6 +192,7 @@ class Tokenizer(PreTrainedTokenizer):
         *,
         already_has_special_tokens: bool = False,
     ) -> list[int]:
+        """Retrieve sequence ids from a token list that corresponds to special tokens."""
         if already_has_special_tokens:
             return super().get_special_tokens_mask(
                 token_ids_0=token_ids_0,
@@ -201,6 +208,7 @@ class Tokenizer(PreTrainedTokenizer):
     def build_inputs_with_special_tokens(
         self, token_ids_0: list[int], token_ids_1: list[int] | None = None
     ) -> list[int]:
+        """Build model inputs from a sequence or a pair of sequences for sequence classification tasks by concatenating."""
         sep = [self.sep_token_id]
         cls = [self.cls_token_id]
         result = cls + token_ids_0 + sep
@@ -209,9 +217,10 @@ class Tokenizer(PreTrainedTokenizer):
         return result
 
     def get_vocab(self) -> dict[str, int]:
+        """Get the vocabulary."""
         return self._vocab_str_to_int
 
-    def decode(self, token_ids, skip_special_tokens=False, **kwargs):
+    def decode(self, token_ids, *, skip_special_tokens=False, **kwargs):
         """Decode ids back to sequence string."""
         if isinstance(token_ids, dict):
             token_ids = token_ids["input_ids"]
@@ -222,7 +231,7 @@ class Tokenizer(PreTrainedTokenizer):
         if isinstance(token_ids, list) and isinstance(token_ids[0], list):
             token_ids = token_ids[0]  # Take first sequence if batch
 
-        tokens = [self._convert_id_to_token(id) for id in token_ids["input_ids"]]
+        tokens = [self._convert_id_to_token(i) for i in token_ids["input_ids"]]
         if skip_special_tokens:
             tokens = [token for token in tokens if token not in self.all_special_tokens]
 
@@ -249,12 +258,10 @@ def pad_without_fast_tokenizer_warning(tokenizer, *pad_args, **pad_kwargs):
 
 
 class DataCollator(DataCollatorWithPadding):
+    """Data collator for tokenized datasets."""
+
     def torch_call(self, features):
-        import ipdb
-        import torch
-
-        ipdb.set_trace()
-
+        """Collate the input features."""
         label_name = "label" if "label" in features[0] else "labels"
         labels = [feature[label_name] for feature in features] if label_name in features[0] else None
 
