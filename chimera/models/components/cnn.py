@@ -7,6 +7,7 @@ class DNAConvNet(nn.Module):
     def __init__(
         self,
         seq_len: int,
+        in_channels=4,
         num_classes: int = 2,
         num_filters: list[int] = [256, 256, 256],
         kernel_sizes: list[int] = [7, 7, 7],
@@ -15,9 +16,6 @@ class DNAConvNet(nn.Module):
     ):
         super().__init__()
         self.number_of_classes = num_classes
-
-        # Input layer: one-hot encoding (4 channels for A,T,C,G)
-        in_channels = 4
 
         # Create convolutional blocks
         self.conv_blocks = nn.ModuleList()
