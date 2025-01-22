@@ -11,6 +11,10 @@ def main(train_data, max_len=100000):
     train_data_loader = fq_data_module.train_dataloader()
     data_iterator = iter(train_data_loader)
 
+    d1 = next(data_iterator)
+
+    print(d1)
+
     print("Data loaded successfully")
 
 

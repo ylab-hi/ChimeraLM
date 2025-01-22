@@ -44,7 +44,7 @@ def tokenize_and_align_labels_and_quals(data, tokenizer, max_length, pad_qual=0)
 
     normalized_quals = torch.nn.functional.normalize(quals.float(), dim=0)
     rid, target = parse_target(data["id"])
-    tokenized_inputs.update({"input_quals": normalized_quals, "label": target})
+    tokenized_inputs.update({"input_quals": normalized_quals, "labels": target})
     return tokenized_inputs
 
 
@@ -70,7 +70,7 @@ def tokenize_and_align_labels_and_quals_ids(
     new_id = [id_len, int(truncation)] + [ord(char) for char in rid]
     new_id = new_id[:max_id_length] if len(new_id) > max_id_length else new_id + [0] * (max_id_length - len(new_id))
 
-    tokenized_inputs.update({"input_quals": normalized_quals, "id": new_id, "label": target})
+    tokenized_inputs.update({"input_quals": normalized_quals, "id": new_id, "labels": target})
     return tokenized_inputs
 
 
@@ -474,6 +474,7 @@ class DataCollator(DataCollatorWithPadding):
             ]
 
         batch[qual_name] = torch.tensor(batch[qual_name], dtype=torch.float32)
+        batch[label_name] = torch.tensor(labels, dtype=torch.int64)
 
         # for predction dataset and save id feature
         if id_name in features[0]:
