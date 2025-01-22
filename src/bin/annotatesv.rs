@@ -1,4 +1,4 @@
-//! Annotate structral variant events in dirty bam with clean bam
+//! Annotate structural variant events in dirty bam with clean bam
 
 use ahash::HashMap;
 use ahash::HashMapExt;

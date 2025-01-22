@@ -187,7 +187,7 @@ ignore = [
     "N806",
     "N815",
     "EM101",
-    # formater conflict
+    # formatter conflict
     'COM812',
     'COM819',
     'D206',

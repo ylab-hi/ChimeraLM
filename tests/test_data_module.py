@@ -1,4 +1,4 @@
-import chimera 
+import chimera
 
 def test_data_module():
     # Load the training data
