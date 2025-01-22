@@ -109,7 +109,7 @@ class CharacterTokenizer(PreTrainedTokenizer):
 
     def __init__(
         self,
-        model_max_length: int,
+        model_max_length: int | None = None,
         bos_token="[BOS]",
         eos_token="[SEP]",
         sep_token="[SEP]",
@@ -231,7 +231,7 @@ class CharacterTokenizer(PreTrainedTokenizer):
         if isinstance(token_ids, list) and isinstance(token_ids[0], list):
             token_ids = token_ids[0]  # Take first sequence if batch
 
-        tokens = [self._convert_id_to_token(i) for i in token_ids["input_ids"]]
+        tokens = [self._convert_id_to_token(i) for i in token_ids]
         if skip_special_tokens:
             tokens = [token for token in tokens if token not in self.all_special_tokens]
 
@@ -258,8 +258,9 @@ class KmerTokenizer(PreTrainedTokenizer):
 
     def __init__(
         self,
+        *,
         k: int = 6,
-        model_max_length: int = 512,
+        model_max_length: int | None = None,
         bos_token="[BOS]",
         eos_token="[SEP]",
         sep_token="[SEP]",
@@ -412,8 +413,7 @@ class KmerTokenizer(PreTrainedTokenizer):
         if isinstance(token_ids, list) and isinstance(token_ids[0], list):
             token_ids = token_ids[0]  # Take first sequence if batch
 
-        tokens = [self._convert_id_to_token(i) for i in token_ids["input_ids"]]
-
+        tokens = [self._convert_id_to_token(i) for i in token_ids]
         if skip_special_tokens:
             tokens = [token for token in tokens if token not in self.all_special_tokens]
 
