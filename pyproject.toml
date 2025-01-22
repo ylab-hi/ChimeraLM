@@ -36,8 +36,8 @@ dependencies = [
     "torch>=2.5.1",
     "torchmetrics>=1.6.0",
     "typer>=0.15.1",
-    "deepbiop",
     "transformers>=4.47.1",
+    "deepbiop",
 ]
 
 [tool.uv.sources]
