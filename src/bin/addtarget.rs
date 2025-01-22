@@ -63,7 +63,7 @@ fn worker<P: AsRef<Path>>(fq: P, pos: P, neg: P, threads: Option<usize>) -> Resu
     });
 
     let result_path = format!(
-        "{}.target.fq.bgz",
+        "{}.target.fq.gz",
         fq.as_ref().file_stem().unwrap().to_string_lossy()
     );
 
