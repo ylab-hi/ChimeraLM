@@ -47,6 +47,7 @@ deepbiop = { path = "../DeepBioP/py-deepbiop" }
 
 [dependency-groups]
 dev = [
+    "fire>=0.7.0",
     "hydra-colorlog>=1.2.0",
     "hydra-optuna-sweeper>=1.2.0",
     "hydra-submitit-launcher>=1.2.0",
@@ -196,6 +197,7 @@ ignore = [
     'Q003',
     'W191',
 ]
+exclude = ["*.ipynb"]
 
 [tool.ruff.format]
 # Like Black, use double quotes for strings.
