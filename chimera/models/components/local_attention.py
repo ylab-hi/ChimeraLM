@@ -1,5 +1,5 @@
 import torch
-import torch.nn.functional as F
+import torch.nn.functional as F  # noqa: N812
 from torch import nn
 
 
@@ -107,15 +107,17 @@ class DNAClassifierNet(nn.Module):
     def __init__(
         self,
         seq_len: int,
+        vocab_size: int,
         embed_dim: int = 256,
         num_layers: int = 3,
         num_heads: int = 8,
         window_size: int = 512,
         num_classes: int = 2,
+        padding_idx: int = 4,
     ):
         super().__init__()
         self.number_of_classes = num_classes
-        self.embedding = nn.Embedding(self.vocab_size, embed_dim)
+        self.embedding = nn.Embedding(num_embeddings=vocab_size, embedding_dim=embed_dim, padding_idx=padding_idx)
 
         # Hierarchical processing with local attention
         self.local_layers = nn.ModuleList(

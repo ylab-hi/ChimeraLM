@@ -108,17 +108,19 @@ class MambaDNAClassifier(nn.Module):
     def __init__(
         self,
         seq_len: int,
+        vocab_size: int,
         d_model: int = 256,
         n_layers: int = 4,
         d_state: int = 16,
         expand_factor: int = 2,
         num_classes: int = 2,
+        padding_idx: int = 4,
     ):
         super().__init__()
         self.number_of_classes = num_classes
 
         # Embedding
-        self.embedding = nn.Embedding(self.vocab_size, d_model)
+        self.embedding = nn.Embedding(num_embeddings=vocab_size, embedding_dim=d_model, padding_idx=padding_idx)
 
         # Mamba layers
         self.layers = nn.ModuleList(

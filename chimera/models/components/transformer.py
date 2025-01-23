@@ -15,6 +15,7 @@ class SequenceTransformer(nn.Module):
         num_decoder_layers: int = 6,
         dim_feedforward: int = 2048,
         dropout: float = 0.1,
+        padding_idx: int = 4,
     ):
         """Transformer model for sequence classification with encoder-decoder architecture.
 
@@ -36,7 +37,7 @@ class SequenceTransformer(nn.Module):
         self.cls_token = nn.Parameter(torch.randn(1, 1, d_model))
 
         # Embedding layers for sequence and quality scores
-        self.token_embedding = nn.Embedding(vocab_size, d_model)
+        self.embedding = nn.Embedding(vocab_size, d_model, padding_idx=padding_idx)
         self.qual_linear = nn.Linear(1, d_model)
 
         # Positional encoding
@@ -75,7 +76,7 @@ class SequenceTransformer(nn.Module):
         batch_size = input_ids.size(0)
 
         # Create embeddings
-        token_embeds = self.token_embedding(input_ids)
+        token_embeds = self.embedding(input_ids)
         qual_embeds = self.qual_linear(input_quals.unsqueeze(-1))
 
         # Combine embeddings

@@ -6,6 +6,8 @@ from torch import nn
 
 
 class HyenaOperator(nn.Module):
+    """Hyena operator for DNA sequence processing."""
+
     def __init__(
         self,
         d_model: int,
@@ -124,6 +126,7 @@ class HyenaDNAClassifier(nn.Module):
     def __init__(
         self,
         seq_len: int,
+        vocab_size: int,
         d_model: int = 256,
         n_layers: int = 4,
         num_heads: int = 4,
@@ -132,12 +135,13 @@ class HyenaDNAClassifier(nn.Module):
         inner_factor: float = 2.0,
         num_classes: int = 2,
         dropout: float = 0.1,
+        padding_idx: int = 4,
     ):
         super().__init__()
         self.number_of_classes = num_classes
 
         # Embedding
-        self.embedding = nn.Embedding(self.vocab_size, d_model)
+        self.embedding = nn.Embedding(num_embeddings=vocab_size, embedding_dim=d_model, padding_idx=padding_idx)
 
         # Input normalization
         self.norm = nn.LayerNorm(d_model)
