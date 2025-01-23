@@ -27,10 +27,10 @@ class ClassificationLit(LightningModule, PyTorchModelHubMixin):
         """
         super().__init__()
 
-        # self.example_input_array = {
-        #     "input_ids": torch.randint(0, 11, (1, 1000)),
-        #     "input_quals": torch.rand(1, 1000),
-        # }  # [batch, seq_len]
+        self.example_input_array = {
+            "input_ids": torch.randint(0, 11, (1, 1000)),
+            "input_quals": torch.rand(1, 1000),
+        }  # [batch, seq_len]
 
         # this line allows to access init params with 'self.hparams' attribute
         # also ensures init params will be stored in ckpt

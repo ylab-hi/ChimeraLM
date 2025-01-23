@@ -1,4 +1,14 @@
-_target_: chimera.models.basic_module.TokenClassificationLit
+_target_: chimera.models.basic_module.ClassificationLit
+
+net:
+  _target_: chimera.models.cnn.DNAConvNet
+  vocab_size: 12
+  number_of_classes: 2
+  embedding_dim: 256
+  num_filters: [256, 256, 256]
+  kernel_sizes: [7, 7, 7]
+  pool_sizes: [4, 4, 4]
+  dropout: 0.1
 
 optimizer:
   _target_: torch.optim.Adam
@@ -13,17 +23,8 @@ scheduler:
   factor: 0.1
   patience: 10
 
-net:
-  _target_: chimera.models.cnn.BenchmarkCNN
-  number_of_classes: 2
-  vocab_size: 11
-  num_filters: [128, 256, 512]
-  filter_sizes: [7, 9, 11]
-  embedding_dim: 100
-
 criterion:
-  _target_: chimera.models.basic_module.ContinuousIntervalLoss
-  lambda_penalty: 0
+  _target_: torch.nn.CrossEntropyLoss
 
 # compile model for faster training with pytorch 2.0
 compile: false

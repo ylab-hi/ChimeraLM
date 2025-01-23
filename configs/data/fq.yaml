@@ -1,14 +1,13 @@
-_target_: chimera.data.fq_datamodule.FqDataModule
+_target_: chimera.data.fq.DataModule
 
 tokenizer:
-  _target_: chimera.models.llm.load_tokenizer_from_hyena_model
-  model_name: hyenadna-small-32k-seqlen
+  _target_: chimera.data.tokenizer.CharacterTokenizer
 
-train_data_path: ${paths.root_dir}/tests/data/6000_train.parquet
-val_data_path: ${paths.root_dir}/tests/data/6000_val.parquet
-test_data_path: ${paths.root_dir}/tests/data/6000_test.parquet
+train_data_path: ${paths.root_dir}/data/train_data/120000/test.fq.target.fq.parquet
+# val_data_path:
+# test_data_path:
 batch_size: 12 # Needs to be divisible by the number of devices (e.g., if in a distributed setup)
-train_val_test_split: [80, 10, 10] # percent
+train_val_test_split: [0.7, 0.2, 0.1] # percent
 num_workers: 0
 pin_memory: False
 max_val_samples: 3000
