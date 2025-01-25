@@ -3,7 +3,7 @@ import fire
 
 def main(train_data, max_len=100000):
     # Load the training data
-    tokenizer = chimera.data.tokenizer.CharacterTokenizer(model_max_length=max_len)
+    tokenizer = chimera.data.tokenizer.CharacterTokenizer(max_length=max_len)
 
     fq_data_module  = chimera.data.fq.DataModule(tokenizer, train_data)
     fq_data_module.prepare_data()

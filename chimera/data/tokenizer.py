@@ -1,9 +1,6 @@
 # ruff: noqa: S107
 
-from functools import partial
-
 import torch
-from datasets import Dataset
 from deepbiop import fq
 from transformers import (
     DataCollatorWithPadding,
@@ -74,31 +71,80 @@ def tokenize_and_align_labels_and_quals_ids(
     return tokenized_inputs
 
 
-def tokenize_dataset(dataset, tokenizer, max_length):
-    """Tokenizes the input dataset using the provided tokenizer and aligns labels and qualities.
+def pad_without_fast_tokenizer_warning(tokenizer, *pad_args, **pad_kwargs):
+    """Pads without triggering the warning about how using the pad function is sub-optimal when using a fast tokenizer."""
+    # To avoid errors when using Feature extractors
+    if not hasattr(tokenizer, "deprecation_warnings"):
+        return tokenizer.pad(*pad_args, **pad_kwargs)
 
-    Args:
-        dataset (Dataset): The input dataset to be tokenized.
-        tokenizer (Tokenizer): The tokenizer to be used for tokenization.
-        max_length (int): The maximum length of the tokenized sequences.
+    # Save the state of the warning, then disable it
+    warning_state = tokenizer.deprecation_warnings.get("Asking-to-pad-a-fast-tokenizer", False)
+    tokenizer.deprecation_warnings["Asking-to-pad-a-fast-tokenizer"] = True
 
-    Returns:
-        Tokenized dataset with aligned labels and qualities.
+    try:
+        padded = tokenizer.pad(*pad_args, **pad_kwargs)
+    finally:
+        # Restore the state of the warning.
+        tokenizer.deprecation_warnings["Asking-to-pad-a-fast-tokenizer"] = warning_state
 
-    Raises:
-        ValueError: If the dataset is empty or if the tokenizer is not provided.
-        TypeError: If the dataset is not of type Dataset or if the tokenizer is not of type Tokenizer.
-    """
-    if not dataset:
-        raise ValueError("Input dataset is empty")
-    if not tokenizer:
-        raise ValueError("Tokenizer is not provided")
-    if not isinstance(dataset, Dataset):
-        raise TypeError("Input dataset must be of type Dataset")
+    return padded
 
-    return dataset.map(
-        partial(tokenize_and_align_labels_and_quals, tokenizer=tokenizer, max_length=max_length)
-    ).remove_columns(["id", "seq", "qual"])
+
+class DataCollator(DataCollatorWithPadding):
+    """Data collator for tokenized datasets."""
+
+    def torch_call(self, features):
+        """Collate the input features."""
+        label_name = "label" if "label" in features[0] else "labels"
+        labels = [feature[label_name] for feature in features] if label_name in features[0] else None
+
+        qual_name = "input_quals"
+        qual_pad_token_id = 0
+        input_quals = [feature[qual_name] for feature in features]
+
+        id_name = "id"  # for predction dataset
+
+        no_labels_features = [
+            {k: v for k, v in feature.items() if k not in [qual_name, label_name, id_name]} for feature in features
+        ]
+
+        batch = pad_without_fast_tokenizer_warning(
+            self.tokenizer,
+            no_labels_features,
+            padding=self.padding,
+            max_length=self.tokenizer.max_length,
+            pad_to_multiple_of=self.pad_to_multiple_of,
+            return_tensors="pt",
+        )
+
+        if labels is None:
+            return batch
+
+        sequence_length = batch["input_ids"].shape[1]
+        padding_side = self.tokenizer.padding_side
+
+        def to_list(tensor_or_iterable):
+            if isinstance(tensor_or_iterable, torch.Tensor):
+                return tensor_or_iterable.tolist()
+            return list(tensor_or_iterable)
+
+        if padding_side == "right":
+            batch[qual_name] = [
+                to_list(qual) + [qual_pad_token_id] * (sequence_length - len(qual)) for qual in input_quals
+            ]
+        else:
+            batch[qual_name] = [
+                [qual_pad_token_id] * (sequence_length - len(qual)) + to_list(qual) for qual in input_quals
+            ]
+
+        batch[qual_name] = torch.tensor(batch[qual_name], dtype=torch.float32)
+        batch[label_name] = torch.tensor(labels, dtype=torch.int64)
+
+        # for predction dataset and save id feature
+        if id_name in features[0]:
+            batch[id_name] = torch.tensor([to_list(feature[id_name]) for feature in features], dtype=torch.int8)
+
+        return batch
 
 
 class CharacterTokenizer(PreTrainedTokenizer):
@@ -108,7 +154,9 @@ class CharacterTokenizer(PreTrainedTokenizer):
 
     def __init__(
         self,
-        model_max_length: int | None = None,
+        max_length: int | None = None,
+        padding_side: str = "right",
+        add_prefix_space: bool = False,
         bos_token="[BOS]",
         eos_token="[SEP]",
         sep_token="[SEP]",
@@ -133,10 +181,10 @@ class CharacterTokenizer(PreTrainedTokenizer):
                     "[RESERVED]": 5
                     "[UNK]": 6
                 an id (starting at 7) will be assigned to each character.
-            model_max_length (int): Model maximum sequence length.
+            max_length (int): Model maximum sequence length.
         """
         self.characters = ("A", "C", "G", "T", "N")
-        self.model_max_length = model_max_length
+        self.max_length = max_length
 
         self._vocab_str_to_int = {
             "[CLS]": 0,
@@ -149,8 +197,9 @@ class CharacterTokenizer(PreTrainedTokenizer):
             **{ch: i + 7 for i, ch in enumerate(self.characters)},
         }
         self._vocab_int_to_str = {v: k for k, v in self._vocab_str_to_int.items()}
-        add_prefix_space = kwargs.pop("add_prefix_space", False)
-        padding_side = kwargs.pop("padding_side", "right")
+
+        add_prefix_space = kwargs.pop("add_prefix_space", add_prefix_space)
+        padding_side = kwargs.pop("padding_side", padding_side)
 
         super().__init__(
             bos_token=bos_token,
@@ -161,7 +210,7 @@ class CharacterTokenizer(PreTrainedTokenizer):
             mask_token=mask_token,
             unk_token=unk_token,
             add_prefix_space=add_prefix_space,
-            model_max_length=model_max_length,
+            model_max_length=max_length,
             padding_side=padding_side,
             **kwargs,
         )
@@ -405,79 +454,3 @@ class KmerTokenizer(PreTrainedTokenizer):
             tokens = [token for token in tokens if token not in self.all_special_tokens]
 
         return self.convert_tokens_to_string(tokens)
-
-
-def pad_without_fast_tokenizer_warning(tokenizer, *pad_args, **pad_kwargs):
-    """Pads without triggering the warning about how using the pad function is sub-optimal when using a fast tokenizer."""
-    # To avoid errors when using Feature extractors
-    if not hasattr(tokenizer, "deprecation_warnings"):
-        return tokenizer.pad(*pad_args, **pad_kwargs)
-
-    # Save the state of the warning, then disable it
-    warning_state = tokenizer.deprecation_warnings.get("Asking-to-pad-a-fast-tokenizer", False)
-    tokenizer.deprecation_warnings["Asking-to-pad-a-fast-tokenizer"] = True
-
-    try:
-        padded = tokenizer.pad(*pad_args, **pad_kwargs)
-    finally:
-        # Restore the state of the warning.
-        tokenizer.deprecation_warnings["Asking-to-pad-a-fast-tokenizer"] = warning_state
-
-    return padded
-
-
-class DataCollator(DataCollatorWithPadding):
-    """Data collator for tokenized datasets."""
-
-    def torch_call(self, features):
-        """Collate the input features."""
-        label_name = "label" if "label" in features[0] else "labels"
-        labels = [feature[label_name] for feature in features] if label_name in features[0] else None
-
-        qual_name = "input_quals"
-        qual_pad_token_id = 0
-        input_quals = [feature[qual_name] for feature in features]
-
-        id_name = "id"  # for predction dataset
-
-        no_labels_features = [
-            {k: v for k, v in feature.items() if k not in [qual_name, label_name, id_name]} for feature in features
-        ]
-
-        batch = pad_without_fast_tokenizer_warning(
-            self.tokenizer,
-            no_labels_features,
-            padding=self.padding,
-            max_length=self.max_length,
-            pad_to_multiple_of=self.pad_to_multiple_of,
-            return_tensors="pt",
-        )
-
-        if labels is None:
-            return batch
-
-        sequence_length = batch["input_ids"].shape[1]
-        padding_side = self.tokenizer.padding_side
-
-        def to_list(tensor_or_iterable):
-            if isinstance(tensor_or_iterable, torch.Tensor):
-                return tensor_or_iterable.tolist()
-            return list(tensor_or_iterable)
-
-        if padding_side == "right":
-            batch[qual_name] = [
-                to_list(qual) + [qual_pad_token_id] * (sequence_length - len(qual)) for qual in input_quals
-            ]
-        else:
-            batch[qual_name] = [
-                [qual_pad_token_id] * (sequence_length - len(qual)) + to_list(qual) for qual in input_quals
-            ]
-
-        batch[qual_name] = torch.tensor(batch[qual_name], dtype=torch.float32)
-        batch[label_name] = torch.tensor(labels, dtype=torch.int64)
-
-        # for predction dataset and save id feature
-        if id_name in features[0]:
-            batch[id_name] = torch.tensor([to_list(feature[id_name]) for feature in features], dtype=torch.int8)
-
-        return batch

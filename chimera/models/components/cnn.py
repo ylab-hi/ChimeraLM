@@ -6,20 +6,14 @@ class DNAConvNet(nn.Module):
     def __init__(
         self,
         vocab_size: int,  # Size of vocabulary including special tokens
+        embedding_dim: int,  # Embedding dimension
+        num_filters: int,
+        kernel_sizes: int,
+        pool_sizes: int,
         number_of_classes: int = 2,
-        embedding_dim: int = 256,  # Embedding dimension
-        num_filters: list[int] | None = None,
-        kernel_sizes: list[int] | None = None,
-        pool_sizes: list[int] | None = None,
         dropout: float = 0.1,
         padding_idx: int = 4,  # Padding token ID
     ):
-        if pool_sizes is None:
-            pool_sizes = [4, 4, 4]
-        if kernel_sizes is None:
-            kernel_sizes = [7, 7, 7]
-        if num_filters is None:
-            num_filters = [256, 256, 256]
         super().__init__()
         self.number_of_classes = number_of_classes
 

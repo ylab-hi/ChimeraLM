@@ -75,7 +75,7 @@ class DataModule(LightningDataModule):
         """Initialize a `FqDataModule`.
 
         :param train_val_test_split: The train, validation and test split. Defaults to `(55_000, 5_000, 10_000)`.
-        :param batch_size: The batch size. Defaults to `64`.
+        :param batch_size: The batch size.
         :param num_workers: The number of workers. Defaults to `0`.
         :param pin_memory: Whether to pin memory. Defaults to `False`.
         """
