@@ -1,7 +1,7 @@
 # @package _global_
 
 # to execute this experiment run:
-# python train.py experiment=example
+# uv run train.py experiment=example
 
 defaults:
   - override /data: fq
@@ -29,7 +29,6 @@ model:
     max_length: 30000
     embedding_dim: 256
     number_of_layers: 12
-    max_length: 30000
     dropout: 0.1
     d_state: 16
     d_conv: 4
@@ -40,9 +39,12 @@ data:
     max_length: 30000
     padding_side: "left"
 
-  train_data_path: ${paths.root_dir}/data/120_0000_samples/train.parquet
-  val_data_path: ${paths.root_dir}/data/120_0000_samples/val.parquet
-  test_data_path: ${paths.root_dir}/data/120_0000_samples/test.parquet
+  # train_data_path: ${paths.root_dir}/data/train_data/120000/train.fq.target.fq.parquet
+  # val_data_path: ${paths.root_dir}/data/train_data/120000/val.fq.target.fq.parquet
+  # test_data_path: ${paths.root_dir}/data/train_data/120000/test.fq.target.fq.parquet
+
+  train_data_path: ${paths.root_dir}/data/train_data/120000/test.fq.target.fq.parquet
+
   batch_size: 12
   num_workers: 31
   pin_memory: False

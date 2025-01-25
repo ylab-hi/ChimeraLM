@@ -6,17 +6,7 @@ from torch import Tensor, nn
 
 
 class MambaSequenceClassification(nn.Module):
-    """Mamba model for sequence classification tasks with multiple Mamba layers.
-
-    Attributes:
-        d_model: Hidden dimension of the model
-        n_layers: Number of Mamba layers
-        n_classes: Number of output classes
-        vocab_size: Size of vocabulary for embedding layer
-        max_seq_len: Maximum sequence length
-        pad_id: Padding token ID
-        dropout: Dropout probability
-    """
+    """Mamba model for sequence classification tasks with multiple Mamba layers."""
 
     def __init__(
         self,
@@ -32,6 +22,7 @@ class MambaSequenceClassification(nn.Module):
         padding_idx: int = 4,
     ):
         super().__init__()
+        self.number_of_classes = number_of_classes
 
         self.embedding = nn.Embedding(vocab_size, embedding_dim, padding_idx=padding_idx)
         self.pos_embedding = nn.Parameter(torch.zeros(1, max_length, embedding_dim))
