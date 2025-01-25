@@ -1,9 +1,99 @@
 import math
 
 import torch
-from torch import nn
+from mamba_ssm import Mamba
+from torch import Tensor, nn
 
 # https://github.com/state-spaces/mamba
+
+
+class MambaSequenceClassification(nn.Module):
+    """Mamba model for sequence classification tasks with multiple Mamba layers.
+
+    Attributes:
+        d_model: Hidden dimension of the model
+        n_layers: Number of Mamba layers
+        n_classes: Number of output classes
+        vocab_size: Size of vocabulary for embedding layer
+        max_seq_len: Maximum sequence length
+        pad_id: Padding token ID
+        dropout: Dropout probability
+    """
+
+    def __init__(
+        self,
+        d_model: int = 768,
+        n_layers: int = 12,
+        n_classes: int = 2,
+        vocab_size: int = 4,  # DNA bases
+        max_seq_len: int = 1024,
+        pad_id: int = 0,
+        dropout: float = 0.1,
+    ):
+        super().__init__()
+
+        self.embedding = nn.Embedding(vocab_size, d_model, padding_idx=pad_id)
+        self.pos_embedding = nn.Parameter(torch.zeros(1, max_seq_len, d_model))
+
+        # Stack of Mamba layers
+        self.layers = nn.ModuleList(
+            [
+                Mamba(
+                    d_model=d_model,
+                    d_state=16,  # Default state dimension
+                    d_conv=4,  # Default conv dimension
+                    expand=2,  # Default expansion factor
+                )
+                for _ in range(n_layers)
+            ]
+        )
+
+        self.layer_norm = nn.LayerNorm(d_model)
+        self.dropout = nn.Dropout(dropout)
+        self.classifier = nn.Linear(d_model, n_classes)
+
+        # Initialize position embeddings
+        nn.init.normal_(self.pos_embedding, std=0.02)
+
+    def forward(
+        self,
+        x: Tensor,
+        attention_mask: Tensor | None = None,
+    ) -> Tensor:
+        """Forward pass of the model.
+
+        Args:
+            x: Input tensor of shape (batch_size, seq_len)
+            attention_mask: Optional mask tensor of shape (batch_size, seq_len)
+
+        Returns:
+            Classification logits of shape (batch_size, n_classes)
+        """
+        # Embed input
+        x = self.embedding(x)  # (batch, seq_len, d_model)
+        x = x + self.pos_embedding[:, : x.size(1), :]
+
+        # Apply mask if provided
+        if attention_mask is not None:
+            x = x * attention_mask.unsqueeze(-1)
+
+        # Pass through Mamba layers
+        for layer in self.layers:
+            # Residual connection
+            residual = x
+            x = layer(x)
+            x = x + residual
+            x = self.layer_norm(x)
+
+            if attention_mask is not None:
+                x = x * attention_mask.unsqueeze(-1)
+
+        # Pool sequence - use mean pooling
+        x = x.mean(dim=1)  # (batch, d_model)
+
+        # Classify
+        x = self.dropout(x)
+        return self.classifier(x)  # (batch, n_classes)
 
 
 class SelectiveScan(nn.Module):
