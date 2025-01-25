@@ -10,5 +10,5 @@ batch_size: 12 # Needs to be divisible by the number of devices (e.g., if in a d
 train_val_test_split: [0.7, 0.2, 0.1] # percent
 num_workers: 0
 pin_memory: False
-max_val_samples: 3000
-max_test_samples: 3000
+# max_val_samples: 3000
+# max_test_samples: 3000

@@ -5,7 +5,7 @@
 
 defaults:
   - override /data: fq
-  - override /model: caduceus
+  - override /model: mamba
   - override /callbacks: default
   - override /trainer: gpu
 
@@ -16,7 +16,7 @@ callbacks:
   early_stopping:
     patience: 15
 
-tags: ["caduceus_1200000"]
+tags: ["mamba"]
 
 seed: 12345
 
@@ -24,18 +24,32 @@ trainer:
   min_epochs: 10
   max_epochs: 60
 
+model:
+  net:
+    max_length: 30000
+    embedding_dim: 256
+    number_of_layers: 12
+    max_length: 30000
+    dropout: 0.1
+    d_state: 16
+    d_conv: 4
+    expand: 2
+
 data:
+  tokenizer:
+    max_length: 30000
+    padding_side: "left"
+
   train_data_path: ${paths.root_dir}/data/120_0000_samples/train.parquet
   val_data_path: ${paths.root_dir}/data/120_0000_samples/val.parquet
   test_data_path: ${paths.root_dir}/data/120_0000_samples/test.parquet
-  batch_size: 10
-  num_workers: 63
+  batch_size: 12
+  num_workers: 31
   pin_memory: False
-  max_val_samples: 4000
 
 logger:
   wandb:
     tags: ${tags}
-    group: "caduceus"
+    group: "mamba"
   aim:
-    experiment: "caduceus"
+    experiment: "mamba"

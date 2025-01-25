@@ -45,10 +45,6 @@ dependencies = [
 
 [tool.uv.sources]
 deepbiop = { path = "../DeepBioP/py-deepbiop" }
-# torch = [{ index = "pytorch-cu118", marker = "platform_system != 'Darwin'" }]
-# torchvision = [
-#     { index = "pytorch-cu118", marker = "platform_system != 'Darwin'" },
-# ]
 
 [[tool.uv.index]]
 name = "pytorch-cu118"

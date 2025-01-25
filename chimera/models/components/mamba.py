@@ -22,27 +22,30 @@ class MambaSequenceClassification(nn.Module):
         self,
         vocab_size,
         embedding_dim: int,
-        n_layers: int,
-        max_seq_len: int = 1024,
+        number_of_layers: int,
+        max_length: int,
+        dropout: float,
+        d_state: int = 16,
+        d_conv: int = 4,
+        expand: int = 2,
         number_of_classes: int = 2,
-        dropout: float = 0.1,
         padding_idx: int = 4,
     ):
         super().__init__()
 
         self.embedding = nn.Embedding(vocab_size, embedding_dim, padding_idx=padding_idx)
-        self.pos_embedding = nn.Parameter(torch.zeros(1, max_seq_len, embedding_dim))
+        self.pos_embedding = nn.Parameter(torch.zeros(1, max_length, embedding_dim))
 
         # Stack of Mamba layers
         self.layers = nn.ModuleList(
             [
                 Mamba2(
                     d_model=embedding_dim,
-                    d_state=16,  # Default state dimension
-                    d_conv=4,  # Default conv dimension
-                    expand=2,  # Default expansion factor
+                    d_state=d_state,  # Default state dimension
+                    d_conv=d_conv,  # Default conv dimension
+                    expand=expand,  # Default expansion factor
                 )
-                for _ in range(n_layers)
+                for _ in range(number_of_layers)
             ]
         )
 
