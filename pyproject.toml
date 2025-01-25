@@ -37,16 +37,14 @@ dependencies = [
     "torchmetrics>=1.6.0",
     "typer>=0.15.1",
     "transformers>=4.47.1",
-    "pyarrow<19", # pin <19 due to https://github.com/apache/arrow/issues/45283
+    "pyarrow<19",           # pin <19 due to https://github.com/apache/arrow/issues/45283
     "deepbiop",
     "einops>=0.8.0",
 ]
 
 [tool.uv.sources]
 deepbiop = { path = "../DeepBioP/py-deepbiop" }
-torch = [
- { index = "pytorch-cu118", marker = "platform_system == 'Linux'" },
-]
+torch = [{ index = "pytorch-cu118", marker = "platform_system == 'Linux'" }]
 
 [[tool.uv.index]]
 name = "pytorch-cu118"
@@ -76,7 +74,7 @@ dev = [
     "ruff>=0.8.2",
     "seaborn>=0.13.2",
     "wandb>=0.19.0",
-#    "pysam>=0.22.1",
+    #    "pysam>=0.22.1",
 ]
 
 [tool.uv]
