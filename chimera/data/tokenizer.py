@@ -7,10 +7,14 @@ from transformers import (
     PreTrainedTokenizer,
 )
 
-IGNORE_INDEX = -100
-
 id2label = {0: "NEGATIVE", 1: "POSITIVE"}
 label2id = {"NEGATIVE": 0, "POSITIVE": 1}
+
+IGNORE_INDEX = -100
+MODEL_SEQ_INPUT = "input_ids"
+MODEL_QUAL_INPUT = "input_quals"
+MODEL_LABEL_INPUT = "labels"
+PAD_QUAL = 0
 
 
 def parse_target(name):
@@ -30,44 +34,64 @@ def encode_qual(qual, offset=33):
     return list(fq.encode_qual(qual, offset))
 
 
-def tokenize_and_align_labels_and_quals(data, tokenizer, max_length, pad_qual=0):
+def tokenize_and_align_labels_and_quals(
+    data,
+    tokenizer,
+    *,
+    include_qual=False,
+    seq_feature="seq",
+    qual_feature="qual",
+    id_feature="id",
+):
     """Tokenize the input data and align the labels and qualities."""
-    tokenized_inputs = tokenizer(data["seq"], max_length=max_length, truncation=True, padding=True)
-    seq_len = len(data["seq"])
-    if seq_len >= max_length:
-        quals = torch.cat((data["qual"][: max_length - 1], torch.tensor([pad_qual])))
-    else:
-        quals = torch.cat((data["qual"], torch.tensor([pad_qual])))
+    tokenized_inputs = tokenizer(data[seq_feature])
 
-    normalized_quals = torch.nn.functional.normalize(quals.float(), dim=0)
-    rid, target = parse_target(data["id"])
-    tokenized_inputs.update({"input_quals": normalized_quals, "labels": target})
+    if include_qual:
+        max_length = tokenizer.max_length
+        seq_len = len(data[seq_feature])
+        if max_length is not None and seq_len >= tokenizer.max_length:
+            quals = torch.cat((data[qual_feature][: max_length - 1], torch.tensor([PAD_QUAL])))
+        else:
+            quals = torch.cat((data[qual_feature], torch.tensor([PAD_QUAL])))
+        normalized_quals = torch.nn.functional.normalize(quals.float(), dim=0)
+        tokenized_inputs.update({MODEL_QUAL_INPUT: normalized_quals})
+
+    _rid, target = parse_target(data[id_feature])
+    tokenized_inputs.update({MODEL_LABEL_INPUT: target})
     return tokenized_inputs
 
 
 def tokenize_and_align_labels_and_quals_ids(
-    data, tokenizer, max_length, pad_qual=0, pad_label=IGNORE_INDEX, max_id_length=256
+    data,
+    tokenizer,
+    *,
+    include_qual=False,
+    max_id_length=256,
+    seq_feature="seq",
+    qual_feature="qual",
+    id_feature="id",
 ):
     """Tokenize the input data and align the labels and qualities."""
-    tokenized_inputs = tokenizer(data["seq"], max_length=max_length, truncation=True, padding=True)
+    tokenized_inputs = tokenizer(data[seq_feature])
 
-    seq_len = len(data["seq"])
-    truncation = seq_len >= max_length
+    max_length = tokenizer.max_length
+    seq_len = len(data[seq_feature])
+    truncation = max_length is not None and seq_len >= max_length
 
-    if truncation:
-        quals = torch.cat((data["qual"][: max_length - 1], torch.tensor([pad_qual])))
-    else:
-        quals = torch.cat((data["qual"], torch.tensor([pad_qual])))
+    if include_qual:
+        if truncation:
+            quals = torch.cat((data[qual_feature][: max_length - 1], torch.tensor([PAD_QUAL])))
+        else:
+            quals = torch.cat((data[qual_feature], torch.tensor([PAD_QUAL])))
+        normalized_quals = torch.nn.functional.normalize(quals.float(), dim=0)
+        tokenized_inputs.update({MODEL_QUAL_INPUT: normalized_quals})
 
-    normalized_quals = torch.nn.functional.normalize(quals.float(), dim=0)
-
-    rid, target = parse_target(data["id"])
-    id_len = len(data["id"])
-
+    rid, target = parse_target(data[id_feature])
+    id_len = len(data[id_feature])
     new_id = [id_len, int(truncation)] + [ord(char) for char in rid]
     new_id = new_id[:max_id_length] if len(new_id) > max_id_length else new_id + [0] * (max_id_length - len(new_id))
 
-    tokenized_inputs.update({"input_quals": normalized_quals, "id": new_id, "labels": target})
+    tokenized_inputs.update({"id": new_id, MODEL_LABEL_INPUT: target})
     return tokenized_inputs
 
 
@@ -98,12 +122,10 @@ class DataCollator(DataCollatorWithPadding):
         label_name = "label" if "label" in features[0] else "labels"
         labels = [feature[label_name] for feature in features] if label_name in features[0] else None
 
-        qual_name = "input_quals"
-        qual_pad_token_id = 0
-        input_quals = [feature[qual_name] for feature in features]
+        qual_name = MODEL_QUAL_INPUT
+        input_quals = [feature[qual_name] for feature in features] if qual_name in features[0] else None
 
         id_name = "id"  # for predction dataset
-
         no_labels_features = [
             {k: v for k, v in feature.items() if k not in [qual_name, label_name, id_name]} for feature in features
         ]
@@ -117,32 +139,31 @@ class DataCollator(DataCollatorWithPadding):
             return_tensors="pt",
         )
 
-        if labels is None:
-            return batch
-
-        sequence_length = batch["input_ids"].shape[1]
-        padding_side = self.tokenizer.padding_side
-
         def to_list(tensor_or_iterable):
             if isinstance(tensor_or_iterable, torch.Tensor):
                 return tensor_or_iterable.tolist()
             return list(tensor_or_iterable)
 
-        if padding_side == "right":
-            batch[qual_name] = [
-                to_list(qual) + [qual_pad_token_id] * (sequence_length - len(qual)) for qual in input_quals
-            ]
-        else:
-            batch[qual_name] = [
-                [qual_pad_token_id] * (sequence_length - len(qual)) + to_list(qual) for qual in input_quals
-            ]
-
-        batch[qual_name] = torch.tensor(batch[qual_name], dtype=torch.float32)
-        batch[label_name] = torch.tensor(labels, dtype=torch.int64)
-
         # for predction dataset and save id feature
         if id_name in features[0]:
             batch[id_name] = torch.tensor([to_list(feature[id_name]) for feature in features], dtype=torch.int8)
+
+        if labels is None:
+            return batch
+
+        batch[label_name] = torch.tensor(labels, dtype=torch.int64)
+
+        if input_quals is None:
+            return batch
+
+        sequence_length = batch[MODEL_SEQ_INPUT].shape[1]
+        padding_side = self.tokenizer.padding_side
+
+        if padding_side == "right":
+            batch[qual_name] = [to_list(qual) + [PAD_QUAL] * (sequence_length - len(qual)) for qual in input_quals]
+        else:
+            batch[qual_name] = [[PAD_QUAL] * (sequence_length - len(qual)) + to_list(qual) for qual in input_quals]
+        batch[qual_name] = torch.tensor(batch[qual_name], dtype=torch.float32)
 
         return batch
 
@@ -150,12 +171,13 @@ class DataCollator(DataCollatorWithPadding):
 class CharacterTokenizer(PreTrainedTokenizer):
     """Character tokenizer."""
 
-    model_input_names = ["input_ids"]
+    model_input_names = [MODEL_SEQ_INPUT]
 
     def __init__(
         self,
         max_length: int | None = None,
         padding_side: str = "right",
+        *,
         add_prefix_space: bool = False,
         bos_token="[BOS]",
         eos_token="[SEP]",

@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Any
 
 import hydra
 import lightning as L  # noqa: N812
+import torch
 from lightning import Callback, LightningDataModule, LightningModule, Trainer
 from omegaconf import DictConfig
 
@@ -19,6 +20,16 @@ if TYPE_CHECKING:
     from lightning.pytorch.loggers import Logger
 
 log = RankedLogger(__name__, rank_zero_only=True)
+
+
+def set_tensor_core_precision(precision="medium") -> None:
+    """Set Tensor Core precision for NVIDIA GPUs."""
+    # Check if using H100 or A100 and enable Tensor Core operations accordingly
+    if torch.cuda.is_available():
+        device_name = torch.cuda.get_device_name()
+        if "H100" in device_name or "A100" in device_name:
+            log.info(f"Enabling {precision=} Tensor Cores for {device_name}")
+            torch.set_float32_matmul_precision("medium")
 
 
 @task_wrapper
@@ -62,6 +73,12 @@ def train(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
     if logger:
         log.info("Logging hyperparameters!")
         log_hyperparameters(object_dict)
+
+    set_tensor_core_precision()
+
+    import multiprocess.context as ctx
+
+    ctx._force_start_method("spawn")
 
     if cfg.get("train"):
         log.info("Starting training!")

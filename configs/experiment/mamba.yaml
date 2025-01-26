@@ -44,9 +44,8 @@ data:
   # test_data_path: ${paths.root_dir}/data/train_data/120000/test.fq.target.fq.parquet
 
   train_data_path: ${paths.root_dir}/data/train_data/120000/test.fq.target.fq.parquet
-
   batch_size: 12
-  num_workers: 31
+  num_workers: 30
   pin_memory: False
 
 logger:

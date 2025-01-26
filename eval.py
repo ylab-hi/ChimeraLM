@@ -57,6 +57,10 @@ def evaluate(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
     log.info("Starting testing!")
     trainer.test(model=model, datamodule=datamodule, ckpt_path=cfg.ckpt_path)
 
+    import multiprocess.context as ctx
+
+    ctx._force_start_method("spawn")
+
     # for predictions use trainer.predict(...)
     # predictions = trainer.predict(model=model, dataloaders=dataloaders, ckpt_path=cfg.ckpt_path)
 
