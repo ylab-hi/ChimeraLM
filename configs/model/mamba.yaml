@@ -5,7 +5,7 @@ net:
   vocab_size: 12
   embedding_dim: 256
   number_of_layers: 12
-  max_length: 30000
+  model_max_length: 30000
   dropout: 0.1
   d_state: 16
   d_conv: 4

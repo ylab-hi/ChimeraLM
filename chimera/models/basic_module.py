@@ -67,7 +67,7 @@ class ClassificationLit(LightningModule, PyTorchModelHubMixin):
     def forward(
         self,
         input_ids: torch.Tensor,
-        input_quals: torch.Tensor,
+        input_quals: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Perform a forward pass through the model `self.net`.
 
@@ -94,7 +94,9 @@ class ClassificationLit(LightningModule, PyTorchModelHubMixin):
             - A tensor of target labels.
         """
         input_ids = batch["input_ids"]
-        input_quals = batch["input_quals"]
+
+        input_quals = batch.get(["input_quals"], None)
+
         logits = self.forward(input_ids, input_quals)
 
         loss = self.criterion(logits.reshape(-1, logits.size(-1)), batch["labels"].long().view(-1))

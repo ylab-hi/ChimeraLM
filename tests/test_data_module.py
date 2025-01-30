@@ -1,5 +1,7 @@
 import chimera
+import pytest
 
+@pytest.mark.slow
 def test_data_module():
     # Load the training data
     test_data = "tests/data/tests.parquet"
@@ -16,6 +18,7 @@ def test_data_module():
     d1 = next(data_iterator)
     print(d1)
 
+@pytest.mark.slow
 def test_data_module_padding_left1():
     # Load the training data
     test_data = "tests/data/tests.parquet"
@@ -32,6 +35,7 @@ def test_data_module_padding_left1():
     d1 = next(data_iterator)
     print(d1)
 
+@pytest.mark.slow
 def test_data_module_padding_right1():
     # Load the training data
     test_data = "tests/data/tests.parquet"
@@ -48,6 +52,7 @@ def test_data_module_padding_right1():
     d1 = next(data_iterator)
     print(d1)
 
+@pytest.mark.slow
 def test_data_module_padding_left():
     # Load the training data
     test_data = "tests/data/tests.parquet"
@@ -68,6 +73,7 @@ def test_data_module_padding_left():
     print(d1)
 
 
+@pytest.mark.slow
 def test_data_module_padding_right():
     # Load the training data
     test_data = "tests/data/tests.parquet"
