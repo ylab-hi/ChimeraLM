@@ -10,11 +10,17 @@ from transformers import (
 id2label = {0: "NEGATIVE", 1: "POSITIVE"}
 label2id = {"NEGATIVE": 0, "POSITIVE": 1}
 
+
 IGNORE_INDEX = -100
 MODEL_SEQ_INPUT = "input_ids"
 MODEL_QUAL_INPUT = "input_quals"
 MODEL_LABEL_INPUT = "labels"
 PAD_QUAL = 0
+
+SEQ_FEATURE = "seq"
+QUAL_FEATURE = "qual"
+ID_FEATURE = "id"
+QUAL_OFFSET = 33
 
 
 def parse_target(name):
@@ -29,7 +35,7 @@ def parse_target(name):
     return rid, int(target)
 
 
-def encode_qual(qual, offset=33):
+def encode_qual(qual, offset=QUAL_OFFSET):
     """Encode the quality score."""
     return list(fq.encode_qual(qual, offset))
 
@@ -37,19 +43,19 @@ def encode_qual(qual, offset=33):
 def tokenize_and_align_labels_and_quals(
     data,
     tokenizer,
+    max_length,
     *,
     include_qual=False,
-    seq_feature="seq",
-    qual_feature="qual",
-    id_feature="id",
+    seq_feature=SEQ_FEATURE,
+    qual_feature=QUAL_FEATURE,
+    id_feature=ID_FEATURE,
 ):
     """Tokenize the input data and align the labels and qualities."""
-    tokenized_inputs = tokenizer(data[seq_feature])
+    tokenized_inputs = tokenizer(data[seq_feature], truncation=True, max_length=max_length, padding=True)
 
     if include_qual:
-        max_length = tokenizer.max_length
         seq_len = len(data[seq_feature])
-        if max_length is not None and seq_len >= tokenizer.max_length:
+        if seq_len >= max_length:
             quals = torch.cat((data[qual_feature][: max_length - 1], torch.tensor([PAD_QUAL])))
         else:
             quals = torch.cat((data[qual_feature], torch.tensor([PAD_QUAL])))
@@ -64,19 +70,19 @@ def tokenize_and_align_labels_and_quals(
 def tokenize_and_align_labels_and_quals_ids(
     data,
     tokenizer,
+    max_length,
     *,
     include_qual=False,
+    seq_feature=SEQ_FEATURE,
+    qual_feature=QUAL_FEATURE,
+    id_feature=ID_FEATURE,
     max_id_length=256,
-    seq_feature="seq",
-    qual_feature="qual",
-    id_feature="id",
 ):
     """Tokenize the input data and align the labels and qualities."""
-    tokenized_inputs = tokenizer(data[seq_feature])
+    tokenized_inputs = tokenizer(data[seq_feature], truncation=True, max_length=max_length, padding=True)
 
-    max_length = tokenizer.max_length
     seq_len = len(data[seq_feature])
-    truncation = max_length is not None and seq_len >= max_length
+    truncation = seq_len >= max_length
 
     if include_qual:
         if truncation:
@@ -134,7 +140,7 @@ class DataCollator(DataCollatorWithPadding):
             self.tokenizer,
             no_labels_features,
             padding=self.padding,
-            max_length=self.tokenizer.max_length,
+            max_length=self.max_length,
             pad_to_multiple_of=self.pad_to_multiple_of,
             return_tensors="pt",
         )
@@ -175,7 +181,7 @@ class CharacterTokenizer(PreTrainedTokenizer):
 
     def __init__(
         self,
-        max_length: int | None = None,
+        model_max_length: int | None = None,
         padding_side: str = "right",
         *,
         add_prefix_space: bool = False,
@@ -203,11 +209,9 @@ class CharacterTokenizer(PreTrainedTokenizer):
                     "[RESERVED]": 5
                     "[UNK]": 6
                 an id (starting at 7) will be assigned to each character.
-            max_length (int): Model maximum sequence length.
+            model_max_length (int): Model maximum sequence length.
         """
         self.characters = ("A", "C", "G", "T", "N")
-        self.max_length = max_length
-
         self._vocab_str_to_int = {
             "[CLS]": 0,
             "[SEP]": 1,
@@ -232,7 +236,7 @@ class CharacterTokenizer(PreTrainedTokenizer):
             mask_token=mask_token,
             unk_token=unk_token,
             add_prefix_space=add_prefix_space,
-            model_max_length=max_length,
+            model_max_length=model_max_length,
             padding_side=padding_side,
             **kwargs,
         )
@@ -293,7 +297,7 @@ class CharacterTokenizer(PreTrainedTokenizer):
     def decode(self, token_ids, *, skip_special_tokens=True, **kwargs):
         """Decode ids back to sequence string."""
         if isinstance(token_ids, dict):
-            token_ids = token_ids["input_ids"]
+            token_ids = token_ids[MODEL_SEQ_INPUT]
 
         if isinstance(token_ids, torch.Tensor):
             token_ids = token_ids.tolist()
@@ -324,13 +328,15 @@ class KmerTokenizer(PreTrainedTokenizer):
         >>> decoded = tokenizer.decode(encoded)  # Recovers original sequence
     """
 
-    model_input_names = ["input_ids"]
+    model_input_names = [MODEL_SEQ_INPUT]
 
     def __init__(
         self,
         *,
         k: int = 6,
         model_max_length: int | None = None,
+        padding_side: str = "right",
+        add_prefix_space: bool = False,
         bos_token="[BOS]",
         eos_token="[SEP]",
         sep_token="[SEP]",
@@ -463,7 +469,7 @@ class KmerTokenizer(PreTrainedTokenizer):
     def decode(self, token_ids, *, skip_special_tokens=True, **kwargs):
         """Decode ids back to sequence string."""
         if isinstance(token_ids, dict):
-            token_ids = token_ids["input_ids"]
+            token_ids = token_ids[MODEL_SEQ_INPUT]
 
         if isinstance(token_ids, torch.Tensor):
             token_ids = token_ids.tolist()

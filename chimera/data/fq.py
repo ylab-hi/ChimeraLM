@@ -11,10 +11,15 @@ from lightning import LightningDataModule
 from torch.utils.data import DataLoader, Dataset
 
 from chimera.data.tokenizer import (
+    ID_FEATURE,
+    QUAL_FEATURE,
+    SEQ_FEATURE,
     DataCollator,
     tokenize_and_align_labels_and_quals,
     tokenize_and_align_labels_and_quals_ids,
 )
+
+PARQUET_SUFFIX = ".parquet"
 
 
 class DataModule(LightningDataModule):
@@ -59,11 +64,11 @@ class DataModule(LightningDataModule):
         self,
         tokenizer,
         train_data_path: Path,
+        batch_size: int,
         val_data_path: Path | None = None,
         test_data_path: Path | None = None,
         predict_data_path: Path | None = None,
         train_val_test_split: tuple[float, float, float] = (0.7, 0.2, 0.1),
-        batch_size: int = 12,
         num_workers: int = 0,
         max_train_samples: int | None = None,
         max_val_samples: int | None = None,
@@ -110,22 +115,22 @@ class DataModule(LightningDataModule):
             data_paths.append(self.hparams.predict_data_path)
 
         for data_path in data_paths:
-            if Path(data_path).suffix == ".parquet":
+            if Path(data_path).suffix == PARQUET_SUFFIX:
                 pass
             else:
                 msg = f"Data file {data_path} is not in Parquet format."
                 raise ValueError(msg)
 
-        self.hparams.train_data_path = Path(self.hparams.train_data_path).with_suffix(".parquet").as_posix()
+        self.hparams.train_data_path = Path(self.hparams.train_data_path).with_suffix(PARQUET_SUFFIX).as_posix()
 
         if self.hparams.val_data_path is not None:
-            self.hparams.val_data_path = Path(self.hparams.val_data_path).with_suffix(".parquet").as_posix()
+            self.hparams.val_data_path = Path(self.hparams.val_data_path).with_suffix(PARQUET_SUFFIX).as_posix()
 
         if self.hparams.test_data_path is not None:
-            self.hparams.test_data_path = Path(self.hparams.test_data_path).with_suffix(".parquet").as_posix()
+            self.hparams.test_data_path = Path(self.hparams.test_data_path).with_suffix(PARQUET_SUFFIX).as_posix()
 
         if self.hparams.predict_data_path is not None:
-            self.hparams.predict_data_path = Path(self.hparams.predict_data_path).with_suffix(".parquet").as_posix()
+            self.hparams.predict_data_path = Path(self.hparams.predict_data_path).with_suffix(PARQUET_SUFFIX).as_posix()
 
     def setup(self, stage: str | None = None) -> None:
         """Load data. Set variables: `self.data_train`, `self.data_val`, `self.data_test`.
@@ -171,7 +176,7 @@ class DataModule(LightningDataModule):
                     max_length=self.hparams.tokenizer.max_len_single_sentence,
                 ),
                 num_proc=max(1, num_proc),  # type: ignore
-            ).remove_columns(["seq", "qual", "target"])
+            ).remove_columns([SEQ_FEATURE, QUAL_FEATURE, ID_FEATURE])
             del predict_dataset
             return
 
@@ -239,7 +244,7 @@ class DataModule(LightningDataModule):
                     max_length=self.hparams.tokenizer.max_len_single_sentence,
                 ),
                 num_proc=max(1, num_proc),  # type: ignore
-            ).remove_columns(["id", "seq", "qual"])
+            ).remove_columns([SEQ_FEATURE, QUAL_FEATURE, ID_FEATURE])
 
             self.data_val = val_dataset.map(
                 partial(
@@ -248,7 +253,7 @@ class DataModule(LightningDataModule):
                     max_length=self.hparams.tokenizer.max_len_single_sentence,
                 ),
                 num_proc=max(1, num_proc),  # type: ignore
-            ).remove_columns(["id", "seq", "qual"])
+            ).remove_columns([SEQ_FEATURE, QUAL_FEATURE, ID_FEATURE])
 
             self.data_test = test_dataset.map(
                 partial(
@@ -257,7 +262,7 @@ class DataModule(LightningDataModule):
                     max_length=self.hparams.tokenizer.max_len_single_sentence,
                 ),
                 num_proc=max(1, num_proc),  # type: ignore
-            ).remove_columns(["id", "seq", "qual"])
+            ).remove_columns([SEQ_FEATURE, QUAL_FEATURE, ID_FEATURE])
 
             del train_dataset, val_dataset, test_dataset
 
@@ -331,7 +336,6 @@ class DataModule(LightningDataModule):
 
         :return: A dictionary containing the datamodule state that you want to save.
         """
-        return {}
 
     def load_state_dict(self, state_dict: dict[str, Any]) -> None:
         """Called when loading a checkpoint. Implement to reload datamodule state given datamodule.

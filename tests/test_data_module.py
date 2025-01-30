@@ -4,8 +4,8 @@ def test_data_module():
     # Load the training data
     test_data = "tests/data/tests.parquet"
 
-    tokenizer = chimera.data.tokenizer.CharacterTokenizer(max_length=100000)
-    fq_data_module  = chimera.data.fq.DataModule(tokenizer, test_data)
+    tokenizer = chimera.data.tokenizer.CharacterTokenizer(model_max_length=100000)
+    fq_data_module  = chimera.data.fq.DataModule(tokenizer, test_data, batch_size=12)
     fq_data_module.prepare_data()
     fq_data_module.setup()
     train_data_loader = fq_data_module.train_dataloader()
@@ -21,8 +21,9 @@ def test_data_module_padding_left():
     # Load the training data
     test_data = "tests/data/tests.parquet"
 
-    tokenizer = chimera.data.tokenizer.CharacterTokenizer(max_length=100, padding_side="left")
+    tokenizer = chimera.data.tokenizer.CharacterTokenizer(model_max_length=100, padding_side="left")
     fq_data_module  = chimera.data.fq.DataModule(tokenizer, test_data, batch_size=12)
+
     fq_data_module.prepare_data()
     fq_data_module.setup()
     train_data_loader = fq_data_module.train_dataloader()
