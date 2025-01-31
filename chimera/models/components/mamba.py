@@ -109,3 +109,89 @@ class MambaSequenceClassification(nn.Module):
         # Final classification
         pooled = self.pooler(pooled)
         return self.classifier(pooled)
+
+
+class MambaSequenceClassificationSP(nn.Module):
+    """Mamba model for sequence classification tasks with multiple Mamba layers."""
+
+    def __init__(
+        self,
+        vocab_size,
+        embedding_dim: int,
+        number_of_layers: int,
+        model_max_length: int,
+        dropout: float,
+        d_state: int,
+        d_conv: int,
+        expand: int,
+        number_of_classes: int,
+        padding_idx: int = 4,
+    ):
+        super().__init__()
+        self.number_of_classes = number_of_classes
+
+        # Embedding layers
+        self.embedding = nn.Embedding(vocab_size, embedding_dim, padding_idx=padding_idx)
+        self.pos_embedding = nn.Parameter(torch.zeros(1, model_max_length, embedding_dim))
+
+        # Stack of Mamba layers with skip connections
+        self.mamba_layers = nn.ModuleList(
+            [
+                Mamba2(
+                    d_model=embedding_dim,  # Input/output dimension
+                    d_state=d_state,  # Internal state dimension
+                    d_conv=d_conv,  # Convolution width
+                    expand=expand,  # Expansion factor - controls width of the block's internal feed-forward network
+                    # Higher values (e.g. 2 or 4) give the model more capacity but use more memory
+                )
+                for _ in range(number_of_layers)
+            ]
+        )
+
+        # Output head
+        self.pooler = nn.Sequential(nn.Linear(embedding_dim, embedding_dim), nn.GELU(), nn.Dropout(dropout))
+
+        # Classification head with multiple layers
+        self.classifier = nn.Sequential(
+            nn.Linear(embedding_dim, embedding_dim // 2),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(embedding_dim // 2, number_of_classes),
+        )
+
+        # Initialize embeddings
+        nn.init.normal_(self.pos_embedding, std=0.02)
+
+    def forward(
+        self,
+        input_ids: Tensor,
+        input_quals: Tensor | None = None,
+    ) -> Tensor:
+        """Forward pass of the model.
+
+        Args:
+            input_ids: Input tensor of shape (batch_size, seq_len)
+            input_quals: Optional quality scores tensor of shape (batch_size, seq_len)
+
+        Returns:
+            Classification logits of shape (batch_size, seq_len, n_classes)
+        """
+        # Embed input
+        x = self.embedding(input_ids)  # (batch, seq_len, d_model)
+        x = x + self.pos_embedding[:, : x.size(1), :]
+
+        # Pass through Mamba layers with skip connections
+        for layer in self.mamba_layers:
+            residual = x
+            # Mamba block
+            x = layer(x)
+            x = residual + x
+
+        # Advanced pooling - combine max and mean pooling
+        mean_pooled = x.mean(dim=1)  # (batch, d_model)
+        max_pooled = x.max(dim=1)[0]  # (batch, d_model)
+        pooled = (mean_pooled + max_pooled) / 2
+
+        # Final classification
+        pooled = self.pooler(pooled)
+        return self.classifier(pooled)
