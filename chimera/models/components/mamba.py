@@ -28,31 +28,20 @@ class MambaSequenceClassification(nn.Module):
         self.embedding = nn.Embedding(vocab_size, embedding_dim, padding_idx=padding_idx)
         self.pos_embedding = nn.Parameter(torch.zeros(1, model_max_length, embedding_dim))
 
-        # Input projection, normalization and dropout combined
-        self.input_block = nn.Sequential(
-            nn.Linear(embedding_dim, embedding_dim), nn.LayerNorm(embedding_dim), nn.Dropout(dropout)
-        )
-
         # Stack of Mamba layers with skip connections
         self.mamba_layers = nn.ModuleList(
             [
-                nn.ModuleDict(
-                    {
-                        "mamba": Mamba2(
-                            d_model=embedding_dim,
-                            d_state=d_state,
-                            d_conv=d_conv,
-                            expand=expand,
-                        ),
-                        "dropout": nn.Dropout(dropout),
-                    }
+                Mamba2(
+                    d_model=embedding_dim,  # Input/output dimension
+                    d_state=d_state,  # Internal state dimension
+                    d_conv=d_conv,  # Convolution width
+                    expand=expand,  # Expansion factor - controls width of the block's internal feed-forward network
+                    # Higher values (e.g. 2 or 4) give the model more capacity but use more memory
                 )
                 for _ in range(number_of_layers)
             ]
         )
 
-        # Output head
-        self.pooler = nn.Sequential(nn.Linear(embedding_dim, embedding_dim), nn.GELU(), nn.Dropout(dropout))
         # Classification head with multiple layers
         self.classifier = nn.Sequential(
             nn.Linear(embedding_dim, embedding_dim // 2),
@@ -66,46 +55,28 @@ class MambaSequenceClassification(nn.Module):
 
     def forward(
         self,
-        x: Tensor,
-        attention_mask: Tensor | None = None,
+        input_ids: Tensor,
+        input_quals: Tensor | None = None,
     ) -> Tensor:
         """Forward pass of the model.
 
         Args:
-            x: Input tensor of shape (batch_size, seq_len)
-            attention_mask: Optional mask tensor of shape (batch_size, seq_len)
+            input_ids: Input tensor of shape (batch_size, seq_len)
+            input_quals: Optional quality scores tensor of shape (batch_size, seq_len)
 
         Returns:
-            Classification logits of shape (batch_size, n_classes)
+            Classification logits of shape (batch_size, seq_len, n_classes)
         """
         # Embed input
-        x = self.embedding(x)  # (batch, seq_len, d_model)
+        x = self.embedding(input_ids)  # (batch, seq_len, d_model)
         x = x + self.pos_embedding[:, : x.size(1), :]
-
-        # Initial projection and normalization
-        x = self.input_block(x)
-
-        # Apply mask if provided
-        if attention_mask is not None:
-            x = x * attention_mask.unsqueeze(-1)
 
         # Pass through Mamba layers with skip connections
         for layer in self.mamba_layers:
             residual = x
             # Mamba block
-            x = layer["mamba"](x)
-            x = layer["dropout"](x)
+            x = layer(x)
             x = residual + x
 
-            # Apply mask after each layer if provided
-            if attention_mask is not None:
-                x = x * attention_mask.unsqueeze(-1)
-
-        # Advanced pooling - combine max and mean pooling
-        mean_pooled = x.mean(dim=1)  # (batch, d_model)
-        max_pooled = x.max(dim=1)[0]  # (batch, d_model)
-        pooled = (mean_pooled + max_pooled) / 2
-
         # Final classification
-        pooled = self.pooler(pooled)
-        return self.classifier(pooled)
+        return self.classifier(x)
