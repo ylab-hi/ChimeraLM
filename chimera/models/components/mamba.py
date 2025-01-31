@@ -42,6 +42,9 @@ class MambaSequenceClassification(nn.Module):
             ]
         )
 
+        # Output head
+        self.pooler = nn.Sequential(nn.Linear(embedding_dim, embedding_dim), nn.GELU(), nn.Dropout(dropout))
+
         # Classification head with multiple layers
         self.classifier = nn.Sequential(
             nn.Linear(embedding_dim, embedding_dim // 2),
@@ -78,5 +81,11 @@ class MambaSequenceClassification(nn.Module):
             x = layer(x)
             x = residual + x
 
+        # Advanced pooling - combine max and mean pooling
+        mean_pooled = x.mean(dim=1)  # (batch, d_model)
+        max_pooled = x.max(dim=1)[0]  # (batch, d_model)
+        pooled = (mean_pooled + max_pooled) / 2
+
         # Final classification
-        return self.classifier(x)
+        pooled = self.pooler(pooled)
+        return self.classifier(pooled)

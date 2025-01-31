@@ -4,8 +4,8 @@ tokenizer:
   _target_: chimera.data.tokenizer.CharacterTokenizer
 
 train_data_path: ${paths.root_dir}/data/train_data/120000/train.fq.target.fq.parquet
-val_data_path: ${paths.root_dir}/data/train_data/120000/val.fq.target.fq.parquet
-test_data_path: ${paths.root_dir}/data/train_data/120000/test.fq.target.fq.parquet
+# val_data_path: ${paths.root_dir}/data/train_data/120000/val.fq.target.fq.parquet
+# test_data_path: ${paths.root_dir}/data/train_data/120000/test.fq.target.fq.parquet
 batch_size: 12 # Needs to be divisible by the number of devices (e.g., if in a distributed setup)
 train_val_test_split: [0.7, 0.2, 0.1] # percent
 num_workers: 0
