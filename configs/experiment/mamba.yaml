@@ -30,7 +30,7 @@ model:
     embedding_dim: 256
     number_of_layers: 12
     dropout: 0.1
-    d_state: 16
+    d_state: 64
     d_conv: 4
     expand: 2
     number_of_classes: 2

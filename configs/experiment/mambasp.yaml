@@ -23,6 +23,8 @@ seed: 12345
 trainer:
   min_epochs: 10
   max_epochs: 100
+  precision: "b16-mixed"
+  gradient_clip_val: 1.0
 
 model:
   net:
@@ -30,7 +32,7 @@ model:
     embedding_dim: 256
     number_of_layers: 8
     dropout: 0.1
-    d_state: 16
+    d_state: 64
     d_conv: 4
     expand: 2
     number_of_classes: 2
@@ -43,13 +45,13 @@ data:
   train_data_path: ${paths.root_dir}/data/train_data/120000/train.fq.target.fq.parquet
   val_data_path: ${paths.root_dir}/data/train_data/120000/val.fq.target.fq.parquet
   test_data_path: ${paths.root_dir}/data/train_data/120000/test.fq.target.fq.parquet
-  batch_size: 24
+  batch_size: 12
   num_workers: 30
   pin_memory: False
 
 logger:
   wandb:
     tags: ${tags}
-    group: "mamba"
+    group: "mambasp"
   aim:
     experiment: "mambasp"

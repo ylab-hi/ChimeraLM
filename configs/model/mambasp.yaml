@@ -4,10 +4,10 @@ net:
   _target_: chimera.models.mamba.MambaSequenceClassificationSP
   vocab_size: 12
   embedding_dim: 256
-  number_of_layers: 12
+  number_of_layers: 8
   model_max_length: 30000
   dropout: 0.1
-  d_state: 16
+  d_state: 64
   d_conv: 4
   expand: 2
   number_of_classes: 2
