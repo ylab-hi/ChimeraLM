@@ -21,6 +21,8 @@ if TYPE_CHECKING:
 
 log = RankedLogger(__name__, rank_zero_only=True)
 
+SET_SPAWN = True
+
 
 def set_tensor_core_precision(precision="medium") -> None:
     """Set Tensor Core precision for NVIDIA GPUs."""
@@ -76,9 +78,10 @@ def train(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
 
     set_tensor_core_precision()
 
-    import multiprocess.context as ctx
+    if SET_SPAWN:
+        import multiprocess.context as ctx
 
-    ctx._force_start_method("spawn")
+        ctx._force_start_method("spawn")
 
     if cfg.get("train"):
         log.info("Starting training!")

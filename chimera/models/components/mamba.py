@@ -26,6 +26,7 @@ class MambaSequenceClassification(nn.Module):
 
         # Embedding layers
         self.embedding = nn.Embedding(vocab_size, embedding_dim, padding_idx=padding_idx)
+
         self.pos_embedding = nn.Parameter(torch.zeros(1, model_max_length, embedding_dim))
 
         # Input projection, normalization and dropout combined
