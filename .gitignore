@@ -156,3 +156,4 @@ uv.lock
 tmp/
 analysis/
 .cursorrules
+slurmlog
