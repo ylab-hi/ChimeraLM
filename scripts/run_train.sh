@@ -2,8 +2,9 @@
 #SBATCH -t 48:00:00                        # Time limit (hh:mm:ss)
 #SBATCH --account=p31888                   # Account name
 #SBATCH --partition=gengpu                 # Partition name
-#SBATCH --mem=100G                         # RAM
-#SBATCH --gres=gpu:4                       # Number of GPUs
+#SBATCH --mem=50G                          # RAM
+#SBATCH --gres=gpu:h100:4                  # Number of GPUs
+#SBATCH --constraint=rhel8
 #SBATCH --ntasks-per-node=4                # Should correspond to num devices (at least 1-1 task to GPU)
 #SBATCH --cpus-per-task=8                  # Increased CPU cores per task for better parallelization
 #SBATCH -N 1                               # Number of nodes
@@ -12,13 +13,14 @@
 #SBATCH --output=./slurm_log/%x_%j.log     # Log file
 #SBATCH --open-mode=append                 # Do not overwrite logs
 #SBATCH --mail-type=END,FAIL               # Email notifications
+#SBATCH--export=all                        # ensures that all environment variables from the submitting shell
 
 # Set environment variables for better performance
 export NCCL_DEBUG=INFO
 export PYTHONFAULTHANDLER=1
 export TORCH_DISTRIBUTED_DEBUG=INFO
 
-conda activate deepchopper
+# conda activate deepchopper
 
 # Print environment information for debugging
 echo "current directory: $(pwd)"
