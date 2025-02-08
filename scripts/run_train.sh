@@ -6,12 +6,10 @@
 #SBATCH --gres=gpu:h100:4                  # Number of GPUs
 #SBATCH --constraint=rhel8
 #SBATCH --ntasks-per-node=4                # Should correspond to num devices (at least 1-1 task to GPU)
-#SBATCH --cpus-per-task=8                  # Increased CPU cores per task for better parallelization
+#SBATCH --cpus-per-task=4                  # Increased CPU cores per task for better parallelization
 #SBATCH -N 1                               # Number of nodes
 #SBATCH --job-name=mambasp_optuna          # Job name
 #SBATCH --output=./slurm_log/%x_%j.log     # Log file
-#SBATCH --open-mode=append                 # Do not overwrite logs
-#SBATCH --mail-type=END,FAIL               # Email notifications
 #SBATCH --export=all                        # ensures that all environment variables from the submitting shell
 
 # Print environment information for debugging

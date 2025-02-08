@@ -15,10 +15,11 @@ class MambaSequenceClassification(nn.Module):
         number_of_layers: int,
         model_max_length: int,
         dropout: float,
-        d_state: int,
-        d_conv: int,
-        expand: int,
         number_of_classes: int,
+        d_state: int = 128,
+        d_conv: int = 4,
+        expand: int = 2,
+        headdim: int = 64,
         padding_idx: int = 4,
     ):
         super().__init__()
@@ -40,10 +41,7 @@ class MambaSequenceClassification(nn.Module):
                 nn.ModuleDict(
                     {
                         "mamba": Mamba2(
-                            d_model=embedding_dim,
-                            d_state=d_state,
-                            d_conv=d_conv,
-                            expand=expand,
+                            d_model=embedding_dim, d_state=d_state, d_conv=d_conv, expand=expand, headdim=headdim
                         ),
                         "dropout": nn.Dropout(dropout),
                     }
@@ -120,20 +118,18 @@ class MambaSequenceClassificationSP(nn.Module):
         vocab_size,
         embedding_dim: int,
         number_of_layers: int,
-        model_max_length: int,
-        dropout: float,
-        d_state: int,
-        d_conv: int,
-        expand: int,
         number_of_classes: int,
+        dropout: float,
+        d_state: int = 128,
+        d_conv: int = 4,
+        expand: int = 2,
+        headdim: int = 64,
         padding_idx: int = 4,
     ):
         super().__init__()
         self.number_of_classes = number_of_classes
-
         # Embedding layers
         self.embedding = nn.Embedding(vocab_size, embedding_dim, padding_idx=padding_idx)
-        self.pos_embedding = nn.Parameter(torch.zeros(1, model_max_length, embedding_dim))
 
         # Stack of Mamba layers with skip connections
         self.mamba_layers = nn.ModuleList(
@@ -143,7 +139,7 @@ class MambaSequenceClassificationSP(nn.Module):
                     d_state=d_state,  # Internal state dimension
                     d_conv=d_conv,  # Convolution width
                     expand=expand,  # Expansion factor - controls width of the block's internal feed-forward network
-                    # Higher values (e.g. 2 or 4) give the model more capacity but use more memory
+                    headdim=headdim,
                 )
                 for _ in range(number_of_layers)
             ]
@@ -160,9 +156,6 @@ class MambaSequenceClassificationSP(nn.Module):
             nn.Linear(embedding_dim // 2, number_of_classes),
         )
 
-        # Initialize embeddings
-        nn.init.normal_(self.pos_embedding, std=0.02)
-
     def forward(
         self,
         input_ids: Tensor,
@@ -175,12 +168,10 @@ class MambaSequenceClassificationSP(nn.Module):
             input_quals: Optional quality scores tensor of shape (batch_size, seq_len)
 
         Returns:
-            Classification logits of shape (batch_size, seq_len, n_classes)
+            Classification logits of shape (batch_size, n_classes)
         """
         # Embed input
         x = self.embedding(input_ids)  # (batch, seq_len, d_model)
-        x = x + self.pos_embedding[:, : x.size(1), :]
-
         # Pass through Mamba layers with skip connections
         for layer in self.mamba_layers:
             residual = x
