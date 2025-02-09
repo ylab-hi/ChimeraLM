@@ -45,7 +45,7 @@ trainer:
 
 model:
   net:
-    number_of_layers: 3
+    number_of_layers: 2
     embedding_dim: 512
     d_state: 128
     d_conv: 4
