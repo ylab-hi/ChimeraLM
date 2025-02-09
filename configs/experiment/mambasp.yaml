@@ -65,7 +65,7 @@ model:
     _partial_: true
     mode: min
     factor: 0.1
-    patience: 5
+    patience: 4
 
 data:
   tokenizer:
