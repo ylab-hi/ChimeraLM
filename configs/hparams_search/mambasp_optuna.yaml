@@ -47,9 +47,4 @@ hydra:
 
     # define hypeparameter search space
     params:
-      data.batch_size: choice(24, 32, 40)
-      model.net.number_of_layers: choice(8, 12, 16)
-      model.net.embedding_dim: choice(512)
-      model.net.d_state: choice(64, 128)
-      model.net.expand: choice(2, 3)
-      model.net.dropout: range(0.0, 0.5, step=0.1)
+      model.optimizer.weight_decay: range(0, 0.8, step=0.1)

@@ -14,7 +14,7 @@ defaults:
 
 callbacks:
   early_stopping:
-    patience: 8
+    patience: 10
 
 tags: ["mambasp"]
 
@@ -65,7 +65,7 @@ model:
     _partial_: true
     mode: min
     factor: 0.1
-    patience: 2
+    patience: 5
 
 data:
   tokenizer:
