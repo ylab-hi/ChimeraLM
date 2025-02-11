@@ -28,8 +28,7 @@ def parse_target(name):
     number_of_item = 2
     content = name.split("|")
     if len(content) < number_of_item:
-        msg = f"Invalid target name: {name}"
-        raise ValueError(msg)
+        return content[0], -1  # -1 is a default value for target
 
     rid, target = content
     return rid, int(target)
@@ -81,11 +80,9 @@ def tokenize_and_align_labels_and_quals_ids(
     """Tokenize the input data and align the labels and qualities."""
     tokenized_inputs = tokenizer(data[seq_feature], truncation=True, max_length=max_length, padding=True)
 
-    seq_len = len(data[seq_feature])
-    truncation = seq_len >= max_length
-
     if include_qual:
-        if truncation:
+        seq_len = len(data[seq_feature])
+        if seq_len >= max_length:
             quals = torch.cat((data[qual_feature][: max_length - 1], torch.tensor([PAD_QUAL])))
         else:
             quals = torch.cat((data[qual_feature], torch.tensor([PAD_QUAL])))
@@ -94,7 +91,7 @@ def tokenize_and_align_labels_and_quals_ids(
 
     rid, target = parse_target(data[id_feature])
     id_len = len(data[id_feature])
-    new_id = [id_len, int(truncation)] + [ord(char) for char in rid]
+    new_id = [id_len] + [ord(char) for char in rid]
     new_id = new_id[:max_id_length] if len(new_id) > max_id_length else new_id + [0] * (max_id_length - len(new_id))
 
     tokenized_inputs.update({"id": new_id, MODEL_LABEL_INPUT: target})

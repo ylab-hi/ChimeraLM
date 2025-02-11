@@ -1,157 +1,143 @@
-from collections import defaultdict
-
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import torch
 
 
-class SequenceAnalyzer:
-    """Analyze sequences using state space models."""
-
-    def __init__(self, model, tokenizer=None):
+class Mamba2Analyzer:
+    def __init__(self, model):
         self.model = model
-        self.tokenizer = tokenizer
         self.device = next(model.parameters()).device
 
-    def get_state_activations(self, sequence: str) -> dict[str, torch.Tensor]:
-        """Extract state activations for a sequence."""
+    def extract_state_activations(self, sequence: str) -> dict[str, torch.Tensor]:
+        """Extract state activations from Mamba2 layers."""
         # Convert sequence to model input format
-        if self.tokenizer:
-            input_ids = self.tokenizer(sequence, return_tensors="pt").to(self.device)
-        else:
-            # For character-level input
-            input_ids = torch.tensor([[ord(c) for c in sequence]], device=self.device)
+        input_seq = torch.tensor([[ord(c) for c in sequence]], device=self.device)
 
         activations = {}
 
         def hook_fn(name):
             def hook(module, input, output):
-                activations[name] = output.detach()
+                # Capture both state activations and selective parameters
+                if isinstance(output, tuple):
+                    activations[f"{name}_state"] = output[0].detach()
+                    if len(output) > 1:  # If selective parameters are available
+                        activations[f"{name}_delta"] = output[1].detach()
+                else:
+                    activations[name] = output.detach()
 
             return hook
 
-        # Register hooks for state space layers
+        # Register hooks for Mamba blocks
         hooks = []
         for name, module in self.model.named_modules():
-            if "state_space" in name:  # Adjust based on your model architecture
+            if "mamba_block" in name:
                 hooks.append(module.register_forward_hook(hook_fn(name)))
 
         # Forward pass
         with torch.no_grad():
-            _output = self.model(input_ids)
+            output = self.model(input_seq)
 
         # Remove hooks
         for hook in hooks:
             hook.remove()
 
-        return activations
+        return activations, output
 
-    def analyze_sequence_importance(self, sequence: str) -> dict[str, np.ndarray]:
-        """Analyze importance of each position in sequence."""
-        original_pred = self.get_prediction(sequence)
+    def analyze_selective_mechanism(self, sequence: str) -> dict[str, np.ndarray]:
+        """Analyze the selective mechanism (∆ and B parameters)."""
+        activations, _ = self.extract_state_activations(sequence)
+
+        selective_patterns = {}
+        for name, activation in activations.items():
+            if "delta" in name:
+                # Analyze how selective mechanism responds to different parts of sequence
+                delta_values = activation.cpu().numpy()
+                selective_patterns[name] = {
+                    "mean_delta": delta_values.mean(axis=-1),
+                    "max_delta": delta_values.max(axis=-1),
+                    "pattern_strength": np.abs(delta_values).mean(axis=-1),
+                }
+
+        return selective_patterns
+
+    def get_position_importance(self, sequence: str) -> np.ndarray:
+        """Calculate importance of each position using state activations."""
+        original_activations, original_output = self.extract_state_activations(sequence)
+        original_pred = original_output.softmax(dim=-1)[0, 1].item()
+
         importance_scores = []
 
         # Analyze each position
         for i in range(len(sequence)):
-            # Create modified sequence with masked position
+            # Create modified sequence
             mod_seq = sequence[:i] + "N" + sequence[i + 1 :]
-            mod_pred = self.get_prediction(mod_seq)
+            mod_activations, mod_output = self.extract_state_activations(mod_seq)
+            mod_pred = mod_output.softmax(dim=-1)[0, 1].item()
 
             # Calculate importance as prediction change
             importance = abs(original_pred - mod_pred)
-            importance_scores.append(float(importance))
+            importance_scores.append(importance)
 
-        return {"position_importance": np.array(importance_scores), "sequence": sequence}
+        return np.array(importance_scores)
 
-    def extract_motifs(self, sequence: str, window_sizes: list[int] = [3, 4, 5]) -> list[dict]:
-        """Extract significant motifs from sequence."""
-        motifs = []
-        activations = self.get_state_activations(sequence)
+    def find_sequence_patterns(self, sequence: str, window_sizes=None) -> list[dict]:
+        """Find significant sequence patterns using state activations."""
+        if window_sizes is None:
+            window_sizes = [3, 4, 5]
+        activations, _ = self.extract_state_activations(sequence)
+        patterns = []
 
-        # Analyze different window sizes
-        for window_size in window_sizes:
-            for i in range(len(sequence) - window_size + 1):
-                motif = sequence[i : i + window_size]
+        # Analyze state activations for patterns
+        for name, activation in activations.items():
+            if "_state" in name:
+                state_acts = activation.cpu().numpy()[0]  # Remove batch dimension
 
-                # Get average activation for this motif
-                motif_activations = {}
-                for name, acts in activations.items():
-                    if len(acts.shape) >= 2:  # Check if activation has sequence dimension
-                        motif_acts = acts[0, i : i + window_size].mean(dim=0)
-                        motif_activations[name] = motif_acts.cpu().numpy()
+                # Look for patterns in different window sizes
+                for window_size in window_sizes:
+                    for i in range(len(sequence) - window_size + 1):
+                        # Get subsequence and its activations
+                        subseq = sequence[i : i + window_size]
+                        subseq_acts = state_acts[i : i + window_size]
 
-                # Calculate motif significance
-                significance = self.calculate_motif_significance(motif_activations)
+                        # Calculate pattern significance
+                        pattern_strength = np.mean(np.abs(subseq_acts))
+                        if pattern_strength > np.mean(np.abs(state_acts)):
+                            patterns.append(
+                                {"sequence": subseq, "position": i, "strength": float(pattern_strength), "layer": name}
+                            )
 
-                if significance > 0.5:  # Adjust threshold as needed
-                    motifs.append(
-                        {
-                            "motif": motif,
-                            "position": i,
-                            "significance": float(significance),
-                            "activations": motif_activations,
-                        }
-                    )
-
-        return motifs
-
-    def analyze_state_patterns(self, sequences: list[str]) -> dict[str, list]:
-        """Analyze how states respond to different sequence patterns."""
-        state_patterns = defaultdict(list)
-
-        for seq in sequences:
-            activations = self.get_state_activations(seq)
-
-            # Analyze each state space layer
-            for name, acts in activations.items():
-                if len(acts.shape) >= 2:  # Check if activation has sequence dimension
-                    # Get most active states
-                    state_activity = acts[0].mean(dim=0)
-                    top_states = torch.topk(state_activity, k=5)
-
-                    state_patterns[name].append(
-                        {
-                            "sequence": seq,
-                            "top_states": top_states.indices.cpu().numpy(),
-                            "activations": top_states.values.cpu().numpy(),
-                        }
-                    )
-
-        return dict(state_patterns)
+        return patterns
 
     def visualize_analysis(self, sequence: str):
         """Create comprehensive visualization of sequence analysis."""
         # Get all analyses
-        importance = self.analyze_sequence_importance(sequence)
-        motifs = self.extract_motifs(sequence)
-        activations = self.get_state_activations(sequence)
+        activations, _ = self.extract_state_activations(sequence)
+        importance_scores = self.get_position_importance(sequence)
+        selective_patterns = self.analyze_selective_mechanism(sequence)
+        self.find_sequence_patterns(sequence)
 
         # Create visualization
         fig, axes = plt.subplots(3, 1, figsize=(15, 12))
 
         # Plot position importance
-        axes[0].plot(importance["position_importance"])
+        axes[0].plot(importance_scores)
         axes[0].set_title("Position Importance")
         axes[0].set_xlabel("Sequence Position")
         axes[0].set_ylabel("Importance Score")
 
-        # Plot motif locations
-        motif_scores = np.zeros(len(sequence))
-        for motif in motifs:
-            pos = motif["position"]
-            length = len(motif["motif"])
-            motif_scores[pos : pos + length] += motif["significance"]
-
-        axes[1].plot(motif_scores)
-        axes[1].set_title("Motif Significance")
+        # Plot selective mechanism patterns
+        for name, patterns in selective_patterns.items():
+            axes[1].plot(patterns["pattern_strength"], label=name)
+        axes[1].set_title("Selective Mechanism Patterns")
         axes[1].set_xlabel("Sequence Position")
-        axes[1].set_ylabel("Significance Score")
+        axes[1].set_ylabel("Pattern Strength")
+        axes[1].legend()
 
         # Plot state activations
-        for name, acts in activations.items():
-            if len(acts.shape) >= 2:
-                sns.heatmap(acts[0].cpu().numpy().T, ax=axes[2])
+        for name, activation in activations.items():
+            if "_state" in name:
+                sns.heatmap(activation[0].cpu().numpy().T, ax=axes[2])
                 axes[2].set_title(f"State Activations - {name}")
                 axes[2].set_xlabel("Sequence Position")
                 axes[2].set_ylabel("State Dimension")
@@ -160,49 +146,38 @@ class SequenceAnalyzer:
         plt.tight_layout()
         return fig
 
-    def get_prediction(self, sequence: str) -> float:
-        """Get model prediction for sequence."""
-        if self.tokenizer:
-            input_ids = self.tokenizer(sequence, return_tensors="pt").to(self.device)
-        else:
-            input_ids = torch.tensor([[ord(c) for c in sequence]], device=self.device)
 
-        with torch.no_grad():
-            output = self.model(input_ids)
-
-        return output.logits[0].softmax(dim=-1)[1].item()  # Assuming binary classification
+def analyze_mamba2_sequence(model, sequence: str):
+    """Run comprehensive analysis on a sequence."""
+    analyzer = Mamba2Analyzer(model)
 
 
-# Usage example:
-def analyze_sequences(model, sequences: list[str]):
-    """Analyze a set of sequences and print comprehensive report."""
-    analyzer = SequenceAnalyzer(model)
+    # Get importance scores
+    importance = analyzer.get_position_importance(sequence)
+    for _pos, score in enumerate(importance):
+        if score > 0.1:  # Adjust threshold as needed
+            pass
 
-    print("=== Sequence Analysis Report ===")
-    for seq in sequences:
-        print(f"\nAnalyzing sequence: {seq}")
+    # Get sequence patterns
+    patterns = analyzer.find_sequence_patterns(sequence)
+    for _pattern in patterns:
+        pass
 
-        # Get importance scores
-        importance = analyzer.analyze_sequence_importance(seq)
-        print("\nPosition Importance:")
-        for pos, score in enumerate(importance["position_importance"]):
-            if score > 0.5:  # Adjust threshold as needed
-                print(f"Position {pos} ({seq[pos]}): {score:.3f}")
+    # Analyze selective mechanism
+    selective = analyzer.analyze_selective_mechanism(sequence)
+    for _name, patterns in selective.items():
+        pass
 
-        # Get significant motifs
-        motifs = analyzer.extract_motifs(seq)
-        print("\nSignificant Motifs:")
-        for motif in motifs:
-            print(
-                f"Motif: {motif['motif']} at position {motif['position']} (significance: {motif['significance']:.3f})"
-            )
+    # Visualize analysis
+    analyzer.visualize_analysis(sequence)
+    plt.show()
 
-        # Visualize analysis
-        fig = analyzer.visualize_analysis(seq)
-        plt.show()
 
-        # Prediction
-        pred = analyzer.get_prediction(seq)
-        print(f"\nModel prediction: {pred:.3f}")
 
-        print("\n" + "=" * 50)
+# Example usage:
+"""
+# Initialize with your trained model
+model = your_trained_mamba2_model
+sequence = "ATCGGTCGATCG"
+analyze_mamba2_sequence(model, sequence)
+"""

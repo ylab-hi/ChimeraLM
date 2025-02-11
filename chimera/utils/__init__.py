@@ -1,3 +1,5 @@
+"""Utility functions for Chimera."""
+
 from chimera.utils.instantiators import instantiate_callbacks, instantiate_loggers
 from chimera.utils.logging_utils import log_hyperparameters
 from chimera.utils.pylogger import RankedLogger

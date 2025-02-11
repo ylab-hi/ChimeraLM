@@ -54,18 +54,17 @@ def evaluate(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
         log.info("Logging hyperparameters!")
         log_hyperparameters(object_dict)
 
-    log.info("Starting testing!")
-    trainer.test(model=model, datamodule=datamodule, ckpt_path=cfg.ckpt_path)
+    if datamodule.hparams.predict_data_path is None:
+        log.info("Starting testing!")
+        trainer.test(model=model, datamodule=datamodule, ckpt_path=cfg.ckpt_path)
+    else:
+        # for predictions use trainer.predict(...)
+        import multiprocess.context as ctx
 
-    import multiprocess.context as ctx
-
-    ctx._force_start_method("spawn")
-
-    # for predictions use trainer.predict(...)
-    # predictions = trainer.predict(model=model, dataloaders=dataloaders, ckpt_path=cfg.ckpt_path)
+        ctx._force_start_method("spawn")
+        trainer.predict(model=model, dataloaders=datamodule, ckpt_path=cfg.ckpt_path, return_predictions=False)
 
     metric_dict = trainer.callback_metrics
-
     return metric_dict, object_dict
 
 
