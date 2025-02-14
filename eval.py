@@ -1,21 +1,33 @@
 from typing import TYPE_CHECKING, Any
 
 import hydra
+import torch
 from omegaconf import DictConfig
 
 from chimera.utils import (
     RankedLogger,
     extras,
     instantiate_loggers,
+    instantiate_callbacks,
     log_hyperparameters,
     task_wrapper,
 )
 
 if TYPE_CHECKING:
-    from lightning import LightningDataModule, LightningModule, Trainer
+    from lightning import Callback, LightningDataModule, LightningModule, Trainer
     from lightning.pytorch.loggers import Logger
 
 log = RankedLogger(__name__, rank_zero_only=True)
+
+
+def set_tensor_core_precision(precision="medium") -> None:
+    """Set Tensor Core precision for NVIDIA GPUs."""
+    # Check if using H100 or A100 and enable Tensor Core operations accordingly
+    if torch.cuda.is_available():
+        device_name = torch.cuda.get_device_name()
+        if "H100" in device_name or "A100" in device_name:
+            log.info(f"Enabling {precision=} Tensor Cores for {device_name}")
+            torch.set_float32_matmul_precision("medium")
 
 
 @task_wrapper
@@ -36,11 +48,14 @@ def evaluate(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
     log.info(f"Instantiating model <{cfg.model._target_}>")
     model: LightningModule = hydra.utils.instantiate(cfg.model)
 
+    log.info("Instantiating callbacks...")
+    callbacks: list[Callback] = instantiate_callbacks(cfg.get("callbacks"))
+
     log.info("Instantiating loggers...")
     logger: list[Logger] = instantiate_loggers(cfg.get("logger"))
 
     log.info(f"Instantiating trainer <{cfg.trainer._target_}>")
-    trainer: Trainer = hydra.utils.instantiate(cfg.trainer, logger=logger)
+    trainer: Trainer = hydra.utils.instantiate(cfg.trainer, callbacks=callbacks, logger=logger)
 
     object_dict = {
         "cfg": cfg,
@@ -53,6 +68,8 @@ def evaluate(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
     if logger:
         log.info("Logging hyperparameters!")
         log_hyperparameters(object_dict)
+
+    set_tensor_core_precision()
 
     if datamodule.hparams.predict_data_path is None:
         log.info("Starting testing!")
