@@ -3,14 +3,14 @@
 defaults:
   - _self_
   - data: fq # choose datamodule with `test_dataloader()` for evaluation
-  - model: cnn
+  - model: mambasp
   - logger: null
   - trainer: default
   - paths: default
   - extras: default
   - hydra: default
 
-  - callbacks: write
+  - callbacks: null
 
   # debugging config (enable through command line, e.g. `python train.py debug=default)
   - debug: null
