@@ -1,3 +1,4 @@
+use std::io::Write;
 use std::path::PathBuf;
 
 use ahash::HashMap;
@@ -23,11 +24,34 @@ pub struct Predict {
     pub sv: Option<String>,
 }
 
+// implement repr for Predict
+impl std::fmt::Display for Predict {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "id: {}, label: {}", self.id, self.label)
+    }
+}
+
 pub fn ascii_list2str(ascii_list: &[i64]) -> String {
     ascii_list
         .par_iter()
         .map(|&c| char::from_u32(c as u32).unwrap())
         .collect()
+}
+
+#[pyfunction]
+pub fn write_predicts_to_file(predicts: HashMap<String, Predict>, pt_path: PathBuf) -> Result<()> {
+    // write predicts to a txt  file
+    // column 1: id
+    // column 2: label
+
+    let file = std::fs::File::create(pt_path)?;
+    let mut writer = std::io::BufWriter::new(file);
+
+    for (_, predict) in predicts {
+        writeln!(writer, "{},{}", predict.id, predict.label)?;
+    }
+
+    Ok(())
 }
 
 #[pyfunction]
@@ -88,7 +112,7 @@ pub fn load_predicts_from_batch_pt(pt_path: PathBuf) -> Result<HashMap<String, P
         tensors_map.insert(key, value);
     }
 
-    let _predictions = tensors_map.get("prediction").unwrap().argmax(2)?; // shape batch, seq_len
+    let _predictions = tensors_map.get("prediction").unwrap().argmax(1)?; // shape batch, seq_len
     let predictions = _predictions.to_dtype(candle_core::DType::I64)?;
     let predictions_vec = predictions.to_vec1::<i64>()?;
 

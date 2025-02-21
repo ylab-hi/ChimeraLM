@@ -1,5 +1,6 @@
 use crate::predict::load_predicts_from_batch_pt;
 use crate::predict::load_predicts_from_batch_pts;
+use crate::predict::write_predicts_to_file;
 use crate::predict::Predict;
 use deepbiop::utils;
 use log::{debug, error, info, warn};
@@ -35,5 +36,6 @@ fn chimera(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<Predict>()?;
     m.add_function(wrap_pyfunction!(load_predicts_from_batch_pt, m)?)?;
     m.add_function(wrap_pyfunction!(load_predicts_from_batch_pts, m)?)?;
+    m.add_function(wrap_pyfunction!(write_predicts_to_file, m)?)?;
     Ok(())
 }
