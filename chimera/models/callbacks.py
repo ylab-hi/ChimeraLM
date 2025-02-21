@@ -16,8 +16,6 @@ class CustomWriter(BasePredictionWriter):
         if not folder.exists():
             folder.mkdir(parents=True, exist_ok=True)
 
-        print(batch.keys())
-
         save_prediction = {
             "prediction": prediction[0].cpu(),
             "labels": prediction[1].to(torch.int64).cpu(),
