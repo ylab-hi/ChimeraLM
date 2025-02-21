@@ -3,6 +3,8 @@ from pathlib import Path
 import torch
 from lightning.pytorch.callbacks import BasePredictionWriter
 
+from chimera.data.tokenizer import MODEL_SEQ_INPUT
+
 
 class CustomWriter(BasePredictionWriter):
     def __init__(self, output_dir, write_interval="epoch"):
@@ -13,6 +15,8 @@ class CustomWriter(BasePredictionWriter):
         folder = self.output_dir / str(dataloader_idx)
         if not folder.exists():
             folder.mkdir(parents=True, exist_ok=True)
+
+        print(batch.keys())
 
         save_prediction = {
             "prediction": prediction[0].cpu(),

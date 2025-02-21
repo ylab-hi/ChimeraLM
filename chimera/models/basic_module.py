@@ -95,7 +95,7 @@ class ClassificationLit(LightningModule, PyTorchModelHubMixin):
         """
         input_ids = batch["input_ids"]
 
-        input_quals = batch.get(["input_quals"], None)
+        input_quals = batch.get("input_quals", None)
 
         logits = self.forward(input_ids, input_quals)
 
@@ -182,7 +182,7 @@ class ClassificationLit(LightningModule, PyTorchModelHubMixin):
         :param batch_idx: The index of the current batch.
         """
         input_ids = batch["input_ids"]
-        input_quals = batch["input_quals"]
+        input_quals = batch.get("input_quals", None)
         logits = self.forward(input_ids, input_quals)
         return logits, batch["labels"]
 

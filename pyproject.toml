@@ -39,7 +39,7 @@ dependencies = [
     "torchmetrics>=1.6.0",
     "typer>=0.15.1",
     "transformers>=4.47.1",
-    "pyarrow<19",           # pin <19 due to https://github.com/apache/arrow/issues/45283
+   #  "pyarrow<19",           # pin <19 due to https://github.com/apache/arrow/issues/45283
     "deepbiop",
     "einops>=0.8.0",
 ]

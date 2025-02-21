@@ -176,7 +176,7 @@ class DataModule(LightningDataModule):
                     max_length=self.hparams.tokenizer.max_len_single_sentence,
                 ),
                 num_proc=max(1, num_proc),  # type: ignore
-            ).remove_columns([SEQ_FEATURE, QUAL_FEATURE, ID_FEATURE])
+            ).remove_columns([SEQ_FEATURE, QUAL_FEATURE])
             del predict_dataset
             return
 

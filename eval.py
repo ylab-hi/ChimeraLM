@@ -7,8 +7,8 @@ from omegaconf import DictConfig
 from chimera.utils import (
     RankedLogger,
     extras,
-    instantiate_loggers,
     instantiate_callbacks,
+    instantiate_loggers,
     log_hyperparameters,
     task_wrapper,
 )
