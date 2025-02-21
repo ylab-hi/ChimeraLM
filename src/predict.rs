@@ -76,7 +76,6 @@ pub fn load_predicts_from_batch_pts(
             }
         })
         .collect();
-
     result.map(|vectors| vectors.into_par_iter().flatten().collect())
 }
 
