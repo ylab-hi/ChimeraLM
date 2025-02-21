@@ -653,6 +653,7 @@ dependencies = [
  "bio",
  "bitvec",
  "bstr",
+ "candle-core",
  "clap",
  "colored",
  "ctrlc",
