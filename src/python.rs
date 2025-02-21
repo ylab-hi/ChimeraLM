@@ -1,3 +1,6 @@
+use crate::predict::load_predicts_from_batch_pt;
+use crate::predict::load_predicts_from_batch_pts;
+use crate::predict::Predict;
 use deepbiop::utils;
 use log::{debug, error, info, warn};
 use pyo3::prelude::*;
@@ -28,5 +31,9 @@ fn chimera(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(test_log, m)?)?;
     m.add_function(wrap_pyfunction!(add, m)?)?;
     m.add_function(wrap_pyfunction!(test_deepbiop, m)?)?;
+
+    m.add_class::<Predict>()?;
+    m.add_function(wrap_pyfunction!(load_predicts_from_batch_pt, m)?)?;
+    m.add_function(wrap_pyfunction!(load_predicts_from_batch_pts, m)?)?;
     Ok(())
 }

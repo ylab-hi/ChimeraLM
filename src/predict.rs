@@ -80,7 +80,6 @@ pub fn load_predicts_from_batch_pts(
     result.map(|vectors| vectors.into_par_iter().flatten().collect())
 }
 
-
 #[pyfunction]
 pub fn load_predicts_from_batch_pt(pt_path: PathBuf) -> Result<HashMap<String, Predict>> {
     let tensors = pickle::read_all(pt_path).unwrap();

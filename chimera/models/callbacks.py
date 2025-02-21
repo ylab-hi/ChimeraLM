@@ -3,8 +3,6 @@ from pathlib import Path
 import torch
 from lightning.pytorch.callbacks import BasePredictionWriter
 
-from chimera.data.tokenizer import MODEL_SEQ_INPUT
-
 
 class CustomWriter(BasePredictionWriter):
     def __init__(self, output_dir, write_interval="epoch"):
