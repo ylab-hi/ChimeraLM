@@ -9,34 +9,18 @@ name = "chimera"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-deepbiop = { git = "https://github.com/cauliyang/DeepBioP", branch = "feat", features = [
-    "fastq",
-    "bam",
-    "utils",
-] }
-candle-core = { git = "https://github.com/huggingface/candle.git", version = "0.8.1" }
+deepbiop = { git = "https://github.com/cauliyang/DeepBioP", branch = "feat", features = ["fastq", "bam", "utils"] }
+candle-core = { git = "https://github.com/huggingface/candle.git", version = "0.9.1" }
 thiserror = "2.0"
 anyhow = "1.0"
 walkdir = { version = "2.5" }
 rayon = { version = "1.10" }
-pyo3 = { version = "0.23.3", features = [
-    "abi3-py310",
-    "extension-module",
-    "anyhow",
-] }
+pyo3 = { version = "0.23.3", features = ["abi3-py310", "extension-module", "anyhow"] }
 
 ctrlc = "3.4"
 log = "0.4"
 pyo3-log = "0.12"
-noodles = { version = "0.87.0", features = [
-    "bgzf",
-    "core",
-    "csi",
-    "fasta",
-    "fastq",
-    "sam",
-    "bam",
-] }
+noodles = { version = "0.97.0", features = ["bgzf", "core", "csi", "fasta", "fastq", "sam", "bam"] }
 
 bio = "2.0"
 
@@ -47,22 +31,20 @@ num-traits = { version = "0.2" }
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
-rand = "0.8"
-rand_distr = "0.4"
+rand = "0.9"
+rand_distr = "0.5"
 bitvec = "1.0"
 itertools = "0.14.0"
 derive_builder = "0.20"
 lexical = "7.0"
-bstr = "1.10.0"
+bstr = "1.12.0"
 lazy_static = "1.5.0"
-tempfile = "3.13"
-parquet = "54.0"
-arrow = "54.0"
+tempfile = "3.19"
+parquet = "55.0"
+arrow = "55.0"
 colored = "3"
 textwrap = "0.16"
-flate2 = { version = "1.0.34", features = [
-    "zlib-ng",
-], default-features = false }
+flate2 = { version = "1.1.1", features = ["zlib-ng"], default-features = false }
 
 
 # binaries
@@ -73,4 +55,4 @@ human-panic = "2.0"
 
 
 [build-dependencies]
-pyo3-build-config = "0.23"
+pyo3-build-config = "0.24"

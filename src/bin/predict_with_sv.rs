@@ -49,7 +49,7 @@ fn load_sv<P: AsRef<Path>>(path: P) -> HashMap<String, String> {
 }
 
 fn worker<P: AsRef<Path>>(predict_path: P, sv_path: P, max_predict: Option<usize>) -> Result<()> {
-    let predicts = load_predicts_from_batch_pts(predict_path.as_ref().to_path_buf(), max_predicts)?;
+    let predicts = load_predicts_from_batch_pts(predict_path.as_ref().to_path_buf(), max_predict)?;
     info!("predicts: {:?}", predicts.len());
 
     let svs = load_sv(sv_path);
