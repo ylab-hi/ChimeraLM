@@ -1,6 +1,4 @@
 from dataclasses import dataclass
-
-import aligntools
 import pysam
 import typer
 from aligntools import Cigar
@@ -139,15 +137,29 @@ def compare_alignment_segments(alignment_segment1: list[AlignmentSegment], align
 
     return not (len(alignment_segment1) > 2 or len(alignment_segment2) > 2)
 
-app = typer.Typer()
+def cal_sup_chimeric_reads(chimeric_reads: dict[str, list[AlignmentSegment]], sup_chimeric_reads: dict[str, list[AlignmentSegment]]):
+    result = {}
+    for read_name, alignment_segments in chimeric_reads.items():
+        for sup_alignment_segment in sup_chimeric_reads.values():
+            if compare_alignment_segments(alignment_segments, sup_alignment_segment):
+                result[read_name] = True
+                break
+            else:
+                result[read_name] = False
 
+    with open('sup_chimeric_reads.txt', 'w') as f:
+        for read_name, is_sup in result.items():
+            f.write(f"{read_name}\t{is_sup}\n")
+
+app = typer.Typer()
 @app.command()
-def compare_chimeric(bam_file: str):
+def compare_chimeric(bam_file: str, sup_bam_file: str):
     """Compare chimeric reads."""
     chimeric_reads = get_primary_chimeric_alignments(bam_file)
-    for _, alignment_segments in chimeric_reads.items():
-        print(alignment_segments)
-
+    print(f"Found {len(chimeric_reads)} chimeric reads in {bam_file}")
+    sup_chimeric_reads = get_primary_chimeric_alignments(sup_bam_file)
+    print(f"Found {len(sup_chimeric_reads)} chimeric reads in {sup_bam_file}")
+    cal_sup_chimeric_reads(chimeric_reads, sup_chimeric_reads)
 
 if __name__ == "__main__":
     app()
