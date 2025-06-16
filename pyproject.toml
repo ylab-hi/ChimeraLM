@@ -11,37 +11,9 @@ requires-python = ">=3.10"
 version = "0.1.0"
 license = { file = "LICENSE" }
 keywords = ["deep learning", "bioinformatics", "rust"]
-classifiers = [
-    "Development Status :: 5 - Production/Stable",
-    "Environment :: Console",
-    "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: GNUv3 License",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Rust",
-    "Topic :: Scientific/Engineering",
-]
-dependencies = [
-    "datasets>=3.2.0",
-    "evaluate>=0.4.3",
-    "hydra-core>=1.3.2",
-    "lightning>=2.4.0",
-    "needletail==0.5.0",
-    "omegaconf>=2.3.0",
-    "rich>=13.9.4",
-    "torch>=2.6.0",
-    "torchvision>=0.20.1",
-    "torchaudio>=2.6.0",
-    "torchmetrics>=1.6.0",
-    "typer>=0.15.1",
-    "transformers>=4.47.1",
-    "deepbiop",
-    "einops>=0.8.0",
-]
+classifiers = ["Development Status :: 5 - Production/Stable", "Environment :: Console", "Intended Audience :: Science/Research", "License :: OSI Approved :: GNUv3 License", "Operating System :: OS Independent", "Programming Language :: Python", "Programming Language :: Python :: 3", "Programming Language :: Python :: 3 :: Only", "Programming Language :: Python :: 3.10", "Programming Language :: Python :: 3.11", "Programming Language :: Rust", "Topic :: Scientific/Engineering"]
+dependencies = ["datasets>=3.2.0", "evaluate>=0.4.3", "hydra-core>=1.3.2", "lightning>=2.4.0", "needletail==0.5.0", "omegaconf>=2.3.0", "rich>=13.9.4",
+ "torch==2.5.1", "torchvision>=0.20.1", "torchaudio>=2.5.0", "torchmetrics>=1.6.0", "typer>=0.15.1", "transformers>=4.47.1", "deepbiop", "einops>=0.8.0"]
 
 [tool.uv.sources]
 deepbiop = { path = "../DeepBioP/py-deepbiop" }
@@ -77,11 +49,7 @@ dev = [
 
 [tool.uv]
 no-build-isolation-package = ['flash-attn', 'causal-conv1d']
-cache-keys = [
-    { file = "pyproject.toml" },
-    { file = "Cargo.toml" },
-    { file = "**/*.rs" },
-]
+cache-keys = [{ file = "pyproject.toml" }, { file = "Cargo.toml" }, { file = "**/*.rs" }]
 
 [project.urls]
 homepage = "https://github.com/ylab-hi/chimera"
@@ -93,34 +61,7 @@ changelog = "https://github.com/ylab-hi/chimera/README.md"
 target-version = "py310"
 line-length = 120
 fix = true
-exclude = [
-    "tests/*",
-    "scripts/*",
-    "docs/conf.py",
-    ".bzr",
-    ".direnv",
-    ".eggs",
-    ".git",
-    ".git-rewrite",
-    ".hg",
-    ".mypy_cache",
-    ".nox",
-    ".pants.d",
-    ".pytype",
-    ".ruff_cache",
-    ".svn",
-    ".tox",
-    ".venv",
-    "__pypackages__",
-    "_build",
-    "buck-out",
-    "build",
-    "dist",
-    "node_modules",
-    "venv",
-    "tasks.py",
-    "notebooks/data.ipynb",
-]
+exclude = ["tests/*", "scripts/*", "docs/conf.py", ".bzr", ".direnv", ".eggs", ".git", ".git-rewrite", ".hg", ".mypy_cache", ".nox", ".pants.d", ".pytype", ".ruff_cache", ".svn", ".tox", ".venv", "__pypackages__", "_build", "buck-out", "build", "dist", "node_modules", "venv", "tasks.py", "notebooks/data.ipynb"]
 
 [tool.ruff.lint]
 fixable = ["ALL"]
@@ -247,12 +188,7 @@ omit = ["tests/*"]
 show_missing = true
 fail_under = 40
 ignore_errors = true
-exclude_lines = [
-    "pragma: nocover",
-    "raise NotImplementedError",
-    "raise NotImplementedError()",
-    "if __name__ == .__main__.:",
-]
+exclude_lines = ["pragma: nocover", "raise NotImplementedError", "raise NotImplementedError()", "if __name__ == .__main__.:"]
 
 [tool.mypy]
 strict = false
@@ -267,16 +203,5 @@ ignore_missing_imports = true
 testpaths = "tests/"
 log_cli = "True"
 filterwarnings = ["ignore::DeprecationWarning", "ignore::UserWarning"]
-markers = [
-    "smoke: a quick smoke test",
-    "failing: failing tests",
-    "imports: importing tests",
-    "slow: slow tests",
-]
-addopts = [
-    "--color=yes",
-    "--durations=0",
-    "--strict-markers",
-    "--doctest-modules",
-    "--import-mode=importlib",
-]
+markers = ["smoke: a quick smoke test", "failing: failing tests", "imports: importing tests", "slow: slow tests"]
+addopts = ["--color=yes", "--durations=0", "--strict-markers", "--doctest-modules", "--import-mode=importlib"]
