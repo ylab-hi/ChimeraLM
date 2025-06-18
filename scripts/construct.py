@@ -128,6 +128,8 @@ def compare_alignment_segments(alignment_segment1: list[AlignmentSegment], align
     for as1, as2 in zip(alignment_segment1, alignment_segment2, strict=False):
         if as1.chromosome != as2.chromosome:
             return False
+        if as1.strand != as2.strand:
+            return False
         if abs(as1.reference_start - as2.reference_start) > threshold:
             return False
         if abs(as1.reference_end - as2.reference_end) > threshold:
