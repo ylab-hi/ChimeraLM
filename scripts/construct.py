@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+
 import pysam
 import typer
 from aligntools import Cigar
@@ -90,18 +91,7 @@ def get_primary_chimeric_alignments(bam_file: str) -> dict[str, list[AlignmentSe
 
 def sort_alignement_seg_from_one_read(alignment_segments: list[AlignmentSegment]) -> list[AlignmentSegment]:
     """Sort alignment segments from one read."""
-    # check if has same chromosome
-    # if so, sort by reference start
-    # if not, sort by chromosome
-    # if len(alignment_segments) > 2, return original list
-    if len(alignment_segments) > 2:
-        return alignment_segments
-
-    if len(alignment_segments) == 2:
-        if alignment_segments[0].chromosome == alignment_segments[1].chromosome:
-            return sorted(alignment_segments, key=lambda x: x.reference_start)
-        return sorted(alignment_segments, key=lambda x: x.chromosome)
-    return alignment_segments
+    return sorted(alignment_segments, key=lambda x: (x.chromosome, x.reference_start))
 
 def chimeric_read_to_alignment_segments(chimeric_read: pysam.AlignedSegment) -> list[AlignmentSegment]:
     """Convert a chimeric read to a list of alignment segments."""
@@ -130,22 +120,30 @@ def chimeric_read_to_alignment_segments(chimeric_read: pysam.AlignedSegment) -> 
 
     return sort_alignement_seg_from_one_read(alignment_segments)
 
-def compare_alignment_segments(alignment_segment1: list[AlignmentSegment], alignment_segment2: list[AlignmentSegment]) -> bool:
+def compare_alignment_segments(alignment_segment1: list[AlignmentSegment], alignment_segment2: list[AlignmentSegment], threshold: int) -> bool:
     """Compare two alignment segments."""
     if len(alignment_segment1) != len(alignment_segment2):
         return False
 
-    return not (len(alignment_segment1) > 2 or len(alignment_segment2) > 2)
+    for as1, as2 in zip(alignment_segment1, alignment_segment2, strict=False):
+        if as1.chromosome != as2.chromosome:
+            return False
+        if abs(as1.reference_start - as2.reference_start) > threshold:
+            return False
+        if abs(as1.reference_end - as2.reference_end) > threshold:
+            return False
 
-def cal_sup_chimeric_reads(chimeric_reads: dict[str, list[AlignmentSegment]], sup_chimeric_reads: dict[str, list[AlignmentSegment]]):
+    return True
+
+
+def cal_sup_chimeric_reads(chimeric_reads: dict[str, list[AlignmentSegment]], sup_chimeric_reads: dict[str, list[AlignmentSegment]], threshold: int):
     result = {}
     for read_name, alignment_segments in chimeric_reads.items():
         for sup_alignment_segment in sup_chimeric_reads.values():
-            if compare_alignment_segments(alignment_segments, sup_alignment_segment):
+            if compare_alignment_segments(alignment_segments, sup_alignment_segment, threshold):
                 result[read_name] = True
                 break
-            else:
-                result[read_name] = False
+            result[read_name] = False
 
     with open('sup_chimeric_reads.txt', 'w') as f:
         for read_name, is_sup in result.items():
@@ -153,13 +151,13 @@ def cal_sup_chimeric_reads(chimeric_reads: dict[str, list[AlignmentSegment]], su
 
 app = typer.Typer()
 @app.command()
-def compare_chimeric(bam_file: str, sup_bam_file: str):
+def compare_chimeric(bam_file: str, sup_bam_file: str, threshold: int = 1000):
     """Compare chimeric reads."""
     chimeric_reads = get_primary_chimeric_alignments(bam_file)
     print(f"Found {len(chimeric_reads)} chimeric reads in {bam_file}")
     sup_chimeric_reads = get_primary_chimeric_alignments(sup_bam_file)
     print(f"Found {len(sup_chimeric_reads)} chimeric reads in {sup_bam_file}")
-    cal_sup_chimeric_reads(chimeric_reads, sup_chimeric_reads)
+    cal_sup_chimeric_reads(chimeric_reads, sup_chimeric_reads, threshold)
 
 if __name__ == "__main__":
     app()
