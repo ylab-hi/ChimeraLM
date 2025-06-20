@@ -57,6 +57,7 @@ def select(supptive_file: str, output_file: str, total_data: int, trainning_rati
     test_data = test_positive_data + test_negative_data
 
     print(f"total_data: {len(train_data) + len(validation_data) + len(test_data)}")
+    print(f"selecting data {total_data}")
     print(f"train_data: {len(train_data)}: {len(train_positive_data)} positive, {len(train_negative_data)} negative")
     print(f"validation_data: {len(validation_data)}: {len(validation_positive_data)} positive, {len(validation_negative_data)} negative")
     print(f"test_data: {len(test_data)}: {len(test_positive_data)} positive, {len(test_negative_data)} negative")
@@ -67,17 +68,17 @@ def select(supptive_file: str, output_file: str, total_data: int, trainning_rati
     random.shuffle(test_data)
 
     #  write train data to file
-    with open(f"{output_file}.train.txt", "w") as f:
+    with open(f"{output_file}.{len(train_data)}.train.txt", "w") as f:
         for read_name in train_data:
             f.write(f"{read_name}\t{is_postive(read_name, supptive_reads)}\n")
 
     # write validation data to file
-    with open(f"{output_file}.validation.txt", "w") as f:
+    with open(f"{output_file}.{len(validation_data)}.validation.txt", "w") as f:
         for read_name in validation_data:
             f.write(f"{read_name}\t{is_postive(read_name, supptive_reads)}\n")
     
     # write test data to file
-    with open(f"{output_file}.test.txt", "w") as f:
+    with open(f"{output_file}.{len(test_data)}.test.txt", "w") as f:
         for read_name in test_data:
             f.write(f"{read_name}\t{is_postive(read_name, supptive_reads)}\n")
 
