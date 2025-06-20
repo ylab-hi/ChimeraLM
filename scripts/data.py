@@ -41,6 +41,10 @@ def select(
     group_by_support: dict[int, list[str]] = {}
     for read_name, support in supportive_reads.items():
         group_by_support.setdefault(support, []).append(read_name)
+    
+    # print group by support
+    for support, reads in group_by_support.items():
+        print(f"support {support}: {len(reads)}")
 
     # Use read with support number equal to 0 as positive data
     positive_data = group_by_support.get(0, [])
