@@ -48,6 +48,14 @@ def select(supptive_file: str, output_file: str, total_data: int, trainning_rati
     random.shuffle(positive_data)
     random.shuffle(negative_data)
 
+    # check if data is enough
+    if len(positive_data) < total_data * trainning_ratio * positive_data_ratio:
+        print(f"positive data is not enough: {len(positive_data)} < {total_data * trainning_ratio * positive_data_ratio}")
+        raise ValueError("positive data is not enough")
+    if len(negative_data) < total_data * trainning_ratio * (1 - positive_data_ratio):
+        print(f"negative data is not enough: {len(negative_data)} < {total_data * trainning_ratio * (1 - positive_data_ratio)}")
+        raise ValueError("negative data is not enough")
+
     # split the data include positive data and negative data
     train_positive_data = positive_data[:int(total_data * trainning_ratio * positive_data_ratio)]
     train_negative_data = negative_data[:int(total_data * trainning_ratio * (1 - positive_data_ratio))]
