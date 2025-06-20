@@ -56,9 +56,9 @@ fn worker<P: AsRef<Path>>(fq: P, pos: P, neg: P, threads: Option<usize>) -> Resu
     records.par_iter_mut().for_each(|record| {
         let id: BString = record.name().into();
         if pos_reads.contains(&id) {
-            *record.name_mut() = BString::from(format!("{}|1", id));
+            *record.name_mut() = BString::from(format!("{id}|1"));
         } else if neg_reads.contains(&id) {
-            *record.name_mut() = BString::from(format!("{}|0", id));
+            *record.name_mut() = BString::from(format!("{id}|0"));
         }
     });
 
@@ -95,11 +95,11 @@ fn main() -> Result<()> {
         .build_global()
         .unwrap();
 
-    info!("{:?}", cli);
+    info!("{cli:?}");
     worker(&cli.fq, &cli.pos, &cli.neg, cli.threads)?;
 
     let elapsed = start.elapsed();
-    log::info!("elapsed time: {:.2?}", elapsed);
+    log::info!("elapsed time: {elapsed:.2?}");
 
     Ok(())
 }

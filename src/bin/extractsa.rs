@@ -47,7 +47,7 @@ fn select_chimeric_reads<P: AsRef<Path>>(
         thread::available_parallelism().unwrap_or(NonZeroUsize::MIN)
     };
 
-    let decoder = bgzf::MultithreadedReader::with_worker_count(worker_count, file);
+    let decoder = bgzf::io::MultithreadedReader::with_worker_count(worker_count, file);
     let mut reader = bam::io::Reader::from(decoder);
     let header = reader.read_header()?;
 
@@ -103,6 +103,6 @@ fn main() -> Result<()> {
     select_chimeric_reads(cli.bam, cli.max_reads, cli.threads)?;
 
     let elapsed = start.elapsed();
-    log::info!("elapsed time: {:.2?}", elapsed);
+    log::info!("elapsed time: {elapsed:.2?}");
     Ok(())
 }

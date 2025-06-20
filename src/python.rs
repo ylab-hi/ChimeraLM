@@ -1,7 +1,7 @@
+use crate::predict::Predict;
 use crate::predict::load_predicts_from_batch_pt;
 use crate::predict::load_predicts_from_batch_pts;
 use crate::predict::write_predicts_to_file;
-use crate::predict::Predict;
 use deepbiop::utils;
 use log::{debug, error, info, warn};
 use pyo3::prelude::*;
@@ -9,7 +9,7 @@ use pyo3::prelude::*;
 #[pyfunction]
 fn test_deepbiop() {
     let segment = utils::interval::GenomicInterval::new("chr2", 100, 2000).unwrap();
-    println!("{:?}", segment);
+    println!("{segment:?}");
 }
 
 #[pyfunction]
@@ -22,7 +22,7 @@ fn test_log() {
 
 #[pyfunction]
 fn add(a: i32, b: i32) -> i32 {
-    println!("Adding {} + {}", a, b);
+    println!("Adding {a} + {b}");
     a + b
 }
 

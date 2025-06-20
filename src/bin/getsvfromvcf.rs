@@ -55,13 +55,13 @@ fn parse_rname(rname: &str) -> Vec<String> {
 }
 
 fn write_results(results: &HashMap<String, Vec<String>>, file_name: &str) -> Result<()> {
-    let output_path = format!("{}.sv.read.sup.txt", file_name);
-    info!("results written to {}", &output_path);
+    let output_path = format!("{file_name}.sv.read.sup.txt");
+    info!("results written to {output_path}");
     let mut buf_writer = std::io::BufWriter::new(std::fs::File::create(output_path)?);
 
     for (read, svtypes) in results.iter() {
         for sv in svtypes.iter() {
-            let line = format!("{}\t{}\n", read, sv);
+            let line = format!("{read}\t{sv}\n");
             buf_writer.write_all(line.as_bytes())?;
         }
     }
@@ -87,7 +87,7 @@ fn worker<P: AsRef<Path>>(vcf_path: P) -> Result<()> {
             continue;
         }
 
-        debug!("line: {}", line);
+        debug!("line: {line}");
 
         ind += 1;
 
@@ -137,11 +137,11 @@ fn main() -> Result<()> {
         .build_global()
         .unwrap();
 
-    info!("{:?}", cli);
+    info!("{cli:?}");
     worker(&cli.vcf)?;
 
     let elapsed = start.elapsed();
-    log::info!("elapsed time: {:.2?}", elapsed);
+    log::info!("elapsed time: {elapsed:.2?}");
 
     Ok(())
 }

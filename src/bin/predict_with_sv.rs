@@ -4,7 +4,6 @@ use ahash::HashMapExt;
 use anyhow::Result;
 use clap::Parser;
 use log::info;
-use rayon::prelude::*;
 use std::io::BufRead;
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -83,11 +82,11 @@ fn main() -> Result<()> {
         .build_global()
         .unwrap();
 
-    info!("{:?}", cli);
+    info!("{cli:?}");
     worker(&cli.predict, &cli.sv, cli.max_predicts)?;
 
     let elapsed = start.elapsed();
-    log::info!("elapsed time: {:.2?}", elapsed);
+    log::info!("elapsed time: {elapsed:.2?}");
 
     Ok(())
 }

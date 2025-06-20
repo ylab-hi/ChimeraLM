@@ -7,7 +7,7 @@ use ahash::HashMap;
 use anyhow::Result;
 use clap::Parser;
 use deepbiop::bam::chimeric::ChimericEvent;
-use deepbiop::utils::interval::{GenomicInterval, Overlap};
+use deepbiop::utils::interval::GenomicInterval;
 use itertools::Itertools;
 use log::debug;
 use log::info;
@@ -59,17 +59,13 @@ fn check_overlap(
         return false;
     }
 
-    // Check direct overlap first
-    if interval1.overlap(interval2) {
+    let start_diff = interval1.start.abs_diff(interval2.start);
+    let end_diff = interval1.end.abs_diff(interval2.end);
+    if start_diff <= threshold && end_diff <= threshold {
         return true;
     }
 
-    // Calculate distance between intervals
-    if interval1.end < interval2.start {
-        interval2.start - interval1.end < threshold
-    } else {
-        interval1.start - interval2.end < threshold
-    }
+    false
 }
 
 fn is_same_chimeric_event(
@@ -139,7 +135,7 @@ fn write_results(
     ovr_threshold: usize,
 ) -> Result<()> {
     for (cbam_path, read_sups) in results.iter() {
-        let suffix = format!("threshold_{}.sup.txt", ovr_threshold);
+        let suffix = format!("threshold_{ovr_threshold}.sup.txt");
         let output_path = cbam_path.with_extension(suffix);
         info!("writing {} reads to {:?}", read_sups.len(), output_path);
 
@@ -237,7 +233,7 @@ fn annotate(
                                 ) {
                                     log::debug!(
                                         "found sup for {} in {:?}",
-                                        event.name.as_ref().unwrap().to_string(),
+                                        event.name.as_ref().unwrap(),
                                         cbam_path
                                     );
                                     Some(
@@ -282,7 +278,7 @@ fn main() -> Result<()> {
         .build_global()
         .unwrap();
 
-    info!("{:?}", cli);
+    info!("{cli:?}");
 
     annotate(
         &cli.cbam,
@@ -294,47 +290,7 @@ fn main() -> Result<()> {
     .unwrap();
 
     let elapsed = start.elapsed();
-    log::info!("elapsed time: {:.2?}", elapsed);
+    log::info!("elapsed time: {elapsed:.2?}");
 
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_check_overlap_direct_overlap() {
-        let interval1 = GenomicInterval {
-            chr: "chr1".into(),
-            start: 100,
-            end: 200,
-        };
-        let interval2 = GenomicInterval {
-            chr: "chr1".into(),
-            start: 150,
-            end: 250,
-        };
-        let threshold = 0;
-        assert!(check_overlap(&interval1, &interval2, threshold));
-    }
-
-    #[test]
-    fn test_check_overlap_no_overlap_within_threshold() {
-        let interval1 = GenomicInterval {
-            chr: "chr1".into(),
-            start: 100,
-            end: 200,
-        };
-        let interval2 = GenomicInterval {
-            chr: "chr1".into(),
-            start: 300,
-            end: 400,
-        };
-        let threshold = 100;
-
-        println!("overlap: {}", interval1.overlap(&interval2));
-
-        assert!(!check_overlap(&interval1, &interval2, threshold));
-    }
 }

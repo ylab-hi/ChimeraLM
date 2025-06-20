@@ -87,13 +87,13 @@ fn main() -> Result<()> {
         .build_global()
         .unwrap();
 
-    info!("{:?}", cli);
+    info!("{cli:?}");
 
     let result = summary(cli.support_file.clone())?;
 
     // stat 0,1,2,3
     let stat_result = stat(&result)?;
-    info!("{:?}", stat_result);
+    info!("{stat_result:?}");
 
     // write to json
     let output_prefix = cli.output_prefix.unwrap_or_else(|| {
@@ -104,11 +104,11 @@ fn main() -> Result<()> {
             .to_string()
     });
 
-    let output_file = format!("{}.json", output_prefix);
+    let output_file = format!("{output_prefix}.json");
     let writer = std::io::BufWriter::new(std::fs::File::create(output_file)?);
     serde_json::to_writer(writer, &result)?;
 
     let elapsed = start.elapsed();
-    log::info!("elapsed time: {:.2?}", elapsed);
+    log::info!("elapsed time: {elapsed:.2?}");
     Ok(())
 }

@@ -34,7 +34,7 @@ fn worker<P: AsRef<Path>>(path: P) -> Result<Vec<deepbiop::bam::chimeric::Chimer
 
     let mut line = String::new();
     while reader.read_line(&mut line)? > 0 {
-        debug!("parse {}", line);
+        debug!("parse {line}");
         let fields = line.trim().split('\t').collect::<Vec<&str>>();
         assert_eq!(fields.len(), 3);
         let count: usize = lexical::parse(fields[1])?;
@@ -70,10 +70,10 @@ fn main() -> Result<()> {
         .build_global()
         .unwrap();
 
-    info!("{:?}", cli);
+    info!("{cli:?}");
     worker(cli.chimeric_file)?;
 
     let elapsed = start.elapsed();
-    log::info!("elapsed time: {:.2?}", elapsed);
+    log::info!("elapsed time: {elapsed:.2?}");
     Ok(())
 }

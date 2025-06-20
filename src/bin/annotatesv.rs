@@ -97,7 +97,7 @@ fn get_sv_from_vcf<P: AsRef<Path>>(
         let rname = find_needle("RNAMES", &infos);
 
         if rname.is_none() {
-            debug!("no RNAMES in {:?}", line);
+            debug!("no RNAMES in {line:?}");
             line.clear();
             continue;
         }
@@ -106,7 +106,7 @@ fn get_sv_from_vcf<P: AsRef<Path>>(
         let svtype_str = find_needle("SVTYPE", &infos);
 
         if svtype_str.is_none() {
-            debug!("no SVTYPE in {:?}", line);
+            debug!("no SVTYPE in {line:?}");
             line.clear();
             continue;
         }
@@ -116,7 +116,7 @@ fn get_sv_from_vcf<P: AsRef<Path>>(
         let breakpoint2_str = find_needle("END", &infos);
 
         if breakpoint2_str.is_none() {
-            debug!("no END in {:?}", line);
+            debug!("no END in {line:?}");
             line.clear();
             continue;
         }
@@ -254,9 +254,9 @@ fn worker(cvcfs: &[PathBuf], dvcfs: &[PathBuf], threshold: usize) -> Result<()> 
 
     // Write results
     for (vcf_path, results) in result {
-        let extension = format!("annotated_sv_{}.tsv", threshold);
+        let extension = format!("annotated_sv_{threshold}.tsv");
         let output_prefix = vcf_path.with_extension(extension);
-        info!("Writing annotated SV result to {:?}", output_prefix);
+        info!("Writing annotated SV result to {output_prefix:?}");
         write_result(&output_prefix, &results)?;
     }
 
@@ -281,12 +281,12 @@ fn main() -> Result<()> {
         .build_global()
         .unwrap();
 
-    info!("{:?}", cli);
+    info!("{cli:?}");
 
     worker(&cli.cvcfs, &cli.dvcfs, cli.threshold)?;
 
     let elapsed = start.elapsed();
-    log::info!("elapsed time: {:.2?}", elapsed);
+    log::info!("elapsed time: {elapsed:.2?}");
 
     Ok(())
 }

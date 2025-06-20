@@ -77,7 +77,7 @@ pub fn load_predicts_from_batch_pts(
 
     if let Some(max_predicts) = max_predicts {
         if pt_files.len() > max_predicts {
-            info!("only load first {} pt files", max_predicts);
+            info!("only load first {max_predicts} pt files");
             pt_files.truncate(max_predicts);
         }
     }
