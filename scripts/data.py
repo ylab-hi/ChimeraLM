@@ -40,6 +40,10 @@ def select(supptive_file: str, output_file: str, total_data: int, trainning_rati
         if support > 1:
             negative_data.extend(reads)
     
+    # print group by support
+    for support, reads in group_by_support.items():
+        print(f"support {support}: {len(reads)}")
+    
     # shuffle the data
     random.shuffle(positive_data)
     random.shuffle(negative_data)
