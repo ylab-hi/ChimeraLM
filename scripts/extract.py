@@ -47,7 +47,7 @@ def write_fastq_entry(file_handle: TextIO, read_name: str, target: bool,
                      sequence: str, quality: str) -> None:
     """Write a FASTQ entry to the given file handle."""
     target_value = 1 if target else 0
-    file_handle.write(f"{read_name}|{target_value}\n{sequence}\n+\n{quality}\n")
+    file_handle.write(f"@{read_name}|{target_value}\n{sequence}\n+\n{quality}\n")
 
 
 @app.command()
