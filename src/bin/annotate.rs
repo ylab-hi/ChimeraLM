@@ -29,7 +29,7 @@ struct Cli {
     dbam: Vec<PathBuf>,
 
     /// overlap threshold
-    #[arg(long, default_value = "5000")]
+    #[arg(long, default_value = "1000")]
     ovr_threshold: usize,
 
     /// threads number
@@ -200,9 +200,9 @@ fn annotate(
             .unwrap();
 
             chimeric_events.par_iter_mut().for_each(|event| {
-                event
-                    .intervals
-                    .sort_by_key(|interval| interval.chr.to_string());
+                event.intervals.sort_by_key(|interval| {
+                    (interval.chr.to_string(), interval.start, interval.end)
+                });
             });
 
             (path.clone(), chimeric_events)
