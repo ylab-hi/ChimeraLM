@@ -102,8 +102,8 @@ def extract(
     logger.info("Processing FASTQ file...")
     
     try:
-        with pyfastx.Fastx(fq_file) as fq, \
-             train_output.open('w') as train_fq, \
+        fq = pyfastx.Fastx(fq_file)
+        with train_output.open('w') as train_fq, \
              validation_output.open('w') as validation_fq, \
              test_output.open('w') as test_fq:
             
