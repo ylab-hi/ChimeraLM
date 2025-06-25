@@ -30,7 +30,7 @@ class Classifier(nn.Module):
         return self.net(hidden_states)
 
 
-class HeynaDna(nn.Module):
+class HyenaDna(nn.Module):
     def __init__(
         self,
         number_of_classes: int,
