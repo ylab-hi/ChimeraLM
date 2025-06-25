@@ -5,6 +5,7 @@ from deepbiop import fq
 from transformers import (
     DataCollatorWithPadding,
     PreTrainedTokenizer,
+    AutoTokenizer,
 )
 
 id2label = {0: "NEGATIVE", 1: "POSITIVE"}
@@ -37,6 +38,27 @@ def parse_target(name):
 def encode_qual(qual, offset=QUAL_OFFSET):
     """Encode the quality score."""
     return list(fq.encode_qual(qual, offset))
+
+
+def load_tokenizer_from_hyena_model(model_name):
+    max_lengths = {
+        "hyenadna-tiny-1k-seqlen": 1024,
+        "hyenadna-small-32k-seqlen": 32768,
+        "hyenadna-medium-160k-seqlen": 160000,
+        "hyenadna-medium-450k-seqlen": 450000,  # T4 up to here
+        "hyenadna-large-1m-seqlen": 1_000_000,  # only A100 (paid tier)
+    }
+
+    if model_name not in max_lengths:
+        msg = f"Model name {model_name} not found in available models."
+        raise ValueError(msg)
+
+    max_length = max_lengths[model_name]
+    # bfloat16 for better speed and reduced memory usage
+    model_name = f"LongSafari/{model_name}-hf"
+    return AutoTokenizer.from_pretrained(
+        model_name, max_length=max_length, truncation=True, padding=True, trust_remote_code=True, force_download=False
+    )
 
 
 def tokenize_and_align_labels_and_quals(
