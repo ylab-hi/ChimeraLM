@@ -151,7 +151,6 @@ def analyze_mamba2_sequence(model, sequence: str):
     """Run comprehensive analysis on a sequence."""
     analyzer = Mamba2Analyzer(model)
 
-
     # Get importance scores
     importance = analyzer.get_position_importance(sequence)
     for _pos, score in enumerate(importance):
@@ -171,7 +170,6 @@ def analyze_mamba2_sequence(model, sequence: str):
     # Visualize analysis
     analyzer.visualize_analysis(sequence)
     plt.show()
-
 
 
 # Example usage:

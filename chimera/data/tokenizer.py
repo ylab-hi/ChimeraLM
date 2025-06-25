@@ -3,9 +3,9 @@
 import torch
 from deepbiop import fq
 from transformers import (
+    AutoTokenizer,
     DataCollatorWithPadding,
     PreTrainedTokenizer,
-    AutoTokenizer,
 )
 
 id2label = {0: "NEGATIVE", 1: "POSITIVE"}
