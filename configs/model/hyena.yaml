@@ -24,7 +24,7 @@ net:
     hidden_dim1: 1024
     hidden_dim2: 1024
     number_of_classes: 2
-    dropout: 0.1
+    dropout: 0
 
 criterion:
   _target_: chimera.models.basic_module.ContinuousIntervalLoss
