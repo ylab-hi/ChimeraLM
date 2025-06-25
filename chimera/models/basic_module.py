@@ -99,8 +99,8 @@ class ClassificationLit(LightningModule, PyTorchModelHubMixin):
 
         logits = self.forward(input_ids, input_quals)
 
-        self.log("logits", logits.shape, on_step=True)
-        self.log("batch['labels']", batch["labels"].shape, on_step=True)
+        print(f"logits: {logits.shape}")
+        print(f"batch['labels']: {batch['labels'].shape}")
 
         loss = self.criterion(logits.reshape(-1, logits.size(-1)), batch["labels"].long().view(-1))
         preds = torch.argmax(logits, dim=-1)
