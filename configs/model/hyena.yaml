@@ -27,8 +27,7 @@ net:
     dropout: 0
 
 criterion:
-  _target_: chimera.models.basic_module.ContinuousIntervalLoss
-  lambda_penalty: 0
+  _target_: torch.nn.CrossEntropyLoss
 
 # compile model for faster training with pytorch 2.0
 compile: false
