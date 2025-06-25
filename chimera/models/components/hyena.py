@@ -65,7 +65,7 @@ class BinarySequenceClassifier(nn.Module):
         self.classifier = nn.Sequential(*layers)
 
         # Final output layer for binary classification
-        self.output_layer = nn.Linear(hidden_dim, 1)
+        self.output_layer = nn.Linear(hidden_dim, 2)
 
     def forward(self, hidden_states: torch.Tensor, attention_mask: torch.Tensor | None = None):
         batch_size, seq_len, hidden_dim = hidden_states.shape
