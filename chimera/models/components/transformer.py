@@ -1,139 +1,100 @@
-import math
-
 import torch
+import torch.nn.functional as F
 from torch import nn
-from torch.nn import TransformerDecoder, TransformerDecoderLayer, TransformerEncoder, TransformerEncoderLayer
 
-
-class SequenceTransformer(nn.Module):
+class SequenceCNNTransformer(nn.Module):
     def __init__(
         self,
         vocab_size: int,
-        d_model: int = 512,
-        nhead: int = 8,
-        num_encoder_layers: int = 6,
-        num_decoder_layers: int = 6,
-        dim_feedforward: int = 2048,
+        max_len: int,
+        d_model: int = 256,
+        cnn_kernel_size: int = 3,
         dropout: float = 0.1,
+        num_encoder_layers: int = 2,
+        nhead: int = 8,
+        dim_feedforward: int = 1024,
         padding_idx: int = 4,
     ):
-        """Transformer model for sequence classification with encoder-decoder architecture.
-
-        Args:
-            vocab_size: Size of the vocabulary
-            d_model: Dimension of the model
-            nhead: Number of attention heads
-            num_encoder_layers: Number of encoder layers
-            num_decoder_layers: Number of decoder layers
-            dim_feedforward: Dimension of feedforward network
-            dropout: Dropout probability
-        """
         super().__init__()
 
-        self.number_of_classes = 2  # Binary classification
-        self.d_model = d_model
-
-        # Special tokens
-        self.cls_token = nn.Parameter(torch.randn(1, 1, d_model))
-
-        # Embedding layers for sequence and quality scores
         self.embedding = nn.Embedding(vocab_size, d_model, padding_idx=padding_idx)
         self.qual_linear = nn.Linear(1, d_model)
 
-        # Positional encoding
-        self.pos_encoder = PositionalEncoding(d_model, dropout)
+        # Learnable positional embedding
+        self.pos_embedding = nn.Embedding(max_len, d_model)
 
-        # Transformer encoder
-        encoder_layers = TransformerEncoderLayer(
-            d_model=d_model, nhead=nhead, dim_feedforward=dim_feedforward, dropout=dropout, batch_first=True
-        )
-        self.transformer_encoder = TransformerEncoder(encoder_layers, num_encoder_layers)
+        # CNN stack with 3 pooling layers for 8x reduction
+        self.cnn = nn.Sequential(
+            nn.Conv1d(d_model, d_model, kernel_size=cnn_kernel_size, padding=1),
+            nn.ReLU(),
+            nn.MaxPool1d(kernel_size=2, stride=2),  # 2x reduction
 
-        # Transformer decoder
-        decoder_layers = TransformerDecoderLayer(
-            d_model=d_model, nhead=nhead, dim_feedforward=dim_feedforward, dropout=dropout, batch_first=True
+            nn.Conv1d(d_model, d_model, kernel_size=cnn_kernel_size, padding=1),
+            nn.ReLU(),
+            nn.MaxPool1d(kernel_size=2, stride=2),  # 4x reduction
+
+            nn.Conv1d(d_model, d_model, kernel_size=cnn_kernel_size, padding=1),
+            nn.ReLU(),
+            nn.MaxPool1d(kernel_size=2, stride=2),  # 8x reduction
         )
-        self.transformer_decoder = TransformerDecoder(decoder_layers, num_decoder_layers)
+
+        self.norm = nn.LayerNorm(d_model)
+
+        # Optional transformer encoder for global context (works on reduced length)
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model=d_model, nhead=nhead, dim_feedforward=dim_feedforward,
+            dropout=dropout, batch_first=True
+        )
+        self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_encoder_layers)
+
+        # Attention pooling
+        self.attn_pool = nn.Linear(d_model, 1)
 
         # Classification head
         self.classifier = nn.Sequential(
             nn.Linear(d_model, d_model // 2),
             nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(d_model // 2, self.number_of_classes),
+            nn.Linear(d_model // 2, 2),  # Binary classification
         )
 
-    def forward(self, input_ids: torch.Tensor, input_quals: torch.Tensor) -> torch.Tensor:
-        """Forward pass of the model.
+        self.apply(self._init_weights)
 
-        Args:
-            input_ids: Tensor of shape [batch_size, seq_length]
-            input_quals: Tensor of shape [batch_size, seq_length]
+    def forward(self, input_ids: torch.Tensor, input_quals: torch.Tensor | None = None):
+        x = self.embedding(input_ids)
 
-        Returns:
-            Tensor of shape [batch_size, num_classes]
-        """
-        batch_size = input_ids.size(0)
+        if input_quals is not None:
+            qual_embeds = self.qual_linear(input_quals.unsqueeze(-1))
+            x += qual_embeds
 
-        # Create embeddings
-        token_embeds = self.embedding(input_ids)
-        qual_embeds = self.qual_linear(input_quals.unsqueeze(-1))
+        # Positional embedding
+        seq_len = x.size(1)
+        pos_ids = torch.arange(seq_len, device=x.device).unsqueeze(0)
+        x += self.pos_embedding(pos_ids)
 
-        # Combine embeddings
-        x = token_embeds + qual_embeds
+        # Handle input padding for divisibility by 8
+        pad_len = (8 - (seq_len % 8)) % 8
+        if pad_len > 0:
+            x = F.pad(x, (0, 0, 0, pad_len))  # pad sequence dim
 
-        # Prepend CLS token to the sequence
-        cls_tokens = self.cls_token.expand(batch_size, -1, -1)
-        x = torch.cat([cls_tokens, x], dim=1)
+        # CNN downsampling
+        x = x.transpose(1, 2)  # [B, D, L]
+        x = self.cnn(x)
+        x = x.transpose(1, 2)  # [B, L', D]
 
-        # Add positional encoding
-        x = self.pos_encoder(x)
+        x = self.norm(x)
 
-        # Create padding mask (accounting for CLS token)
-        padding_mask = torch.cat(
-            [torch.zeros(batch_size, 1, device=input_ids.device, dtype=torch.bool), (input_ids == 0)], dim=1
-        )
+        # Transformer encoder (optional)
+        x = self.transformer_encoder(x)
 
-        # Pass through encoder
-        memory = self.transformer_encoder(x, src_key_padding_mask=padding_mask)
+        # Attention pooling
+        attn_weights = torch.softmax(self.attn_pool(x), dim=1)  # [B, L', 1]
+        pooled = torch.sum(attn_weights * x, dim=1)  # [B, D]
 
-        # Create decoder input (using CLS token)
-        decoder_input = cls_tokens
+        return self.classifier(pooled)
 
-        # Pass through decoder
-        decoder_output = self.transformer_decoder(decoder_input, memory, memory_key_padding_mask=padding_mask)
-
-        # Use the decoder output for classification
-        return self.classifier(decoder_output.squeeze(1))
-
-
-class PositionalEncoding(nn.Module):
-    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000):
-        """Positional encoding for transformer model.
-
-        Args:
-            d_model: Dimension of the model
-            dropout: Dropout probability
-            max_len: Maximum sequence length
-        """
-        super().__init__()
-        self.dropout = nn.Dropout(p=dropout)
-
-        position = torch.arange(max_len).unsqueeze(1)
-        div_term = torch.exp(torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model))
-        pe = torch.zeros(1, max_len, d_model)
-        pe[0, :, 0::2] = torch.sin(position * div_term)
-        pe[0, :, 1::2] = torch.cos(position * div_term)
-        self.register_buffer("pe", pe)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Model forward pass.
-
-        Args:
-            x: Tensor of shape [batch_size, seq_length, embedding_dim]
-
-        Returns:
-            Tensor of shape [batch_size, seq_length, embedding_dim]
-        """
-        x = x + self.pe[:, : x.size(1)]
-        return self.dropout(x)
+    def _init_weights(self, module=None):
+        module = module or self
+        for p in module.parameters():
+            if p.dim() > 1:
+                nn.init.xavier_uniform_(p)

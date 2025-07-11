@@ -15,6 +15,12 @@ def test_character_tokenizer():
     assert tokens == expected_tokens
     assert decoded == sequence
 
+def test_character_tokenizer_with_truncation():
+    sequence = "ATCG" * 10000
+    tokenizer = chimera.data.tokenizer.CharacterTokenizer(model_max_length=30000)
+    encoded = tokenizer.encode(sequence, truncation=True)
+    print(len(encoded))
+
 def test_kmer_tokenizer():
     sequence = "ATCGCGATCG"
     tokenizer = chimera.data.tokenizer.KmerTokenizer(k=3)
@@ -30,3 +36,9 @@ def test_kmer_tokenizer():
     assert encoded == expected_encoded
     assert tokens == expected_tokens
     assert decoded == expected_decoded
+
+def test_hyena_tokenizer():
+    hyena_tokenizer = chimera.data.tokenizer.load_tokenizer_from_hyena_model("hyenadna-small-32k-seqlen")
+    sequence = "ATCG" * 10000
+    hyena_encoded = hyena_tokenizer.encode(sequence, truncation=True)
+    print(len(hyena_encoded))

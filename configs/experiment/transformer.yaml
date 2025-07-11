@@ -5,7 +5,7 @@
 
 defaults:
   - override /data: fq
-  - override /model: mambasp
+  - override /model: transformer
   - override /callbacks: default
   - override /trainer: gpu
 
@@ -16,7 +16,7 @@ callbacks:
   early_stopping:
     patience: 10
 
-tags: ["mambasp"]
+tags: ["transformer"]
 
 seed: 12345
 
@@ -29,7 +29,7 @@ trainer:
 data:
   tokenizer:
     _target_: chimera.data.tokenizer.CharacterTokenizer
-    model_max_length: 30000
+    model_max_length: 32768
     padding_side: "right"
 
   train_data_path: ${paths.root_dir}/data/train_data/p2_380000_p5/train.parquet
@@ -42,6 +42,6 @@ data:
 logger:
   wandb:
     tags: ${tags}
-    group: "mambasp"
+    group: "transformer"
   aim:
-    experiment: "mambasp"
+    experiment: "transformer"

@@ -7,16 +7,16 @@ class DNAConvNet(nn.Module):
         self,
         vocab_size: int,  # Size of vocabulary including special tokens
         embedding_dim: int,  # Embedding dimension
-        num_filters: int,
-        kernel_sizes: int,
-        pool_sizes: int,
+        num_filters: list[int],
+        kernel_sizes: list[int],
+        pool_sizes: list[int],
+        hidden_dim: int,
         number_of_classes: int = 2,
         dropout: float = 0.1,
         padding_idx: int = 4,  # Padding token ID
     ):
         super().__init__()
         self.number_of_classes = number_of_classes
-
         # Embedding layer instead of one-hot encoding
         self.embedding = nn.Embedding(num_embeddings=vocab_size, embedding_dim=embedding_dim, padding_idx=padding_idx)
 
@@ -40,11 +40,11 @@ class DNAConvNet(nn.Module):
 
         # Fully connected layers
         self.fc = nn.Sequential(
-            nn.Linear(num_filters[-1], 256),  # Input size is now just the number of filters
-            nn.BatchNorm1d(256),
+            nn.Linear(num_filters[-1], hidden_dim),  # Input size is now just the number of filters
+            nn.BatchNorm1d(hidden_dim),
             nn.GELU(),
             nn.Dropout(dropout),
-            nn.Linear(256, number_of_classes),
+            nn.Linear(hidden_dim, number_of_classes),
         )
 
     def forward(self, input_ids: torch.Tensor, input_quals: torch.Tensor | None = None) -> torch.Tensor:
@@ -57,10 +57,14 @@ class DNAConvNet(nn.Module):
         # Apply convolution blocks
         for block in self.conv_blocks:
             x = block(x)
+        # x shape: [batch_size, num_filters[-1], seq_len]
 
         # Global pooling
         x = self.adaptive_pool(x)
+        # x shape: [batch_size, num_filters[-1], 1]
+
         x = x.squeeze(-1)
+        # x shape: [batch_size, num_filers[-1]]
 
         # Apply fully connected layers
         return self.fc(x)

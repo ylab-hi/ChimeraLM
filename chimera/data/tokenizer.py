@@ -231,6 +231,8 @@ class CharacterTokenizer(PreTrainedTokenizer):
             model_max_length (int): Model maximum sequence length.
         """
         self.characters = ("A", "C", "G", "T", "N")
+        self.model_max_length = model_max_length
+
         self._vocab_str_to_int = {
             "[CLS]": 0,
             "[SEP]": 1,

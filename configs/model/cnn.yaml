@@ -7,6 +7,7 @@ net:
   num_filters: [256, 256, 256]
   kernel_sizes: [7, 7, 7]
   pool_sizes: [4, 4, 4]
+  hidden_dim: 512
   number_of_classes: 2
   dropout: 0.1
 

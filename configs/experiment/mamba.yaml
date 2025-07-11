@@ -36,10 +36,6 @@ model:
     number_of_classes: 2
 
 data:
-  tokenizer:
-    model_max_length: 30000
-    padding_side: "right"
-
   train_data_path: ${paths.root_dir}/data/train_data/120000/train.fq.target.fq.parquet
   val_data_path: ${paths.root_dir}/data/train_data/120000/val.fq.target.fq.parquet
   test_data_path: ${paths.root_dir}/data/train_data/120000/test.fq.target.fq.parquet
