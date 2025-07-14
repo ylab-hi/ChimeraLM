@@ -51,7 +51,7 @@ def select(
 
     # Use read with support number more than 1 as negative data
     negative_data = [
-        read for support, reads in group_by_support.items() if support > 1 for read in reads
+        read for support, reads in group_by_support.items() if support >= 1 for read in reads
     ]
 
     # Shuffle the data

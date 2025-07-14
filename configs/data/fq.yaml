@@ -2,7 +2,7 @@ _target_: chimera.data.fq.DataModule
 
 tokenizer:
   _target_: chimera.data.tokenizer.CharacterTokenizer
-  model_max_length: 30000
+  # model_max_length: 32768
   padding_side: "right"
 
 # tokenizer:

@@ -31,9 +31,9 @@ data:
     _target_: chimera.data.tokenizer.load_tokenizer_from_hyena_model
     model_name: hyenadna-small-32k-seqlen
 
-  train_data_path: ${paths.root_dir}/data/train_data/p2_480000/train.parquet
-  val_data_path: ${paths.root_dir}/data/train_data/p2_480000/validation.parquet
-  test_data_path: ${paths.root_dir}/data/train_data/p2_480000/test.parquet
+  train_data_path: ${paths.root_dir}/data/train_data/p2_586360/train.parquet
+  val_data_path: ${paths.root_dir}/data/train_data/p2_586360/validation.parquet
+  test_data_path: ${paths.root_dir}/data/train_data/p2_586360/test.parquet
   batch_size: 32
   num_workers: 30
   pin_memory: False
