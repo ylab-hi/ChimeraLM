@@ -7,7 +7,7 @@ net:
   d_model: 256
   cnn_kernel_size: 3
   dropout: 0.1
-  num_encoder_layers: 2
+  num_encoder_layers: 12
   nhead: 8
   dim_feedforward: 1024
 

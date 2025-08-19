@@ -23,7 +23,7 @@ seed: 12345
 trainer:
   min_epochs: 10
   max_epochs: 100
-  # precision: "bf16-mixed"
+  precision: "bf16-mixed"
   # gradient_clip_val: 1.0
 
 data:
@@ -32,10 +32,7 @@ data:
     model_max_length: 32768
     padding_side: "right"
 
-  train_data_path: ${paths.root_dir}/data/train_data/p2_586360/train.parquet
-  val_data_path: ${paths.root_dir}/data/train_data/p2_586360/validation.parquet
-  test_data_path: ${paths.root_dir}/data/train_data/p2_586360/test.parquet
-  batch_size: 32
+  batch_size: 64
   num_workers: 30
   pin_memory: False
 

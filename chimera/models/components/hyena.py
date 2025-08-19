@@ -140,6 +140,20 @@ class ResidualBlock(nn.Module):
         return out + residual
 
 
+class QualLayer(nn.Module):
+    def __init__(self, hidden_dim: int):
+        super().__init__()
+
+        self.qual_linear = nn.Linear(1, hidden_dim)
+        self.qual_linear_2 = nn.Linear(hidden_dim, hidden_dim)
+
+    
+    def forward(self, hidden_states: torch.Tensor, input_quals: torch.Tensor):
+        qual_embeds = self.qual_linear(input_quals.unsqueeze(-1))
+        qual_embeds = self.qual_linear_2(qual_embeds)
+        return qual_embeds
+
+
 class HyenaDna(nn.Module):
     def __init__(
         self,
