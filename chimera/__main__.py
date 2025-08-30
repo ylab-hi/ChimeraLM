@@ -116,6 +116,44 @@ def set_logging_level(level: int = logging.INFO):
     )
 
 
+class OrderCommands(TyperGroup):
+    """Order commands in the order appear."""
+
+    def list_commands(self, ctx: Context):
+        """Return list of commands in the order appear."""
+        return list(self.commands)  # get commands using self.commands
+
+
+def version_callback(value: bool):
+    """Print the version and exit."""
+    if value:
+        print(f"Chimera Version: {chimera.__version__}")
+        raise typer.Exit()
+
+
+app = typer.Typer(
+    cls=OrderCommands,
+    context_settings={"help_option_names": ["-h", "--help"]},
+    help="ChimeraLM: A genomic lanuage model to identify chimera artifact.",
+)
+
+
+# Add the version option to the main app
+@app.callback()
+def main(
+    version: bool | None = typer.Option(
+        None,
+        "--version",
+        "-V",
+        help="Show the application's version and exit.",
+        callback=version_callback,
+        is_eager=True,
+    ),
+):
+    """Main entry point for the Chimera CLI."""
+
+
+@app.command()
 def predict(
     data_path: Path = typer.Argument(..., help="Path to the dataset"),
     gpus: int = typer.Option(0, "--gpus", "-g", help="Number of GPUs to use"),
@@ -181,43 +219,6 @@ def predict(
     trainer.predict(model=model, dataloaders=datamodule, return_predictions=False)
 
     filter_bam_by_predcition(data_path, output_path)
-
-
-class OrderCommands(TyperGroup):
-    """Order commands in the order appear."""
-
-    def list_commands(self, ctx: Context):
-        """Return list of commands in the order appear."""
-        return list(self.commands)  # get commands using self.commands
-
-
-def version_callback(value: bool):
-    """Print the version and exit."""
-    if value:
-        print(f"Chimera Version: {chimera.__version__}")
-        raise typer.Exit()
-
-
-app = typer.Typer(
-    cls=OrderCommands,
-    context_settings={"help_option_names": ["-h", "--help"]},
-    help="ChimeraLM: A genomic lanuage model to identify chimera artifact.",
-)
-
-
-# Add the version option to the main app
-@app.callback()
-def main(
-    version: bool | None = typer.Option(
-        None,
-        "--version",
-        "-V",
-        help="Show the application's version and exit.",
-        callback=version_callback,
-        is_eager=True,
-    ),
-):
-    """Main entry point for the Chimera CLI."""
 
 
 if __name__ == "__main__":

@@ -1,8 +1,11 @@
+import contextlib
+
 import torch
-from mamba_ssm import Mamba2
 from torch import Tensor, nn
 
 # https://github.com/state-spaces/mamba
+with contextlib.suppress(ImportError):
+    from mamba_ssm import Mamba2
 
 
 class MambaSequenceClassification(nn.Module):

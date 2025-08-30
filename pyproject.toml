@@ -45,7 +45,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-mamba = ['mamba-ssm[causal-conv1d]>=2.2.4']
+# mamba = ['mamba-ssm[causal-conv1d]>=2.2.4']
 
 [project.scripts]
 chimera = "chimera.__main__:app"
