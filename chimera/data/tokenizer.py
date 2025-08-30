@@ -1,7 +1,6 @@
 # ruff: noqa: S107
 
 import torch
-from deepbiop import fq
 from transformers import (
     AutoTokenizer,
     DataCollatorWithPadding,
@@ -10,7 +9,6 @@ from transformers import (
 
 id2label = {0: "NEGATIVE", 1: "POSITIVE"}
 label2id = {"NEGATIVE": 0, "POSITIVE": 1}
-
 
 IGNORE_INDEX = -100
 MODEL_SEQ_INPUT = "input_ids"
@@ -35,12 +33,8 @@ def parse_target(name):
     return rid, int(target)
 
 
-def encode_qual(qual, offset=QUAL_OFFSET):
-    """Encode the quality score."""
-    return list(fq.encode_qual(qual, offset))
-
-
 def load_tokenizer_from_hyena_model(model_name):
+    """Load a tokenizer from a Hyena model."""
     max_lengths = {
         "hyenadna-tiny-1k-seqlen": 1024,
         "hyenadna-small-32k-seqlen": 32768,
@@ -99,7 +93,7 @@ def tokenize_and_align_labels_and_quals_ids(
     id_feature=ID_FEATURE,
     max_id_length=256,
 ):
-    """Tokenize the input data and align the labels and qualities."""
+    """Tokenize the input data and align the labels. only for prediction dataset."""
     tokenized_inputs = tokenizer(data[seq_feature], truncation=True, max_length=max_length, padding=True)
 
     if include_qual:
@@ -111,12 +105,12 @@ def tokenize_and_align_labels_and_quals_ids(
         normalized_quals = torch.nn.functional.normalize(quals.float(), dim=0)
         tokenized_inputs.update({MODEL_QUAL_INPUT: normalized_quals})
 
-    rid, target = parse_target(data[id_feature])
+    rid = data[id_feature]
     id_len = len(data[id_feature])
     new_id = [id_len] + [ord(char) for char in rid]
     new_id = new_id[:max_id_length] if len(new_id) > max_id_length else new_id + [0] * (max_id_length - len(new_id))
 
-    tokenized_inputs.update({"id": new_id, MODEL_LABEL_INPUT: target})
+    tokenized_inputs.update({"id": new_id, MODEL_LABEL_INPUT: -1})
     return tokenized_inputs
 
 

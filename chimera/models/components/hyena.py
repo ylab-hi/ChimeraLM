@@ -149,8 +149,7 @@ class QualLayer(nn.Module):
 
     def forward(self, hidden_states: torch.Tensor, input_quals: torch.Tensor):
         qual_embeds = self.qual_linear(input_quals.unsqueeze(-1))
-        qual_embeds = self.qual_linear_2(qual_embeds)
-        return qual_embeds
+        return self.qual_linear_2(qual_embeds)
 
 
 class HyenaDna(nn.Module):
