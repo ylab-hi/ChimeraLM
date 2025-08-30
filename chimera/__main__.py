@@ -29,7 +29,7 @@ def load_predicts(path: Path | str) -> dict[str, int]:
             msg = f"File not found: {path}"
             raise FileNotFoundError(msg)
 
-        with open(path, encoding="utf-8") as f:
+        with path.open(encoding="utf-8") as f:
             for line_num, line in enumerate(f, 1):
                 line = line.strip()
                 if not line:
