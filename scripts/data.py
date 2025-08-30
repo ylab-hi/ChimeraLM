@@ -1,7 +1,8 @@
-import typer
-import random
 import math
+import random
 from pathlib import Path
+
+import typer
 
 
 def read_support_file(path: str) -> dict[str, int]:
@@ -41,18 +42,16 @@ def select(
     group_by_support: dict[int, list[str]] = {}
     for read_name, support in supportive_reads.items():
         group_by_support.setdefault(support, []).append(read_name)
-    
+
     # print group by support
-    for support, reads in group_by_support.items():
-        print(f"support {support}: {len(reads)}")
+    for support, _reads in group_by_support.items():
+        pass
 
     # Use read with support number equal to 0 as positive data
     positive_data = group_by_support.get(0, [])
 
     # Use read with support number more than 1 as negative data
-    negative_data = [
-        read for support, reads in group_by_support.items() if support >= 1 for read in reads
-    ]
+    negative_data = [read for support, reads in group_by_support.items() if support >= 1 for read in reads]
 
     # Shuffle the data
     random.shuffle(positive_data)
@@ -64,10 +63,12 @@ def select(
 
     # Check if data is enough
     if len(positive_data) < num_positive:
-        raise ValueError(f"Not enough positive data: have {len(positive_data)}, need {num_positive}")
+        msg = f"Not enough positive data: have {len(positive_data)}, need {num_positive}"
+        raise ValueError(msg)
     if len(negative_data) < num_negative:
-        raise ValueError(f"Not enough negative data: have {len(negative_data)}, need {num_negative}")
-    
+        msg = f"Not enough negative data: have {len(negative_data)}, need {num_negative}"
+        raise ValueError(msg)
+
     # Take required number of samples
     positive_samples = positive_data[:num_positive]
     negative_samples = negative_data[:num_negative]
@@ -94,11 +95,6 @@ def select(
     test_data = test_positive + test_negative
     random.shuffle(test_data)
 
-    print(f"Total data selected: {len(train_data) + len(validation_data) + len(test_data)}")
-    print(f"Training data: {len(train_data)} ({len(train_positive)} positive, {len(train_negative)} negative)")
-    print(f"Validation data: {len(validation_data)} ({len(validation_positive)} positive, {len(validation_negative)} negative)")
-    print(f"Test data: {len(test_data)} ({len(test_positive)} positive, {len(test_negative)} negative)")
-    
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 

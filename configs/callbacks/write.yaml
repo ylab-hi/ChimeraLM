@@ -13,13 +13,12 @@ model_checkpoint:
   save_last: True
   auto_insert_metric_name: False
 
-
 early_stopping:
   monitor: "val/f1"
   patience: 40
   mode: "max"
 
 write:
-  _target_: chimera.models.callbacks.CustomWriter
+  _target_: chimera.models.callbacks.PredictionWriter
   output_dir: ${paths.output_dir}/predicts
   write_interval: "batch" # epoch batch batch_and_epoch

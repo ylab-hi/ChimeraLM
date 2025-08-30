@@ -1,29 +1,26 @@
-import chimera 
-import fire 
+import fire
+
+import chimera
 
 
 def load_predict(path):
-    predicts  = chimera.load_predicts_from_batch_pts(path)
-    print(f"predicts: {len(predicts)}")
-    return predicts
+    return chimera.load_predicts_from_batch_pts(path)
 
 
 def load_sv(path):
     res = {}
-    with open (path, 'r') as f:
+    with open(path) as f:
         for line in f:
-            read, sv = line.strip().split('\t')
+            read, sv = line.strip().split("\t")
             res[read] = sv
     return res
-
 
 
 def main(predict_path, sv_path):
     predicts = load_predict(predict_path)
     sv = load_sv(sv_path)
-    print (f"sv: {len(sv)}")
 
-    with open("predict_with_sv.text", 'w') as f:
+    with open("predict_with_sv.text", "w") as f:
         for read, predict in predicts.items():
             if read in sv:
                 f.write(f"{read}\t{predict}\t{sv[read]}\n")

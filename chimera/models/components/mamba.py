@@ -189,9 +189,9 @@ class MambaSequenceClassificationSP(nn.Module):
         return self.classifier(pooled)
 
 
-
 class MambaSequenceClassificationPositional(nn.Module):
     """Mamba model for sequence classification tasks with multiple Mamba layers."""
+
     def __init__(
         self,
         vocab_size,
@@ -219,7 +219,9 @@ class MambaSequenceClassificationPositional(nn.Module):
         if pos_embedding_type == "learned":
             self.position_embedding = nn.Embedding(max_seq_length, embedding_dim)
         elif pos_embedding_type == "sinusoidal":
-            self.register_buffer("position_embedding", self._create_sinusoidal_embeddings(max_seq_length, embedding_dim))
+            self.register_buffer(
+                "position_embedding", self._create_sinusoidal_embeddings(max_seq_length, embedding_dim)
+            )
 
         # Dropout for embeddings
         self.embedding_dropout = nn.Dropout(dropout)
@@ -239,11 +241,7 @@ class MambaSequenceClassificationPositional(nn.Module):
         )
 
         # Output head
-        self.pooler = nn.Sequential(
-            nn.Linear(embedding_dim, embedding_dim),
-            nn.GELU(),
-            nn.Dropout(dropout)
-        )
+        self.pooler = nn.Sequential(nn.Linear(embedding_dim, embedding_dim), nn.GELU(), nn.Dropout(dropout))
 
         # Classification head with multiple layers
         self.classifier = nn.Sequential(
@@ -261,8 +259,7 @@ class MambaSequenceClassificationPositional(nn.Module):
         pe = torch.zeros(max_seq_length, embedding_dim)
         position = torch.arange(0, max_seq_length, dtype=torch.float).unsqueeze(1)
 
-        div_term = torch.exp(torch.arange(0, embedding_dim, 2).float() *
-                           (-math.log(10000.0) / embedding_dim))
+        div_term = torch.exp(torch.arange(0, embedding_dim, 2).float() * (-math.log(10000.0) / embedding_dim))
 
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)
