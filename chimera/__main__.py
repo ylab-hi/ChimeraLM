@@ -64,7 +64,9 @@ def is_chimeric_read(read: pysam.AlignedSegment) -> bool:
     return read.has_tag("SA") and not read.is_secondary and not read.is_supplementary
 
 
-def filter_bam_by_predcition(bam_path: Path, prediction_path: Path, *, progress_bar: bool = False) -> None:
+def filter_bam_by_predcition(
+    bam_path: Path, prediction_path: Path, *, progress_bar: bool = False, sort: bool = False, index: bool = False
+) -> None:
     """Filter a BAM file by predictions.
 
     use rich progress bar if progress_bar is True
@@ -74,10 +76,11 @@ def filter_bam_by_predcition(bam_path: Path, prediction_path: Path, *, progress_
 
     # Determine the file type based on the extension
     file_mode = "rb" if bam_path.suffix == ".bam" else "r"
+    output_path = bam_path.with_suffix(".filtered.bam")
 
     with (
         pysam.AlignmentFile(bam_path.as_posix(), file_mode) as bam_file,
-        pysam.AlignmentFile(bam_path.with_suffix(".filtered.bam").as_posix(), "wb", template=bam_file) as output_file,
+        pysam.AlignmentFile(output_path.as_posix(), "wb", template=bam_file) as output_file,
     ):
         reads = bam_file.fetch()
         if progress_bar:
@@ -89,6 +92,14 @@ def filter_bam_by_predcition(bam_path: Path, prediction_path: Path, *, progress_
             if is_chimeric_read(read) and predictions.get(read.query_name) == 1:
                 continue
             output_file.write(read)
+
+    if sort:
+        logging.info(f"Sorting {output_path}")
+        sorted_output_path = output_path.with_suffix(".sorted.bam")
+        pysam.sort("-o", sorted_output_path.as_posix(), output_path.as_posix())
+    if index:
+        logging.info(f"Indexing {output_path}")
+        pysam.index(output_path.as_posix())
 
 
 def set_logging_level(level: int = logging.INFO):
