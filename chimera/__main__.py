@@ -8,6 +8,7 @@ import typer
 from click import Context
 from rich import print
 from rich.logging import RichHandler
+from rich.progress import track
 from typer.core import TyperGroup
 
 import chimera
@@ -84,12 +85,10 @@ def filter_bam_by_predcition(
     ):
         reads = bam_file.fetch()
         if progress_bar:
-            from rich.progress import track
-
             reads = track(reads, description="Filtering BAM file")
 
         for read in reads:
-            if is_chimeric_read(read) and predictions.get(read.query_name) == 1:
+            if predictions.get(read.query_name) is not None and predictions[read.query_name] == 1:
                 continue
             output_file.write(read)
 
@@ -175,8 +174,7 @@ def predict(
     lightning.seed_everything(42, workers=True)
 
     tokenizer = chimera.data.tokenizer.CharacterTokenizer()
-
-    datamodule: lightning.LightningDataModule = chimera.data.only_fq.OnlyFqDataModule(
+    datamodule: lightning.LightningDataModule = chimera.data.bam.BamDataModule(
         train_data_path="dummy.parquet",
         tokenizer=tokenizer,
         predict_data_path=data_path.as_posix(),

@@ -4,7 +4,7 @@ from functools import partial
 from pathlib import Path
 from typing import Any
 
-import pyfastx
+import pysam
 from datasets import Dataset as HuggingFaceDataset
 from lightning import LightningDataModule
 from torch.utils.data import DataLoader, Dataset
@@ -19,30 +19,27 @@ from chimera.data.tokenizer import (
 )
 
 
-def parse_fastq_file(file_path: Path) -> Iterator[dict]:
-    """Parse a FastQ file using pyfastx and return a dictionary .
+def is_chimeric(read: pysam.AlignedSegment) -> bool:
+    """Check if the read is chimeric."""
+    return not read.is_unmapped and read.has_tag("SA") and not read.is_secondary and not read.is_supplementary
 
-    Args:
-        file_path: Path to the FastQ file (.fq, .fastq, .fq.gz, .fastq.gz)
-        has_targets: Whether the file contains target labels in the identifier line
-        build_index: Whether to build an index for random access (uses more memory)
-    """
-    try:
-        # Use pyfastx to parse the file
-        fq = pyfastx.Fastx(str(file_path), uppercase=True)
 
-        for name, seq, _qual in fq:
+def parse_bam_file(file_path: Path) -> Iterator[dict]:
+    """Parse a BAM file and extrand read with sa tag."""
+    bam = pysam.AlignmentFile(file_path.as_posix(), "rb")
+
+    for read in bam:
+        if is_chimeric(read):
             yield {
-                "id": name,
-                "seq": seq,
+                "id": read.query_name,
+                "seq": read.query_sequence,
             }
-    except Exception as e:
-        msg = f"Error parsing FastQ file {file_path}: {e}"
-        raise RuntimeError(msg) from e
+
+    bam.close()
 
 
-class OnlyFqDataModule(LightningDataModule):
-    """`LightningDataModule` for the fq dataset.
+class BamDataModule(LightningDataModule):
+    """`LightningDataModule` for the bam dataset.
 
     A `LightningDataModule` implements 7 key methods:
 
@@ -71,7 +68,6 @@ class OnlyFqDataModule(LightningDataModule):
         # Called on every process in DDP.
         # Clean up after fit or test.
     ```
-
     This allows you to share a full dataset without explaining how to download,
     split, transform and process the data.
 
@@ -95,7 +91,7 @@ class OnlyFqDataModule(LightningDataModule):
         *,
         pin_memory: bool = False,
     ) -> None:
-        """Initialize a `OnlyFqDataModule`.
+        """Initialize a `BamDataModule`.
 
         :param batch_size: The batch size.
         :param num_workers: The number of workers. Defaults to `0`.
@@ -106,7 +102,6 @@ class OnlyFqDataModule(LightningDataModule):
         # this line allows to access init params with 'self.hparams' attribute
         # also ensures init params will be stored in ckpt
         self.save_hyperparameters(logger=False)
-
         self.data_train: Dataset | None = None
         self.data_val: Dataset | None = None
         self.data_test: Dataset | None = None
@@ -119,7 +114,7 @@ class OnlyFqDataModule(LightningDataModule):
         return 2
 
     def prepare_data(self) -> None:
-        """Encode the FastQ data to Parquet format."""
+        """Encode the BAM data to Parquet format."""
         data_paths = [self.hparams.train_data_path]
 
         if self.hparams.val_data_path is not None:
@@ -156,7 +151,7 @@ class OnlyFqDataModule(LightningDataModule):
             num_proc = min(self.hparams.num_workers, multiprocessing.cpu_count() - 1)
 
             predict_dataset = HuggingFaceDataset.from_generator(
-                parse_fastq_file,
+                parse_bam_file,
                 gen_kwargs={"file_path": self.hparams.predict_data_path},
                 num_proc=max(1, num_proc),
             ).with_format("torch")
@@ -191,19 +186,19 @@ class OnlyFqDataModule(LightningDataModule):
                 raise ValueError(msg)
 
             train_dataset = HuggingFaceDataset.from_generator(
-                parse_fastq_file,
+                parse_bam_file,
                 gen_kwargs={"file_path": self.hparams.train_data_path},
                 num_proc=max(1, num_proc),
             ).with_format("torch")
 
             val_dataset = HuggingFaceDataset.from_generator(
-                parse_fastq_file,
+                parse_bam_file,
                 gen_kwargs={"file_path": self.hparams.val_data_path},
                 num_proc=max(1, num_proc),
             ).with_format("torch")
 
             test_dataset = HuggingFaceDataset.from_generator(
-                parse_fastq_file,
+                parse_bam_file,
                 gen_kwargs={"file_path": self.hparams.test_data_path},
                 num_proc=max(1, num_proc),
             ).with_format("torch")
