@@ -31,6 +31,7 @@ class BinarySequenceClassifier(nn.Module):
         self.hidden_dim = hidden_dim
         self.pooling_type = pooling_type
         self.use_residual = use_residual
+        self.save_attention = save_attention
 
         # Activation function - use mapping for better performance
         activation_map = {
@@ -72,7 +73,7 @@ class BinarySequenceClassifier(nn.Module):
         # Final output layer for binary classification
         self.output_layer = nn.Linear(hidden_dim, 2)
 
-        if save_attention:
+        if self.save_attention:
             self.attention_weights = None
 
     def forward(self, hidden_states: torch.Tensor, attention_mask: torch.Tensor | None = None):
