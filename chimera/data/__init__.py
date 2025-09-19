@@ -1,5 +1,5 @@
 """Data module for Chimera."""
 
-from . import fq, only_fq, tokenizer
+from . import bam, fq, only_fq, tokenizer
 
-__all__ = ["fq", "only_fq", "tokenizer"]
+__all__ = ["bam", "fq", "only_fq", "tokenizer"]
