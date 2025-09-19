@@ -26,6 +26,7 @@ def is_chimeric(read: pysam.AlignedSegment) -> bool:
 
 def parse_bam_file(file_path: Path) -> Iterator[dict]:
     """Parse a BAM file and extrand read with sa tag."""
+    file_path = Path(file_path)
     bam = pysam.AlignmentFile(file_path.as_posix(), "rb")
 
     for read in bam:

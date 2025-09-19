@@ -60,11 +60,6 @@ def load_predictions_from_folder(path: Path | str) -> dict[str, int]:
     return predictions
 
 
-def is_chimeric_read(read: pysam.AlignedSegment) -> bool:
-    """Check if a read is chimeric."""
-    return read.has_tag("SA") and not read.is_secondary and not read.is_supplementary
-
-
 def filter_bam_by_predcition(
     bam_path: Path, prediction_path: Path, *, progress_bar: bool = False, sort: bool = False, index: bool = False
 ) -> None:
