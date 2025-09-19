@@ -3,9 +3,6 @@ from typing import TYPE_CHECKING, Any
 import hydra
 import lightning as L  # noqa: N812
 import torch
-from lightning import Callback, LightningDataModule, LightningModule, Trainer
-from omegaconf import DictConfig
-
 from chimera.utils import (
     RankedLogger,
     extras,
@@ -15,6 +12,8 @@ from chimera.utils import (
     log_hyperparameters,
     task_wrapper,
 )
+from lightning import Callback, LightningDataModule, LightningModule, Trainer
+from omegaconf import DictConfig
 
 if TYPE_CHECKING:
     from lightning.pytorch.loggers import Logger

@@ -44,8 +44,5 @@ class RankedLogger(logging.LoggerAdapter):
             if self.rank_zero_only:
                 if current_rank == 0:
                     self.logger.log(level, msg, *args, **kwargs)
-            else:
-                if rank is None:
-                    self.logger.log(level, msg, *args, **kwargs)
-                elif current_rank == rank:
-                    self.logger.log(level, msg, *args, **kwargs)
+            elif rank is None or current_rank == rank:
+                self.logger.log(level, msg, *args, **kwargs)
