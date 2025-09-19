@@ -25,10 +25,39 @@ class BinarySequenceClassifier(nn.Module):
         use_residual: bool = True,
         save_attention: bool = False,
     ):
-        """Initialize the BinarySequenceClassifier.
+        """Initialize the BinarySequenceClassifier."""
+        super().__init__()
+        self.input_dim = input_dim
+        self.hidden_dim = hidden_dim
+        self.pooling_type = pooling_type
+        self.use_residual = use_residual
 
-        Args:
-            input_dim: Hidden dimension from backbone
+        # Activation function - use mapping for better performance
+        activation_map = {
+            "gelu": nn.GELU,
+            "relu": nn.ReLU,
+            "swish": nn.SiLU,
+        }
+
+        if activation not in activation_map:
+            msg = f"Unsupported activation: {activation}. Supported: {list(activation_map.keys())}"
+            raise ValueError(msg)
+
+        self.activation: nn.GELU | nn.ReLU | nn.SiLU = activation_map[activation]()
+
+        # Attention-based pooling
+        if pooling_type == "attention":
+            self.attention = nn.Sequential(
+                nn.Linear(input_dim, hidden_dim // 2), self.activation, nn.Linear(hidden_dim // 2, 1), nn.Softmax(dim=1)
+            )
+
+        # Classification layers - optimized construction
+        layers = []
+        prev_dim = input_dim
+
+        for i in range(num_layers):
+            layers.append(nn.Linear(prev_dim, hidden_dim))
+            layers.append(self.activation)
             layers.append(nn.Dropout(dropout))
 
             if use_residual and i > 0 and prev_dim == hidden_dim:
@@ -36,7 +65,7 @@ class BinarySequenceClassifier(nn.Module):
                 layers.append(ResidualBlock(hidden_dim, dropout))
             else:
                 prev_dim = hidden_dim
-        """
+
         # Use Sequential for better type compatibility
         self.classifier = nn.Sequential(*layers)
 
