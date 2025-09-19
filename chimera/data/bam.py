@@ -11,7 +11,6 @@ from torch.utils.data import DataLoader, Dataset
 
 from chimera.data.tokenizer import (
     ID_FEATURE,
-    QUAL_FEATURE,
     SEQ_FEATURE,
     DataCollator,
     tokenize_and_align_labels_and_quals,
@@ -223,7 +222,7 @@ class BamDataModule(LightningDataModule):
                     max_length=self.hparams.tokenizer.max_len_single_sentence,
                 ),
                 num_proc=max(1, num_proc),  # type: ignore
-            ).remove_columns([SEQ_FEATURE, QUAL_FEATURE, ID_FEATURE])
+            ).remove_columns([SEQ_FEATURE, ID_FEATURE])
 
             self.data_val = val_dataset.map(
                 partial(
@@ -232,7 +231,7 @@ class BamDataModule(LightningDataModule):
                     max_length=self.hparams.tokenizer.max_len_single_sentence,
                 ),
                 num_proc=max(1, num_proc),  # type: ignore
-            ).remove_columns([SEQ_FEATURE, QUAL_FEATURE, ID_FEATURE])
+            ).remove_columns([SEQ_FEATURE, ID_FEATURE])
 
             self.data_test = test_dataset.map(
                 partial(
@@ -241,7 +240,7 @@ class BamDataModule(LightningDataModule):
                     max_length=self.hparams.tokenizer.max_len_single_sentence,
                 ),
                 num_proc=max(1, num_proc),  # type: ignore
-            ).remove_columns([SEQ_FEATURE, QUAL_FEATURE, ID_FEATURE])
+            ).remove_columns([SEQ_FEATURE, ID_FEATURE])
 
             del train_dataset, val_dataset, test_dataset
 
