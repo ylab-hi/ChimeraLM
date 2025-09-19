@@ -3,7 +3,7 @@ from lightning import Callback
 from lightning.pytorch.loggers import Logger
 from omegaconf import DictConfig
 
-from chimera.utils import pylogger
+from chimeralm.utils import pylogger
 
 log = pylogger.RankedLogger(__name__, rank_zero_only=True)
 

@@ -8,7 +8,7 @@ fn add(a: i32, b: i32) -> i32 {
 
 /// A Python module implemented in Rust.
 #[pymodule]
-fn chimera(m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn chimeralm(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(add, m)?)?;
     Ok(())
 }

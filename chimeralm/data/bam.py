@@ -1,29 +1,45 @@
-# mypy: ignore-errors
-
 import multiprocessing
+from collections.abc import Iterator
 from functools import partial
 from pathlib import Path
 from typing import Any
 
+import pysam
 from datasets import Dataset as HuggingFaceDataset
-from datasets import load_dataset
 from lightning import LightningDataModule
 from torch.utils.data import DataLoader, Dataset
 
-from chimera.data.tokenizer import (
+from chimeralm.data.tokenizer import (
     ID_FEATURE,
-    QUAL_FEATURE,
     SEQ_FEATURE,
     DataCollator,
     tokenize_and_align_labels_and_quals,
     tokenize_and_align_labels_and_quals_ids,
 )
 
-PARQUET_SUFFIX = ".parquet"
+
+def is_chimeric(read: pysam.AlignedSegment) -> bool:
+    """Check if the read is chimeric."""
+    return not read.is_unmapped and read.has_tag("SA") and not read.is_secondary and not read.is_supplementary
 
 
-class DataModule(LightningDataModule):
-    """`LightningDataModule` for the fq dataset.
+def parse_bam_file(file_path: Path) -> Iterator[dict]:
+    """Parse a BAM file and extrand read with sa tag."""
+    file_path = Path(file_path)
+    bam = pysam.AlignmentFile(file_path.as_posix(), "rb")
+
+    for read in bam:
+        if is_chimeric(read):
+            yield {
+                "id": read.query_name,
+                "seq": read.query_sequence,
+            }
+
+    bam.close()
+
+
+class BamDataModule(LightningDataModule):
+    """`LightningDataModule` for the bam dataset.
 
     A `LightningDataModule` implements 7 key methods:
 
@@ -52,7 +68,6 @@ class DataModule(LightningDataModule):
         # Called on every process in DDP.
         # Clean up after fit or test.
     ```
-
     This allows you to share a full dataset without explaining how to download,
     split, transform and process the data.
 
@@ -68,7 +83,6 @@ class DataModule(LightningDataModule):
         val_data_path: Path | None = None,
         test_data_path: Path | None = None,
         predict_data_path: Path | None = None,
-        train_val_test_split: tuple[float, float, float] = (0.7, 0.2, 0.1),
         num_workers: int = 0,
         max_train_samples: int | None = None,
         max_val_samples: int | None = None,
@@ -77,9 +91,8 @@ class DataModule(LightningDataModule):
         *,
         pin_memory: bool = False,
     ) -> None:
-        """Initialize a `FqDataModule`.
+        """Initialize a `BamDataModule`.
 
-        :param train_val_test_split: The train, validation and test split. Defaults to `(55_000, 5_000, 10_000)`.
         :param batch_size: The batch size.
         :param num_workers: The number of workers. Defaults to `0`.
         :param pin_memory: Whether to pin memory. Defaults to `False`.
@@ -89,7 +102,6 @@ class DataModule(LightningDataModule):
         # this line allows to access init params with 'self.hparams' attribute
         # also ensures init params will be stored in ckpt
         self.save_hyperparameters(logger=False)
-
         self.data_train: Dataset | None = None
         self.data_val: Dataset | None = None
         self.data_test: Dataset | None = None
@@ -102,7 +114,7 @@ class DataModule(LightningDataModule):
         return 2
 
     def prepare_data(self) -> None:
-        """Encode the FastQ data to Parquet format."""
+        """Encode the BAM data to Parquet format."""
         data_paths = [self.hparams.train_data_path]
 
         if self.hparams.val_data_path is not None:
@@ -113,24 +125,6 @@ class DataModule(LightningDataModule):
 
         if self.hparams.predict_data_path is not None:
             data_paths.append(self.hparams.predict_data_path)
-
-        for data_path in data_paths:
-            if Path(data_path).suffix == PARQUET_SUFFIX:
-                pass
-            else:
-                msg = f"Data file {data_path} is not in Parquet format."
-                raise ValueError(msg)
-
-        self.hparams.train_data_path = Path(self.hparams.train_data_path).with_suffix(PARQUET_SUFFIX).as_posix()
-
-        if self.hparams.val_data_path is not None:
-            self.hparams.val_data_path = Path(self.hparams.val_data_path).with_suffix(PARQUET_SUFFIX).as_posix()
-
-        if self.hparams.test_data_path is not None:
-            self.hparams.test_data_path = Path(self.hparams.test_data_path).with_suffix(PARQUET_SUFFIX).as_posix()
-
-        if self.hparams.predict_data_path is not None:
-            self.hparams.predict_data_path = Path(self.hparams.predict_data_path).with_suffix(PARQUET_SUFFIX).as_posix()
 
     def setup(self, stage: str | None = None) -> None:
         """Load data. Set variables: `self.data_train`, `self.data_val`, `self.data_test`.
@@ -155,14 +149,13 @@ class DataModule(LightningDataModule):
                 raise ValueError(msg)
 
             num_proc = min(self.hparams.num_workers, multiprocessing.cpu_count() - 1)
-            data_files = {"predict": self.hparams.predict_data_path}
-            predict_dataset = load_dataset(
-                "parquet",
-                data_files=data_files,
+
+            predict_dataset = HuggingFaceDataset.from_generator(
+                parse_bam_file,
+                gen_kwargs={"file_path": self.hparams.predict_data_path},
                 num_proc=max(1, num_proc),
             ).with_format("torch")
 
-            predict_dataset = predict_dataset["predict"]
             if self.hparams.max_predict_samples is not None:
                 max_predict_samples = min(self.hparams.max_predict_samples, len(predict_dataset))
                 predict_dataset = HuggingFaceDataset.from_dict(predict_dataset[:max_predict_samples]).with_format(
@@ -176,54 +169,39 @@ class DataModule(LightningDataModule):
                     max_length=self.hparams.tokenizer.max_len_single_sentence,
                 ),
                 num_proc=max(1, num_proc),  # type: ignore
-            ).remove_columns([SEQ_FEATURE, QUAL_FEATURE])
+            ).remove_columns([SEQ_FEATURE])
             del predict_dataset
             return
 
         # load and split datasets only if not loaded already
         if not self.data_train and not self.data_val and not self.data_test:
             num_proc = min(self.hparams.num_workers, multiprocessing.cpu_count() - 1)
-            data_files = {}
-            data_files["train"] = self.hparams.train_data_path
 
-            if self.hparams.val_data_path is not None:
-                data_files["validation"] = self.hparams.val_data_path
+            if (
+                self.hparams.val_data_path is None
+                or self.hparams.test_data_path is None
+                or self.hparams.train_data_path is None
+            ):
+                msg = "Val, test, and train data paths are required for training."
+                raise ValueError(msg)
 
-            if self.hparams.test_data_path is not None:
-                data_files["test"] = self.hparams.test_data_path
+            train_dataset = HuggingFaceDataset.from_generator(
+                parse_bam_file,
+                gen_kwargs={"file_path": self.hparams.train_data_path},
+                num_proc=max(1, num_proc),
+            ).with_format("torch")
 
-            if self.hparams.val_data_path is None or self.hparams.test_data_path is None:
-                split_percent = [int(i * 100) for i in self.hparams.train_val_test_split]
+            val_dataset = HuggingFaceDataset.from_generator(
+                parse_bam_file,
+                gen_kwargs={"file_path": self.hparams.val_data_path},
+                num_proc=max(1, num_proc),
+            ).with_format("torch")
 
-                train_dataset = load_dataset(
-                    "parquet",
-                    data_files=data_files,
-                    num_proc=max(1, num_proc),
-                    split=f"train[:{split_percent[0]}%]",
-                ).with_format("torch")
-
-                val_dataset = load_dataset(
-                    "parquet",
-                    data_files=data_files,
-                    num_proc=max(1, num_proc),
-                    split=f"train[{split_percent[0]}%:{split_percent[0] + split_percent[1]}%]",
-                ).with_format("torch")
-
-                test_dataset = load_dataset(
-                    "parquet",
-                    data_files=data_files,
-                    num_proc=max(1, num_proc),
-                    split=f"train[{split_percent[0] + split_percent[1]}%:]",
-                ).with_format("torch")
-
-            else:
-                raw_datasets = load_dataset("parquet", data_files=data_files, num_proc=max(1, num_proc)).with_format(
-                    "torch"
-                )
-
-                train_dataset = raw_datasets["train"]
-                val_dataset = raw_datasets["validation"]
-                test_dataset = raw_datasets["test"]
+            test_dataset = HuggingFaceDataset.from_generator(
+                parse_bam_file,
+                gen_kwargs={"file_path": self.hparams.test_data_path},
+                num_proc=max(1, num_proc),
+            ).with_format("torch")
 
             if self.hparams.max_train_samples is not None:
                 max_train_samples = min(self.hparams.max_train_samples, len(train_dataset))
@@ -244,7 +222,7 @@ class DataModule(LightningDataModule):
                     max_length=self.hparams.tokenizer.max_len_single_sentence,
                 ),
                 num_proc=max(1, num_proc),  # type: ignore
-            ).remove_columns([SEQ_FEATURE, QUAL_FEATURE, ID_FEATURE])
+            ).remove_columns([SEQ_FEATURE, ID_FEATURE])
 
             self.data_val = val_dataset.map(
                 partial(
@@ -253,7 +231,7 @@ class DataModule(LightningDataModule):
                     max_length=self.hparams.tokenizer.max_len_single_sentence,
                 ),
                 num_proc=max(1, num_proc),  # type: ignore
-            ).remove_columns([SEQ_FEATURE, QUAL_FEATURE, ID_FEATURE])
+            ).remove_columns([SEQ_FEATURE, ID_FEATURE])
 
             self.data_test = test_dataset.map(
                 partial(
@@ -262,7 +240,7 @@ class DataModule(LightningDataModule):
                     max_length=self.hparams.tokenizer.max_len_single_sentence,
                 ),
                 num_proc=max(1, num_proc),  # type: ignore
-            ).remove_columns([SEQ_FEATURE, QUAL_FEATURE, ID_FEATURE])
+            ).remove_columns([SEQ_FEATURE, ID_FEATURE])
 
             del train_dataset, val_dataset, test_dataset
 
@@ -277,7 +255,7 @@ class DataModule(LightningDataModule):
             num_workers=self.hparams.num_workers,
             pin_memory=self.hparams.pin_memory,
             collate_fn=self.data_collator.torch_call,
-            shuffle=True,
+            shuffle=False,
         )
 
     def val_dataloader(self) -> DataLoader[Any]:

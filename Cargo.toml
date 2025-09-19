@@ -1,11 +1,11 @@
 [package]
-name = "chimera"
+name = "chimeralm"
 version = "0.1.0"
 edition = "2024"
 
 [lib]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-name = "chimera"
+name = "chimeralm"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
@@ -37,7 +37,6 @@ noodles = { version = "0.99.0", features = [
     "sam",
     "bam",
 ] }
-
 bio = "2.3"
 
 ahash = "0.8.12"
@@ -61,7 +60,6 @@ arrow = "55.1"
 colored = "3"
 textwrap = "0.16"
 flate2 = { version = "1.1.2", features = ["zlib-ng"], default-features = false }
-
 
 # binaries
 clap = { version = "4.5.40", features = ["derive"] }

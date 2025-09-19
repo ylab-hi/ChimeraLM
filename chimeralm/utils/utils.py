@@ -5,7 +5,7 @@ from typing import Any
 
 from omegaconf import DictConfig
 
-from chimera.utils import pylogger, rich_utils
+from chimeralm.utils import pylogger, rich_utils
 
 log = pylogger.RankedLogger(__name__, rank_zero_only=True)
 

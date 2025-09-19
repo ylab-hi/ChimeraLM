@@ -4,7 +4,7 @@ from typing import Any
 import torch
 from lightning.pytorch.callbacks import BasePredictionWriter
 
-from chimera.utils import RankedLogger
+from chimeralm.utils import RankedLogger
 
 logger = RankedLogger(__name__, rank_zero_only=True)
 

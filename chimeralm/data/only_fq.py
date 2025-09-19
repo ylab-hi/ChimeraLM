@@ -9,7 +9,7 @@ from datasets import Dataset as HuggingFaceDataset
 from lightning import LightningDataModule
 from torch.utils.data import DataLoader, Dataset
 
-from chimera.data.tokenizer import (
+from chimeralm.data.tokenizer import (
     ID_FEATURE,
     QUAL_FEATURE,
     SEQ_FEATURE,

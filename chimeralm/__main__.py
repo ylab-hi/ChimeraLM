@@ -11,8 +11,7 @@ from click import Context
 from rich.logging import RichHandler
 from rich.progress import track
 from typer.core import TyperGroup
-
-import chimera
+import chimeralm
 
 
 def load_predicts(path: Path | str) -> dict[str, int]:
@@ -180,8 +179,8 @@ def predict(
     if not random_seed:
         lightning.seed_everything(42, workers=True)
 
-    tokenizer = chimera.data.tokenizer.load_tokenizer_from_hyena_model("hyenadna-small-32k-seqlen")
-    datamodule: lightning.LightningDataModule = chimera.data.bam.BamDataModule(
+    tokenizer = chimeralm.data.tokenizer.load_tokenizer_from_hyena_model("hyenadna-small-32k-seqlen")
+    datamodule: lightning.LightningDataModule = chimeralm.data.bam.BamDataModule(
         train_data_path="dummy.bam",
         tokenizer=tokenizer,
         predict_data_path=data_path.as_posix(),
@@ -190,12 +189,12 @@ def predict(
         max_predict_samples=max_sample,
     )
 
-    model = chimera.models.ChimeraLM.from_pretrained("yangliz5/chimeralm")
+    model = chimeralm.models.ChimeraLM.from_pretrained("yangliz5/chimeralm")
 
     if output_path is None:
         output_path = data_path.with_suffix(".predictions")
 
-    callbacks = [chimera.models.callbacks.PredictionWriter(output_dir=output_path, write_interval="batch")]
+    callbacks = [chimeralm.models.callbacks.PredictionWriter(output_dir=output_path, write_interval="batch")]
 
     if gpus > 0:
         if torch.cuda.is_available():
