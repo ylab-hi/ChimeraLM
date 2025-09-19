@@ -124,10 +124,10 @@ chimeralm predict --help
 If you use ChimeraLM in your research, please cite:
 
 ```bibtex
-@software{chimeralm2024,
+@software{chimeralm2025,
   title={ChimeraLM: A genomic language model to identify chimera artifacts},
   author={Li, Yangyang, Guo, Qingxiang and Yang, Rendong},
-  year={2024},
+  year={2025},
   url={https://github.com/ylab-hi/ChimeraLM}
 }
 ```
