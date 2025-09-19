@@ -169,7 +169,7 @@ class BamDataModule(LightningDataModule):
                     max_length=self.hparams.tokenizer.max_len_single_sentence,
                 ),
                 num_proc=max(1, num_proc),  # type: ignore
-            ).remove_columns([SEQ_FEATURE, QUAL_FEATURE])
+            ).remove_columns([SEQ_FEATURE, ID_FEATURE])
             del predict_dataset
             return
 
