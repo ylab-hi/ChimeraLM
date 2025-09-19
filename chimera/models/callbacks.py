@@ -66,7 +66,7 @@ def resume_read_name(bytes_data: torch.Tensor | list[int]) -> str:
 class PredictionWriter(BasePredictionWriter):
     """Optimized prediction writer with improved error handling and performance."""
 
-    def __init__(self, output_dir: str, write_interval: str = "batch") -> None:
+    def __init__(self, output_dir: str | Path, write_interval: str = "batch") -> None:
         """Initialize the prediction writer.
 
         Args:

@@ -2,11 +2,11 @@ import logging
 from pathlib import Path
 
 import lightning
+import multiprocess.context as ctx
 import pysam
 import torch
 import typer
 from click import Context
-from rich import print
 from rich.logging import RichHandler
 from rich.progress import track
 from typer.core import TyperGroup
@@ -61,7 +61,7 @@ def load_predictions_from_folder(path: Path | str) -> dict[str, int]:
 
 
 def filter_bam_by_predcition(
-    bam_path: Path, prediction_path: Path, *, progress_bar: bool = False, sort: bool = False, index: bool = False
+    bam_path: Path, prediction_path: Path, *, progress_bar: bool = False, sort: bool = True, index: bool = True
 ) -> None:
     """Filter a BAM file by predictions.
 
@@ -91,6 +91,7 @@ def filter_bam_by_predcition(
         logging.info(f"Sorting {output_path}")
         sorted_output_path = output_path.with_suffix(".sorted.bam")
         pysam.sort("-o", sorted_output_path.as_posix(), output_path.as_posix())
+
     if index:
         logging.info(f"Indexing {output_path}")
         pysam.index(output_path.as_posix())
@@ -121,7 +122,6 @@ class OrderCommands(TyperGroup):
 def version_callback(value: bool):
     """Print the version and exit."""
     if value:
-        print(f"Chimera Version: {chimera.__version__}")
         raise typer.Exit()
 
 
@@ -158,6 +158,7 @@ def predict(
     max_sample: int | None = typer.Option(None, "--max-sample", "-m", help="Maximum number of samples to process"),
     limit_predict_batches: int | None = typer.Option(None, "--limit-batches", "-l", help="Limit prediction batches"),
     progress_bar: bool = typer.Option(False, "--progress-bar", "-p", help="Show progress bar"),
+    random_seed: bool = typer.Option(False, "--random-seed", help="Make the prediction not deterministic"),
 ):
     """Predict the given dataset using DeepChopper."""
     if verbose:
@@ -166,7 +167,8 @@ def predict(
     if isinstance(data_path, str):
         data_path = Path(data_path)
 
-    lightning.seed_everything(42, workers=True)
+    if not random_seed:
+        lightning.seed_everything(42, workers=True)
 
     tokenizer = chimera.data.tokenizer.load_tokenizer_from_hyena_model("hyenadna-small-32k-seqlen")
     datamodule: lightning.LightningDataModule = chimera.data.bam.BamDataModule(
@@ -203,17 +205,14 @@ def predict(
         accelerator=accelerator,
         devices=devices,
         callbacks=callbacks,
-        deterministic=True,
+        deterministic=not random_seed,
         logger=False,
         limit_predict_batches=limit_predict_batches,
     )
 
-    import multiprocess.context as ctx
-
     ctx._force_start_method("spawn")
     trainer.predict(model=model, dataloaders=datamodule, return_predictions=False)
-
-    filter_bam_by_predcition(data_path, output_path / "0")
+    filter_bam_by_predcition(data_path, output_path / "0", sort=True, index=True)
 
 
 if __name__ == "__main__":
