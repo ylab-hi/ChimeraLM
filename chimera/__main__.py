@@ -219,8 +219,13 @@ def predict(
 def filter(
     bam_path: Path = typer.Argument(..., help="Path to the BAM file"),
     predictions_path: Path = typer.Argument(..., help="Path to the predictions file"),
+    *,
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
 ):
     """Filter the BAM file by predictions."""
+    if verbose:
+        set_logging_level(logging.INFO)
+
     filter_bam_by_predcition(bam_path, predictions_path, index=True)
 
 
