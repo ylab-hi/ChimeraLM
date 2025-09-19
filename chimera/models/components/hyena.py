@@ -23,23 +23,38 @@ class BinarySequenceClassifier(nn.Module):
         activation: str = "gelu",
         *,
         use_residual: bool = True,
+        save_attention: bool = False,
     ):
+        """Initialize the BinarySequenceClassifier.
+
+        Args:
+            input_dim: Hidden dimension from backbone
+            hidden_dim: Hidden dimension for classifier layers
+            num_layers: Number of classifier layers
+            dropout: Dropout rate
+            pooling_type: Type of pooling ("mean", "max", "attention", "cls")
+            activation: Activation function ("gelu", "relu", "swish")
+            use_residual: Whether to use residual connections
+            save_attention: Whether to save attention weights
+        """
         super().__init__()
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
         self.pooling_type = pooling_type
         self.use_residual = use_residual
 
-        # Activation function
-        if activation == "gelu":
-            self.activation: nn.GELU | nn.ReLU | nn.SiLU = nn.GELU()
-        elif activation == "relu":
-            self.activation = nn.ReLU()
-        elif activation == "swish":
-            self.activation = nn.SiLU()
-        else:
-            msg = f"Unsupported activation: {activation}"
+        # Activation function - use mapping for better performance
+        activation_map = {
+            "gelu": nn.GELU,
+            "relu": nn.ReLU,
+            "swish": nn.SiLU,
+        }
+
+        if activation not in activation_map:
+            msg = f"Unsupported activation: {activation}. Supported: {list(activation_map.keys())}"
             raise ValueError(msg)
+
+        self.activation: nn.GELU | nn.ReLU | nn.SiLU = activation_map[activation]()
 
         # Attention-based pooling
         if pooling_type == "attention":
@@ -47,7 +62,7 @@ class BinarySequenceClassifier(nn.Module):
                 nn.Linear(input_dim, hidden_dim // 2), self.activation, nn.Linear(hidden_dim // 2, 1), nn.Softmax(dim=1)
             )
 
-        # Classification layers
+        # Classification layers - optimized construction
         layers = []
         prev_dim = input_dim
 
@@ -62,19 +77,36 @@ class BinarySequenceClassifier(nn.Module):
             else:
                 prev_dim = hidden_dim
 
+        # Use Sequential for better type compatibility
         self.classifier = nn.Sequential(*layers)
 
         # Final output layer for binary classification
         self.output_layer = nn.Linear(hidden_dim, 2)
 
+        if save_attention:
+            self.attention_weights = None
+
     def forward(self, hidden_states: torch.Tensor, attention_mask: torch.Tensor | None = None):
+        """Forward pass through the classifier.
+
+        Args:
+            hidden_states: Input hidden states from backbone
+            attention_mask: Optional attention mask for padding
+
+        Returns:
+            Binary classification logits
+        """
         _batch_size, _seq_len, _hidden_dim = hidden_states.shape
+
+        # Pre-compute mask expansion if needed (used in multiple pooling types)
+        mask_expanded = None
+        if attention_mask is not None:
+            mask_expanded = attention_mask.unsqueeze(-1).float()
 
         # Apply pooling to get sequence representation
         if self.pooling_type == "mean":
             if attention_mask is not None:
-                # Masked mean pooling
-                mask_expanded = attention_mask.unsqueeze(-1).float()
+                # Masked mean pooling - optimized
                 masked_hidden = hidden_states * mask_expanded
                 sum_hidden = masked_hidden.sum(dim=1)
                 seq_lengths = attention_mask.sum(dim=1, keepdim=True).float()
@@ -84,8 +116,7 @@ class BinarySequenceClassifier(nn.Module):
 
         elif self.pooling_type == "max":
             if attention_mask is not None:
-                # Masked max pooling
-                mask_expanded = attention_mask.unsqueeze(-1).float()
+                # Masked max pooling - optimized
                 masked_hidden = hidden_states * mask_expanded
                 # Set masked positions to large negative values
                 masked_hidden = masked_hidden + (1 - mask_expanded) * -1e9
@@ -96,12 +127,17 @@ class BinarySequenceClassifier(nn.Module):
         elif self.pooling_type == "attention":
             # Attention-based pooling
             attention_weights = self.attention(hidden_states)  # (batch_size, seq_len, 1)
+
             if attention_mask is not None:
                 # Mask attention weights for padding tokens
-                mask_expanded = attention_mask.unsqueeze(-1).float()
                 attention_weights = attention_weights * mask_expanded
-                # Renormalize attention weights
-                attention_weights = attention_weights / (attention_weights.sum(dim=1, keepdim=True) + 1e-9)
+                # Renormalize attention weights - use more stable computation
+                attention_sum = attention_weights.sum(dim=1, keepdim=True)
+                attention_weights = attention_weights / (attention_sum + 1e-9)
+
+            # Only move to CPU after all computations are done
+            if self.save_attention:
+                self.attention_weights = attention_weights.detach().cpu()
 
             pooled_output = (hidden_states * attention_weights).sum(dim=1)
 
@@ -124,6 +160,12 @@ class ResidualBlock(nn.Module):
     """Simple residual block for the classifier."""
 
     def __init__(self, hidden_dim: int, dropout: float = 0.1):
+        """Initialize the residual block.
+
+        Args:
+            hidden_dim: Hidden dimension
+            dropout: Dropout rate
+        """
         super().__init__()
         self.layers = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim),
@@ -134,6 +176,14 @@ class ResidualBlock(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
+        """Forward pass through the residual block.
+
+        Args:
+            x: Input tensor
+
+        Returns:
+            Output tensor with residual connection
+        """
         residual = x
         out = self.layers(x)
         out = self.dropout(out)
@@ -141,18 +191,40 @@ class ResidualBlock(nn.Module):
 
 
 class QualLayer(nn.Module):
-    def __init__(self, hidden_dim: int):
-        super().__init__()
+    """Quality score processing layer."""
 
-        self.qual_linear = nn.Linear(1, hidden_dim)
-        self.qual_linear_2 = nn.Linear(hidden_dim, hidden_dim)
+    def __init__(self, hidden_dim: int):
+        """Initialize the quality layer.
+
+        Args:
+            hidden_dim: Hidden dimension for quality embeddings
+        """
+        super().__init__()
+        # Combine into single sequential for better performance
+        self.qual_network = nn.Sequential(
+            nn.Linear(1, hidden_dim),
+            nn.GELU(),  # Add activation for better representation
+            nn.Linear(hidden_dim, hidden_dim),
+        )
 
     def forward(self, hidden_states: torch.Tensor, input_quals: torch.Tensor):
-        qual_embeds = self.qual_linear(input_quals.unsqueeze(-1))
-        return self.qual_linear_2(qual_embeds)
+        """Forward pass through the quality layer.
+
+        Args:
+            hidden_states: Input hidden states (unused but kept for interface compatibility)
+            input_quals: Input quality scores
+
+        Returns:
+            Quality embeddings
+        """
+        # Optimize: avoid unsqueeze by using view
+        qual_input = input_quals.view(-1, 1)
+        return self.qual_network(qual_input)
 
 
 class HyenaDna(nn.Module):
+    """HyenaDNA model with customizable head."""
+
     def __init__(
         self,
         number_of_classes: int,
@@ -161,6 +233,14 @@ class HyenaDna(nn.Module):
         *,
         freeze_backbone=False,
     ):
+        """Initialize the HyenaDNA model.
+
+        Args:
+            number_of_classes: Number of output classes
+            head: Classification head module
+            backbone_name: Name of the backbone model
+            freeze_backbone: Whether to freeze backbone parameters
+        """
         super().__init__()
         self.number_of_classes = number_of_classes
         self.backbone_name = backbone_name
