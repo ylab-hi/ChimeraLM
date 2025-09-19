@@ -77,17 +77,24 @@ def filter_bam_by_predcition(
     bam_file = pysam.AlignmentFile(bam_path.as_posix(), file_mode)
     output_file = pysam.AlignmentFile(output_path.as_posix(), "wb", template=bam_file)
 
-    reads = bam_file.fetch()
-    if progress_bar:
-        reads = track(reads, description="Filtering BAM file")
+    try:
+        reads = bam_file.fetch()
+        if progress_bar:
+            reads = track(reads, description="Filtering BAM file")
 
-    for read in reads:
-        if predictions.get(read.query_name) is not None and predictions[read.query_name] == 1:
-            continue
-        output_file.write(read)
+        for read in reads:
+            if predictions.get(read.query_name) is not None and predictions[read.query_name] == 1:
+                continue
+            output_file.write(read)
 
-    output_file.close()
-    bam_file.close()
+        output_file.close()
+        bam_file.close()
+
+    except Exception as e:
+        logging.error(f"Error filtering BAM file: {e}")
+        if output_path.exists():
+            output_path.unlink()
+        raise e
 
     if index:
         logging.info(f"Sorting {output_path}")
