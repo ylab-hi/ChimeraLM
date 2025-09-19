@@ -168,7 +168,7 @@ def predict(
 
     lightning.seed_everything(42, workers=True)
 
-    tokenizer = chimera.data.tokenizer.CharacterTokenizer()
+    tokenizer = chimera.data.tokenizer.load_tokenizer_from_hyena_model("hyenadna-small-32k-seqlen")
     datamodule: lightning.LightningDataModule = chimera.data.bam.BamDataModule(
         train_data_path="dummy.parquet",
         tokenizer=tokenizer,
