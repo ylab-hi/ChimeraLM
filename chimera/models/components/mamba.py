@@ -294,7 +294,7 @@ class MambaSequenceClassificationPositional(nn.Module):
         Returns:
             Classification logits of shape (batch_size, n_classes).
         """
-        batch_size, seq_len = input_ids.shape
+        _batch_size, seq_len = input_ids.shape
 
         # Check sequence length
         if seq_len > self.max_seq_length:

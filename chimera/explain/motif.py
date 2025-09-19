@@ -63,7 +63,7 @@ class Mamba2Analyzer:
 
     def get_position_importance(self, sequence: str) -> np.ndarray:
         """Calculate importance of each position using state activations."""
-        original_activations, original_output = self.extract_state_activations(sequence)
+        _original_activations, original_output = self.extract_state_activations(sequence)
         original_pred = original_output.softmax(dim=-1)[0, 1].item()
 
         importance_scores = []
@@ -72,7 +72,7 @@ class Mamba2Analyzer:
         for i in range(len(sequence)):
             # Create modified sequence
             mod_seq = sequence[:i] + "N" + sequence[i + 1 :]
-            mod_activations, mod_output = self.extract_state_activations(mod_seq)
+            _mod_activations, mod_output = self.extract_state_activations(mod_seq)
             mod_pred = mod_output.softmax(dim=-1)[0, 1].item()
 
             # Calculate importance as prediction change

@@ -54,7 +54,7 @@ class HyenaOperator(nn.Module):
         self.register_buffer("filters", torch.stack(filters))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        B, L, D = x.shape
+        _B, L, _D = x.shape
         H = self.num_heads
 
         # Project input

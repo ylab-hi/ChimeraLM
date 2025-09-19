@@ -76,7 +76,7 @@ no-build-isolation-package = ['flash-attn', 'causal-conv1d']
 cache-keys = [
     { file = "pyproject.toml" },
     { file = "Cargo.toml" },
-    { file = "**/*.rs" },
+    { file = "src/*.rs" },
 ]
 
 [project.urls]

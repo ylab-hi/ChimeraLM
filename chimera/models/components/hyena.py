@@ -68,7 +68,7 @@ class BinarySequenceClassifier(nn.Module):
         self.output_layer = nn.Linear(hidden_dim, 2)
 
     def forward(self, hidden_states: torch.Tensor, attention_mask: torch.Tensor | None = None):
-        batch_size, seq_len, hidden_dim = hidden_states.shape
+        _batch_size, _seq_len, _hidden_dim = hidden_states.shape
 
         # Apply pooling to get sequence representation
         if self.pooling_type == "mean":

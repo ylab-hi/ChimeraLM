@@ -183,9 +183,11 @@ def predict(
         max_predict_samples=max_sample,
     )
 
-    model = None
+    model = chimera.models.ChimeraLM.from_pretrained("yangliz5/chimeralm")
 
-    output_path = Path(output_path or "predictions")
+    if output_path is None:
+        output_path = data_path.with_suffix(".predictions")
+
     callbacks = [chimera.models.callbacks.PredictionWriter(output_dir=output_path, write_interval="batch")]
 
     if gpus > 0:
@@ -216,7 +218,7 @@ def predict(
     ctx._force_start_method("spawn")
     trainer.predict(model=model, dataloaders=datamodule, return_predictions=False)
 
-    filter_bam_by_predcition(data_path, output_path)
+    filter_bam_by_predcition(data_path, output_path / "0")
 
 
 if __name__ == "__main__":
