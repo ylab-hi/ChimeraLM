@@ -61,7 +61,7 @@ def load_predictions_from_folder(path: Path | str) -> dict[str, int]:
 
 
 def filter_bam_by_predcition(
-    bam_path: Path, prediction_path: Path, *, progress_bar: bool = False, sort: bool = True, index: bool = True
+    bam_path: Path, prediction_path: Path, *, progress_bar: bool = False, index: bool = True
 ) -> None:
     """Filter a BAM file by predictions.
 
@@ -74,27 +74,27 @@ def filter_bam_by_predcition(
     file_mode = "rb" if bam_path.suffix == ".bam" else "r"
     output_path = bam_path.with_suffix(".filtered.bam")
 
-    with (
-        pysam.AlignmentFile(bam_path.as_posix(), file_mode) as bam_file,
-        pysam.AlignmentFile(output_path.as_posix(), "wb", template=bam_file) as output_file,
-    ):
-        reads = bam_file.fetch()
-        if progress_bar:
-            reads = track(reads, description="Filtering BAM file")
+    bam_file = pysam.AlignmentFile(bam_path.as_posix(), file_mode)
+    output_file = pysam.AlignmentFile(output_path.as_posix(), "wb", template=bam_file)
 
-        for read in reads:
-            if predictions.get(read.query_name) is not None and predictions[read.query_name] == 1:
-                continue
-            output_file.write(read)
+    reads = bam_file.fetch()
+    if progress_bar:
+        reads = track(reads, description="Filtering BAM file")
 
-    if sort:
+    for read in reads:
+        if predictions.get(read.query_name) is not None and predictions[read.query_name] == 1:
+            continue
+        output_file.write(read)
+
+    output_file.close()
+    bam_file.close()
+
+    if index:
         logging.info(f"Sorting {output_path}")
         sorted_output_path = output_path.with_suffix(".sorted.bam")
         pysam.sort("-o", sorted_output_path.as_posix(), output_path.as_posix())
-
-    if index:
-        logging.info(f"Indexing {output_path}")
-        pysam.index(output_path.as_posix())
+        logging.info(f"Indexing {sorted_output_path}")
+        pysam.index(sorted_output_path.as_posix())
 
 
 def set_logging_level(level: int = logging.INFO):
@@ -172,7 +172,7 @@ def predict(
 
     tokenizer = chimera.data.tokenizer.load_tokenizer_from_hyena_model("hyenadna-small-32k-seqlen")
     datamodule: lightning.LightningDataModule = chimera.data.bam.BamDataModule(
-        train_data_path="dummy.parquet",
+        train_data_path="dummy.bam",
         tokenizer=tokenizer,
         predict_data_path=data_path.as_posix(),
         batch_size=batch_size,
@@ -212,7 +212,16 @@ def predict(
 
     ctx._force_start_method("spawn")
     trainer.predict(model=model, dataloaders=datamodule, return_predictions=False)
-    filter_bam_by_predcition(data_path, output_path / "0", sort=True, index=True)
+    filter_bam_by_predcition(data_path, output_path / "0", index=True)
+
+
+@app.command()
+def filter(
+    bam_path: Path = typer.Argument(..., help="Path to the BAM file"),
+    predictions_path: Path = typer.Argument(..., help="Path to the predictions file"),
+):
+    """Filter the BAM file by predictions."""
+    filter_bam_by_predcition(bam_path, predictions_path, index=True)
 
 
 if __name__ == "__main__":
