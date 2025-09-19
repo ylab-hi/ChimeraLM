@@ -2,7 +2,9 @@ from typing import TYPE_CHECKING, Any
 
 import hydra
 import torch
-from chimera.utils import (
+from omegaconf import DictConfig
+
+from chimeralm.utils import (
     RankedLogger,
     extras,
     instantiate_callbacks,
@@ -10,7 +12,6 @@ from chimera.utils import (
     log_hyperparameters,
     task_wrapper,
 )
-from omegaconf import DictConfig
 
 if TYPE_CHECKING:
     from lightning import Callback, LightningDataModule, LightningModule, Trainer
