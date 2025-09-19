@@ -1,4 +1,5 @@
 import logging
+from collections import Counter
 from pathlib import Path
 
 import lightning
@@ -69,6 +70,12 @@ def filter_bam_by_predcition(
     """
     predictions = load_predictions_from_folder(prediction_path)
     logging.info(f"Loaded {len(predictions)} predictions from {prediction_path}")
+
+    # summar 0 and 1 predictions
+    counter = Counter(predictions.values())
+    logging.info(
+        f"Biological: {counter.get(0, 0)} ({counter.get(0, 0) / len(predictions) * 100:.1f}%), Chimera artifact: {counter.get(1, 0)} ({counter.get(1, 0) / len(predictions) * 100:.1f}%)"
+    )
 
     # Determine the file type based on the extension
     file_mode = "rb" if bam_path.suffix == ".bam" else "r"
@@ -168,11 +175,7 @@ def predict(
     random_seed: bool = typer.Option(False, "--random-seed", help="Make the prediction not deterministic"),
 ):
     """Predict the given dataset using DeepChopper."""
-    if verbose:
-        set_logging_level(logging.INFO)
-
-    if isinstance(data_path, str):
-        data_path = Path(data_path)
+    set_logging_level(logging.DEBUG if verbose else logging.INFO)
 
     if not random_seed:
         lightning.seed_everything(42, workers=True)
