@@ -11,12 +11,11 @@ import typer
 from click import Context
 from lightning_utilities.core.rank_zero import rank_zero_only
 from rich.logging import RichHandler
-from chimeralm.utils import RankedLogger
 from rich.progress import track
 from typer.core import TyperGroup
 
 import chimeralm
-
+from chimeralm.utils import RankedLogger
 
 log = RankedLogger(__name__, rank_zero_only=True)
 
@@ -257,6 +256,12 @@ def filter(
     set_logging_level(logging.DEBUG if verbose else logging.INFO)
     log.info(f"Filtering {bam_path} by predictions from {predictions_path}")
     filter_bam_by_predcition(bam_path, predictions_path, index=True)
+
+
+@app.command()
+def web():
+    """Launch the Gradio interface."""
+    chimeralm.ui.main()
 
 
 if __name__ == "__main__":

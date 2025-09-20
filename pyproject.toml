@@ -46,6 +46,8 @@ dependencies = [
     "pyfastx>=2.2.0",
     "pysam>=0.22.1",
     "hf-xet>=1.1.10",
+    "gradio>=4.0.0",
+    "plotly>=5.0.0",
 ]
 
 [project.optional-dependencies]
