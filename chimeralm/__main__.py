@@ -160,7 +160,7 @@ def version_callback(value: bool):
 app = typer.Typer(
     cls=OrderCommands,
     context_settings={"help_option_names": ["-h", "--help"]},
-    help="ChimeraLM: A genomic lanuage model to identify chimera artifact.",
+    help="ChimeraLM: A genomic lanuage model to identify chimera artifact introduced by whole genome amplification (WGA).",
 )
 
 
@@ -205,12 +205,13 @@ def predict(
     output_path: Path | None = typer.Option(None, "--output", "-o", help="Output path for predictions"),
     batch_size: int = typer.Option(12, "--batch-size", "-b", help="Batch size"),
     num_workers: int = typer.Option(0, "--workers", "-w", help="Number of workers"),
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
     max_sample: int | None = typer.Option(None, "--max-sample", "-m", help="Maximum number of samples to process"),
     limit_predict_batches: int | None = typer.Option(None, "--limit-batches", "-l", help="Limit prediction batches"),
+    ckpt_path: Path | None = typer.Option(None, "--ckpt", "-c", help="Path to the checkpoint file"),
+    *,
     progress_bar: bool = typer.Option(False, "--progress-bar", "-p", help="Show progress bar"),
     random: bool = typer.Option(False, "--random", "-r", help="Make the prediction not deterministic"),
-    ckpt_path: Path | None = typer.Option(None, "--ckpt", help="Path to the checkpoint file"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
 ):
     """Predict the given dataset using DeepChopper."""
     set_logging_level(logging.DEBUG if verbose else logging.INFO)
@@ -273,7 +274,7 @@ def filter(
 
 @app.command()
 def web():
-    """Launch the Gradio interface."""
+    """Launch the web interface."""
     chimeralm.ui.main()
 
 
