@@ -1,6 +1,7 @@
 import logging
 from collections import Counter
 from pathlib import Path
+from typing import Literal
 
 import lightning
 import multiprocess.context as ctx
@@ -8,6 +9,7 @@ import pysam
 import torch
 import typer
 from click import Context
+from lightning_utilities.core.rank_zero import rank_zero_only
 from rich.logging import RichHandler
 from rich.progress import track
 from typer.core import TyperGroup
@@ -61,6 +63,7 @@ def load_predictions_from_folder(path: Path | str) -> dict[str, int]:
     return predictions
 
 
+@rank_zero_only
 def filter_bam_by_predcition(
     bam_path: Path, prediction_path: Path, *, progress_bar: bool = False, index: bool = True
 ) -> None:
@@ -78,7 +81,7 @@ def filter_bam_by_predcition(
     )
 
     # Determine the file type based on the extension
-    file_mode = "rb" if bam_path.suffix == ".bam" else "r"
+    file_mode: Literal["rb", "r"] = "rb" if bam_path.suffix == ".bam" else "r"
     output_path = bam_path.with_suffix(".filtered.bam")
 
     bam_file = pysam.AlignmentFile(bam_path.as_posix(), file_mode)
@@ -177,7 +180,7 @@ def predict(
     """Predict the given dataset using DeepChopper."""
     set_logging_level(logging.DEBUG if verbose else logging.INFO)
 
-    if not random_seed:
+    if not random:
         lightning.seed_everything(42, workers=True)
 
     tokenizer = chimeralm.data.tokenizer.load_tokenizer_from_hyena_model("hyenadna-small-32k-seqlen")
@@ -215,13 +218,15 @@ def predict(
         accelerator=accelerator,
         devices=devices,
         callbacks=callbacks,
-        deterministic=not random_seed,
+        deterministic=not random,
         logger=False,
         limit_predict_batches=limit_predict_batches,
     )
 
     ctx._force_start_method("spawn")
     trainer.predict(model=model, dataloaders=datamodule, return_predictions=False)
+    logging.info(f"Predictions saved to {output_path}")
+    logging.info(f"Filtering {data_path} by predictions from {output_path / '0'}")
     filter_bam_by_predcition(data_path, output_path / "0", index=True)
 
 
@@ -233,9 +238,9 @@ def filter(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
 ):
     """Filter the BAM file by predictions."""
-    if verbose:
-        set_logging_level(logging.INFO)
+    set_logging_level(logging.DEBUG if verbose else logging.INFO)
 
+    logging.info(f"Filtering {bam_path} by predictions from {predictions_path}")
     filter_bam_by_predcition(bam_path, predictions_path, index=True)
 
 
