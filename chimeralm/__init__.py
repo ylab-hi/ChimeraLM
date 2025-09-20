@@ -3,4 +3,4 @@
 from . import data, models, ui, utils
 from .chimeralm import *  # noqa: F403
 
-__all__ = ["data", "models", "utils", "ui"]
+__all__ = ["data", "models", "ui", "utils"]

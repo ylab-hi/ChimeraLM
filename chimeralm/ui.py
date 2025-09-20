@@ -1,10 +1,8 @@
 """Gradio Web UI for ChimeraLM sequence classification."""
 
 import logging
-from pathlib import Path
 
 import gradio as gr
-import numpy as np
 import plotly.graph_objects as go
 import torch
 
@@ -78,7 +76,7 @@ class ChimeraLMPredictor:
 
         except Exception as e:
             logging.error(f"Prediction error: {e}")
-            return f"Prediction failed: {str(e)}", 0.0, {}
+            return f"Prediction failed: {e}", 0.0, {}
 
 
 def create_interface():
@@ -101,15 +99,15 @@ def create_interface():
             classes = list(breakdown.keys())
             probabilities = [float(prob) for prob in breakdown.values()]
 
-            # Create colors based on prediction
+            # Create light theme colors based on prediction
             colors = []
-            for i, class_name in enumerate(classes):
+            for _i, class_name in enumerate(classes):
                 if class_name == prediction:
                     colors.append(
-                        "#2E8B57" if prediction == "Biological" else "#DC143C"
-                    )  # Green for Biological, Red for Chimeric
+                        "#4CAF50" if prediction == "Biological" else "#F44336"
+                    )  # Light green for Biological, Light red for Chimeric
                 else:
-                    colors.append("#D3D3D3")  # Light gray for non-predicted class
+                    colors.append("#E0E0E0")  # Light gray for non-predicted class
 
             fig = go.Figure(
                 data=[
@@ -124,28 +122,75 @@ def create_interface():
             )
 
             fig.update_layout(
-                title="Prediction Probabilities",
-                xaxis_title="Classification",
-                yaxis_title="Probability",
-                yaxis=dict(range=[0, 1]),
-                height=400,
+                title={
+                    "text": "🎯 Prediction Confidence",
+                    "font": {"size": 20, "color": "#424242", "family": "Arial, sans-serif"},
+                    "x": 0.5,
+                    "xanchor": "center",
+                },
+                xaxis={
+                    "title": {"text": "Classification", "font": {"size": 14, "color": "#616161"}},
+                    "tickfont": {"size": 12, "color": "#424242"},
+                    "gridcolor": "rgba(0,0,0,0.05)",
+                    "linecolor": "rgba(0,0,0,0.1)",
+                    "showgrid": True,
+                    "zeroline": False,
+                },
+                yaxis={
+                    "title": {"text": "Probability", "font": {"size": 14, "color": "#616161"}},
+                    "tickfont": {"size": 12, "color": "#424242"},
+                    "range": [0, 1.1],
+                    "gridcolor": "rgba(0,0,0,0.05)",
+                    "linecolor": "rgba(0,0,0,0.1)",
+                    "showgrid": True,
+                    "zeroline": True,
+                    "zerolinecolor": "rgba(0,0,0,0.1)",
+                },
+                height=450,
                 showlegend=False,
-                plot_bgcolor="rgba(0,0,0,0)",
-                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(255,255,255,1)",
+                paper_bgcolor="rgba(255,255,255,1)",
+                margin={"l": 60, "r": 60, "t": 80, "b": 60},
+                font={"family": "Arial, sans-serif"},
             )
 
-            fig.update_traces(textfont_size=14, textfont_color="black")
+            fig.update_traces(
+                textfont_size=16,
+                textfont_color="white",
+                textfont_family="Arial, sans-serif",
+                marker_line={"width": 1, "color": "rgba(255,255,255,0.8)"},
+                width=0.6,
+                opacity=0.9,
+            )
         else:
             # Create empty plot for error cases
             fig = go.Figure()
             fig.update_layout(
-                title="Prediction Probabilities",
-                xaxis_title="Classification",
-                yaxis_title="Probability",
-                height=400,
+                title={
+                    "text": "🎯 Prediction Confidence",
+                    "font": {"size": 20, "color": "#424242", "family": "Arial, sans-serif"},
+                    "x": 0.5,
+                    "xanchor": "center",
+                },
+                xaxis={
+                    "title": {"text": "Classification", "font": {"size": 14, "color": "#616161"}},
+                    "tickfont": {"size": 12, "color": "#424242"},
+                    "gridcolor": "rgba(0,0,0,0.05)",
+                    "linecolor": "rgba(0,0,0,0.1)",
+                },
+                yaxis={
+                    "title": {"text": "Probability", "font": {"size": 14, "color": "#616161"}},
+                    "tickfont": {"size": 12, "color": "#424242"},
+                    "range": [0, 1.1],
+                    "gridcolor": "rgba(0,0,0,0.05)",
+                    "linecolor": "rgba(0,0,0,0.1)",
+                },
+                height=450,
                 showlegend=False,
-                plot_bgcolor="rgba(0,0,0,0)",
-                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(255,255,255,1)",
+                paper_bgcolor="rgba(255,255,255,1)",
+                margin={"l": 60, "r": 60, "t": 80, "b": 60},
+                font={"family": "Arial, sans-serif"},
             )
 
         return result_text, fig
@@ -153,56 +198,179 @@ def create_interface():
     # Example sequences
     examples = [
         ["ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT"],
-        ["AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"],
         ["ATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCG"],
         ["GCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCT"],
     ]
 
-    with gr.Blocks(title="ChimeraLM - Chimeric Read Detector", theme=gr.themes.Soft()) as interface:
-        gr.Markdown(
-            """
-            # 🧬 ChimeraLM - Chimeric Read Detector
-            
-            A deep learning model to identify chimeric artifacts introduced by whole genome amplification (WGA).
-            
-            **Instructions:**
-            1. Enter a DNA sequence
-            2. Only use standard nucleotides: A, C, G, T, N
-            3. The model will classify the sequence as either **Biological** or **Chimeric Artifact**
-            """
-        )
+    # Custom CSS for modern styling
+    custom_css = """
+    .main-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        text-align: center;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
 
+    .dna-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    .input-section {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 1rem;
+    }
+
+    .result-section {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 1rem;
+    }
+
+    .footer-section {
+        background: #f8f9fa;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-top: 2rem;
+        border: 1px solid #e9ecef;
+    }
+
+    .gradio-container {
+        max-width: 1200px !important;
+        margin: 0 auto !important;
+    }
+
+    .analyze-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        border: none !important;
+        border-radius: 25px !important;
+        padding: 15px 30px !important;
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        color: white !important;
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4) !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .analyze-btn:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6) !important;
+    }
+    """
+
+    with gr.Blocks(
+        title="ChimeraLM - Chimeric Read Detector",
+        theme=gr.themes.Default(
+            primary_hue="blue",
+            secondary_hue="gray",
+            neutral_hue="slate",
+        ),
+        css=custom_css,
+    ) as interface:
+        # Header Section
         with gr.Row():
-            with gr.Column(scale=2):
+            gr.HTML("""
+                <div class="main-header">
+                    <div class="dna-icon">🧬</div>
+                    <h1 style="margin: 0; font-size: 2.5rem; font-weight: 700;">ChimeraLM</h1>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 1.2rem; opacity: 0.9;">
+                        Advanced Chimeric Read Detection using Deep Learning
+                    </p>
+                    <p style="margin: 1rem 0 0 0; font-size: 1rem; opacity: 0.8;">
+                        Identify chimeric artifacts from whole genome amplification with state-of-the-art accuracy
+                    </p>
+                </div>
+            """)
+
+        # Main Content
+        with gr.Row():
+            with gr.Column(scale=1):
+                # Input Section
+                gr.HTML('<div class="input-section">')
+
+                gr.Markdown("""
+                ## 📝 Sequence Input
+
+                **How to use:**
+                1. Enter your DNA sequence (any length)
+                2. Use standard nucleotides: **A**, **C**, **G**, **T**, **N**
+                3. Click "Analyze Sequence" to get results
+                """)
+
                 sequence_input = gr.Textbox(
-                    label="DNA Sequence",
-                    placeholder="Enter your DNA sequence here (e.g., ACGTACGTACGT...)",
-                    lines=5,
-                    max_lines=10,
+                    label="🧬 DNA Sequence",
+                    placeholder="Enter your DNA sequence here...\nExample: ACGTACGTACGTACGT...",
+                    lines=8,
+                    max_lines=15,
+                    show_label=True,
+                    container=True,
+                    scale=2,
                 )
 
-                predict_btn = gr.Button("🔬 Analyze Sequence", variant="primary", size="lg")
+                with gr.Row():
+                    predict_btn = gr.Button(
+                        "🔬 Analyze Sequence", variant="primary", size="lg", elem_classes=["analyze-btn"]
+                    )
 
-                gr.Examples(examples=examples, inputs=[sequence_input], label="Example Sequences")
+                gr.Examples(
+                    examples=examples, inputs=[sequence_input], label="📚 Example Sequences", elem_id="examples"
+                )
+
+                gr.HTML("</div>")
 
             with gr.Column(scale=1):
+                # Results Section
+                gr.HTML('<div class="result-section">')
+
+                gr.Markdown("## 📊 Analysis Results")
+
                 result_output = gr.Markdown(
-                    label="Prediction Result", value="Enter a sequence and click 'Analyze Sequence' to see results."
+                    value="✨ Enter a sequence and click 'Analyze Sequence' to see detailed results and visualizations.",
+                    elem_id="results",
                 )
 
-                # Add the plot component
-                plot_output = gr.Plot(label="Probability Distribution", value=None)
+                # Enhanced plot component
+                plot_output = gr.Plot(label="📈 Probability Distribution", value=None, elem_id="probability-plot")
+
+                gr.HTML("</div>")
+
+        # Footer Section
+        gr.HTML('<div class="footer-section">')
 
         gr.Markdown(
             """
+            ## 🚀 About ChimeraLM
+
+            **Advanced Features:**
+            - ⚡ **High Performance**: Optimized for speed and accuracy
+            - 🎯 **Binary Classification**: Distinguishes biological vs chimeric sequences
+            - 📏 **Long Sequences**: Handles up to 32,768 nucleotides
+            - 🤖 **Pre-trained Model**: Ready-to-use with `yangliz5/chimeralm`
+
+            **Technical Specifications:**
+            - **Model Type**: Binary Sequence Classifier
+            - **Input**: DNA sequences with standard nucleotides
+            - **Output**: Classification + confidence scores
+            - **Training**: Whole genome amplification artifact detection
+
             ---
-            
-            **About ChimeraLM:**
-            - Trained to detect chimeric artifacts from whole genome amplification
-            - Maximum sequence length: 32,768 nucleotides
-            - Model: `yangliz5/chimeralm`
-            
-            **Citation:**
+
+            **📖 Citation:**
             ```
             @software{chimeralm2025,
               title={ChimeraLM: A genomic language model to identify chimera artifacts},
@@ -211,9 +379,17 @@ def create_interface():
               url={https://github.com/ylab-hi/ChimeraLM}
             }
             ```
+
+            **🔗 Links:**
+            - [GitHub Repository](https://github.com/ylab-hi/ChimeraLM)
+            - [Model Hub](https://huggingface.co/yangliz5/chimeralm)
+            - [Documentation](https://github.com/ylab-hi/ChimeraLM#readme)
             """
         )
 
+        gr.HTML("</div>")
+
+        # Connect the button click
         predict_btn.click(fn=predict_sequence, inputs=[sequence_input], outputs=[result_output, plot_output])
 
     return interface
