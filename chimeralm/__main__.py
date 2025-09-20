@@ -9,7 +9,6 @@ import pysam
 import torch
 import typer
 from click import Context
-from joblib import Parallel, delayed
 from lightning_utilities.core.rank_zero import rank_zero_only
 from rich.logging import RichHandler
 from typer.core import TyperGroup
@@ -20,6 +19,7 @@ from chimeralm.utils import RankedLogger
 log = RankedLogger(__name__, rank_zero_only=True)
 
 
+@rank_zero_only
 def load_predicts(path: Path | str) -> dict[str, int]:
     """Load predictions from a text file.
 
@@ -58,19 +58,12 @@ def load_predicts(path: Path | str) -> dict[str, int]:
     return predicts
 
 
-def load_predictions_from_folder(path: Path | str, *, n_jobs: int = 4) -> dict[str, int]:
-    """Load predictions from a folder using parallel processing."""
-
-    def process_file(file: Path) -> dict[str, int]:
-        return load_predicts(file)
-
-    files = list(Path(path).glob("*.txt"))
-    results = Parallel(n_jobs=n_jobs)(delayed(process_file)(file) for file in files)
-
-    predictions = {}
-    for result in results:
-        predictions.update(result)
-
+@rank_zero_only
+def load_predictions_from_folder(path: Path | str) -> dict[str, int]:
+    """Load predictions from a folder."""
+    predictions: dict[str, int] = {}
+    for file in Path(path).glob("*.txt"):
+        predictions.update(load_predicts(file))
     return predictions
 
 
@@ -86,12 +79,12 @@ def set_tensor_core_precision(precision="medium") -> None:
 
 
 @rank_zero_only
-def filter_bam_by_predcition(bam_path: Path, prediction_path: Path, *, index: bool = True, n_jobs: int = 4) -> None:
+def filter_bam_by_predcition(bam_path: Path, prediction_path: Path, *, index: bool = True) -> None:
     """Filter a BAM file by predictions.
 
     use parallel processing if n_jobs is greater than 1
     """
-    predictions = load_predictions_from_folder(prediction_path, n_jobs=n_jobs)
+    predictions = load_predictions_from_folder(prediction_path)
     log.info(f"Loaded {len(predictions)} predictions from {prediction_path}")
 
     # summar 0 and 1 predictions
@@ -258,21 +251,20 @@ def predict(
     trainer.predict(model=model, dataloaders=datamodule, return_predictions=False, ckpt_path=ckpt_path)
     log.info(f"Predictions saved to {output_path}")
     log.info(f"Filtering {data_path} by predictions from {output_path / '0'}")
-    filter_bam_by_predcition(data_path, output_path / "0", index=True, n_jobs=num_workers)
+    filter_bam_by_predcition(data_path, output_path / "0", index=True)
 
 
 @app.command()
 def filter(
     bam_path: Path = typer.Argument(..., help="Path to the BAM file"),
     predictions_path: Path = typer.Argument(..., help="Path to the predictions file"),
-    num_workers: int = typer.Option(4, "--workers", "-w", help="Number of workers"),
     *,
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
 ):
     """Filter the BAM file by predictions."""
     set_logging_level(logging.DEBUG if verbose else logging.INFO)
     log.info(f"Filtering {bam_path} by predictions from {predictions_path}")
-    filter_bam_by_predcition(bam_path, predictions_path, index=True, num_workers=num_workers)
+    filter_bam_by_predcition(bam_path, predictions_path, index=True)
 
 
 @app.command()
