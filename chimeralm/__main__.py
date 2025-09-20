@@ -272,7 +272,7 @@ def filter(
     """Filter the BAM file by predictions."""
     set_logging_level(logging.DEBUG if verbose else logging.INFO)
     log.info(f"Filtering {bam_path} by predictions from {predictions_path}")
-    filter_bam_by_predcition(bam_path, predictions_path, index=True)
+    filter_bam_by_predcition(bam_path, predictions_path, index=True, num_workers=num_workers)
 
 
 @app.command()
