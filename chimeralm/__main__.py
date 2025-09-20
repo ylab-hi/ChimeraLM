@@ -11,10 +11,14 @@ import typer
 from click import Context
 from lightning_utilities.core.rank_zero import rank_zero_only
 from rich.logging import RichHandler
+from chimeralm.utils import RankedLogger
 from rich.progress import track
 from typer.core import TyperGroup
 
 import chimeralm
+
+
+log = RankedLogger(__name__, rank_zero_only=True)
 
 
 def load_predicts(path: Path | str) -> dict[str, int]:
@@ -63,13 +67,14 @@ def load_predictions_from_folder(path: Path | str) -> dict[str, int]:
     return predictions
 
 
+@rank_zero_only
 def set_tensor_core_precision(precision="medium") -> None:
     """Set Tensor Core precision for NVIDIA GPUs."""
     # Check if using H100 or A100 and enable Tensor Core operations accordingly
     if torch.cuda.is_available():
         device_name = torch.cuda.get_device_name()
         if "H100" in device_name or "A100" in device_name:
-            logging.info(f"Enabling {precision=} Tensor Cores for {device_name}")
+            log.info(f"Enabling {precision=} Tensor Cores for {device_name}")
             torch.set_float32_matmul_precision(precision)
 
 
@@ -82,11 +87,11 @@ def filter_bam_by_predcition(
     use rich progress bar if progress_bar is True
     """
     predictions = load_predictions_from_folder(prediction_path)
-    logging.info(f"Loaded {len(predictions)} predictions from {prediction_path}")
+    log.info(f"Loaded {len(predictions)} predictions from {prediction_path}")
 
     # summar 0 and 1 predictions
     counter = Counter(predictions.values())
-    logging.info(
+    log.info(
         f"Biological: {counter.get(0, 0)} ({counter.get(0, 0) / len(predictions) * 100:.1f}%), Chimera artifact: {counter.get(1, 0)} ({counter.get(1, 0) / len(predictions) * 100:.1f}%)"
     )
 
@@ -111,19 +116,20 @@ def filter_bam_by_predcition(
         bam_file.close()
 
     except Exception as e:
-        logging.error(f"Error filtering BAM file: {e}")
+        log.error(f"Error filtering BAM file: {e}")
         if output_path.exists():
             output_path.unlink()
         raise e
 
     if index:
-        logging.info(f"Sorting {output_path}")
+        log.info(f"Sorting {output_path}")
         sorted_output_path = output_path.with_suffix(".sorted.bam")
         pysam.sort("-o", sorted_output_path.as_posix(), output_path.as_posix())
-        logging.info(f"Indexing {sorted_output_path}")
+        log.info(f"Indexing {sorted_output_path}")
         pysam.index(sorted_output_path.as_posix())
 
 
+@rank_zero_only
 def set_logging_level(level: int = logging.INFO):
     """Set the logging level.
 
@@ -235,8 +241,8 @@ def predict(
 
     ctx._force_start_method("spawn")
     trainer.predict(model=model, dataloaders=datamodule, return_predictions=False)
-    logging.info(f"Predictions saved to {output_path}")
-    logging.info(f"Filtering {data_path} by predictions from {output_path / '0'}")
+    log.info(f"Predictions saved to {output_path}")
+    log.info(f"Filtering {data_path} by predictions from {output_path / '0'}")
     filter_bam_by_predcition(data_path, output_path / "0", index=True)
 
 
@@ -249,7 +255,7 @@ def filter(
 ):
     """Filter the BAM file by predictions."""
     set_logging_level(logging.DEBUG if verbose else logging.INFO)
-    logging.info(f"Filtering {bam_path} by predictions from {predictions_path}")
+    log.info(f"Filtering {bam_path} by predictions from {predictions_path}")
     filter_bam_by_predcition(bam_path, predictions_path, index=True)
 
 
