@@ -63,6 +63,16 @@ def load_predictions_from_folder(path: Path | str) -> dict[str, int]:
     return predictions
 
 
+def set_tensor_core_precision(precision="medium") -> None:
+    """Set Tensor Core precision for NVIDIA GPUs."""
+    # Check if using H100 or A100 and enable Tensor Core operations accordingly
+    if torch.cuda.is_available():
+        device_name = torch.cuda.get_device_name()
+        if "H100" in device_name or "A100" in device_name:
+            logging.info(f"Enabling {precision=} Tensor Cores for {device_name}")
+            torch.set_float32_matmul_precision(precision)
+
+
 @rank_zero_only
 def filter_bam_by_predcition(
     bam_path: Path, prediction_path: Path, *, progress_bar: bool = False, index: bool = True
@@ -179,6 +189,7 @@ def predict(
 ):
     """Predict the given dataset using DeepChopper."""
     set_logging_level(logging.DEBUG if verbose else logging.INFO)
+    set_tensor_core_precision()
 
     if not random:
         lightning.seed_everything(42, workers=True)
@@ -194,7 +205,6 @@ def predict(
     )
 
     model = chimeralm.models.ChimeraLM.from_pretrained("yangliz5/chimeralm")
-
     if output_path is None:
         output_path = data_path.with_suffix(".predictions")
 
@@ -239,7 +249,6 @@ def filter(
 ):
     """Filter the BAM file by predictions."""
     set_logging_level(logging.DEBUG if verbose else logging.INFO)
-
     logging.info(f"Filtering {bam_path} by predictions from {predictions_path}")
     filter_bam_by_predcition(bam_path, predictions_path, index=True)
 
