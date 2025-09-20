@@ -210,6 +210,7 @@ def predict(
     limit_predict_batches: int | None = typer.Option(None, "--limit-batches", "-l", help="Limit prediction batches"),
     progress_bar: bool = typer.Option(False, "--progress-bar", "-p", help="Show progress bar"),
     random: bool = typer.Option(False, "--random", "-r", help="Make the prediction not deterministic"),
+    ckpt_path: Path | None = typer.Option(None, "--ckpt", help="Path to the checkpoint file"),
 ):
     """Predict the given dataset using DeepChopper."""
     set_logging_level(logging.DEBUG if verbose else logging.INFO)
@@ -228,7 +229,11 @@ def predict(
         max_predict_samples=max_sample,
     )
 
-    model = chimeralm.models.ChimeraLM.from_pretrained("yangliz5/chimeralm")
+    if ckpt_path is not None:
+        model = chimeralm.models.ChimeraLM.new()
+    else:
+        model = chimeralm.models.ChimeraLM.from_pretrained("yangliz5/chimeralm")
+
     if output_path is None:
         output_path = data_path.with_suffix(".predictions")
 
@@ -245,7 +250,7 @@ def predict(
     )
 
     ctx._force_start_method("spawn")
-    trainer.predict(model=model, dataloaders=datamodule, return_predictions=False)
+    trainer.predict(model=model, dataloaders=datamodule, return_predictions=False, ckpt_path=ckpt_path)
     log.info(f"Predictions saved to {output_path}")
     log.info(f"Filtering {data_path} by predictions from {output_path / '0'}")
     filter_bam_by_predcition(data_path, output_path / "0", progress_bar=progress_bar, index=True)
