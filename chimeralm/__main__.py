@@ -9,9 +9,9 @@ import pysam
 import torch
 import typer
 from click import Context
+from joblib import Parallel, delayed
 from lightning_utilities.core.rank_zero import rank_zero_only
 from rich.logging import RichHandler
-from rich.progress import track
 from typer.core import TyperGroup
 
 import chimeralm
@@ -58,11 +58,19 @@ def load_predicts(path: Path | str) -> dict[str, int]:
     return predicts
 
 
-def load_predictions_from_folder(path: Path | str) -> dict[str, int]:
-    """Load predictions from a folder."""
+def load_predictions_from_folder(path: Path | str, *, n_jobs: int = 4) -> dict[str, int]:
+    """Load predictions from a folder using parallel processing."""
+
+    def process_file(file: Path) -> dict[str, int]:
+        return load_predicts(file)
+
+    files = list(Path(path).glob("*.txt"))
+    results = Parallel(n_jobs=n_jobs)(delayed(process_file)(file) for file in files)
+
     predictions = {}
-    for file in Path(path).glob("*.txt"):
-        predictions.update(load_predicts(file))
+    for result in results:
+        predictions.update(result)
+
     return predictions
 
 
@@ -78,14 +86,12 @@ def set_tensor_core_precision(precision="medium") -> None:
 
 
 @rank_zero_only
-def filter_bam_by_predcition(
-    bam_path: Path, prediction_path: Path, *, progress_bar: bool = False, index: bool = True
-) -> None:
+def filter_bam_by_predcition(bam_path: Path, prediction_path: Path, *, index: bool = True, n_jobs: int = 4) -> None:
     """Filter a BAM file by predictions.
 
-    use rich progress bar if progress_bar is True
+    use parallel processing if n_jobs is greater than 1
     """
-    predictions = load_predictions_from_folder(prediction_path)
+    predictions = load_predictions_from_folder(prediction_path, n_jobs=n_jobs)
     log.info(f"Loaded {len(predictions)} predictions from {prediction_path}")
 
     # summar 0 and 1 predictions
@@ -103,9 +109,6 @@ def filter_bam_by_predcition(
 
     try:
         reads = bam_file.fetch()
-        if progress_bar:
-            reads = track(reads, description="Filtering BAM file")
-
         for read in reads:
             if predictions.get(read.query_name) is not None and predictions[read.query_name] == 1:
                 continue
@@ -209,7 +212,6 @@ def predict(
     limit_predict_batches: int | None = typer.Option(None, "--limit-batches", "-l", help="Limit prediction batches"),
     ckpt_path: Path | None = typer.Option(None, "--ckpt", "-c", help="Path to the checkpoint file"),
     *,
-    progress_bar: bool = typer.Option(False, "--progress-bar", "-p", help="Show progress bar"),
     random: bool = typer.Option(False, "--random", "-r", help="Make the prediction not deterministic"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
 ):
@@ -256,13 +258,14 @@ def predict(
     trainer.predict(model=model, dataloaders=datamodule, return_predictions=False, ckpt_path=ckpt_path)
     log.info(f"Predictions saved to {output_path}")
     log.info(f"Filtering {data_path} by predictions from {output_path / '0'}")
-    filter_bam_by_predcition(data_path, output_path / "0", progress_bar=progress_bar, index=True)
+    filter_bam_by_predcition(data_path, output_path / "0", index=True, n_jobs=num_workers)
 
 
 @app.command()
 def filter(
     bam_path: Path = typer.Argument(..., help="Path to the BAM file"),
     predictions_path: Path = typer.Argument(..., help="Path to the predictions file"),
+    num_workers: int = typer.Option(4, "--workers", "-w", help="Number of workers"),
     *,
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
 ):
