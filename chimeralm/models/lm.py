@@ -10,7 +10,10 @@ class ChimeraLM:
     """ChimeraLM model for sequence classification tasks."""
 
     @classmethod
-    def from_pretrained(cls, model_name: str = "yangliz5/chimeralm") -> ClassificationLit:
+    def from_pretrained(
+        cls, model_name: str = "yangliz5/chimeralm", *, save_attention: bool = False
+    ) -> ClassificationLit:
+        """Load a pretrained ChimeraLM model from the Hugging Face model hub."""
         return ClassificationLit.from_pretrained(
             model_name,
             net=hyena.HyenaDna(
@@ -24,6 +27,7 @@ class ChimeraLM:
                     pooling_type="attention",
                     activation="gelu",
                     use_residual=True,
+                    save_attention=save_attention,
                 ),
             ),
             optimizer=partial(torch.optim.AdamW, lr=0.0001, weight_decay=0.01),

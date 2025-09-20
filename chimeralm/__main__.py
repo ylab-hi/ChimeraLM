@@ -185,7 +185,7 @@ def predict(
     max_sample: int | None = typer.Option(None, "--max-sample", "-m", help="Maximum number of samples to process"),
     limit_predict_batches: int | None = typer.Option(None, "--limit-batches", "-l", help="Limit prediction batches"),
     progress_bar: bool = typer.Option(False, "--progress-bar", "-p", help="Show progress bar"),
-    random: bool = typer.Option(False, "--random", help="Make the prediction not deterministic"),
+    random: bool = typer.Option(False, "--random", "-r", help="Make the prediction not deterministic"),
 ):
     """Predict the given dataset using DeepChopper."""
     set_logging_level(logging.DEBUG if verbose else logging.INFO)
