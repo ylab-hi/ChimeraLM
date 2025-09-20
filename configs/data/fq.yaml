@@ -1,11 +1,11 @@
-_target_: chimera.data.fq.DataModule
+_target_: chimeralm.data.fq.DataModule
 
 tokenizer:
   # _target_: chimera.data.tokenizer.CharacterTokenizer
   # model_max_length: 32768
   # padding_side: "right"
 
-  _target_: chimera.data.tokenizer.load_tokenizer_from_hyena_model
+  _target_: chimeralm.data.tokenizer.load_tokenizer_from_hyena_model
   model_name: hyenadna-small-32k-seqlen
 
 train_data_path: ${paths.root_dir}/data/train_data/p2_765108_bulk/train.parquet
