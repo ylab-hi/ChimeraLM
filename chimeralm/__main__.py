@@ -179,6 +179,25 @@ def main(
     """Main entry point for the Chimera CLI."""
 
 
+def determine_accelerator_and_devices(gpus: int):
+    """Determine the accelerator and devices to use."""
+    if gpus > 0:
+        if torch.cuda.is_available():
+            accelerator = "gpu"
+            devices = min(gpus, torch.cuda.device_count())
+        elif torch.backends.mps.is_available():
+            accelerator = "mps"
+            devices = "auto"  # MPS currently supports only one device
+        else:
+            accelerator = "cpu"
+            devices = "auto"
+    else:
+        accelerator = "cpu"
+        devices = "auto"
+
+    return accelerator, devices
+
+
 @app.command()
 def predict(
     data_path: Path = typer.Argument(..., help="Path to the dataset"),
@@ -203,7 +222,7 @@ def predict(
     datamodule: lightning.LightningDataModule = chimeralm.data.bam.BamDataModule(
         train_data_path="dummy.bam",
         tokenizer=tokenizer,
-        predict_data_path=data_path.as_posix(),
+        predict_data_path=data_path,
         batch_size=batch_size,
         num_workers=num_workers,
         max_predict_samples=max_sample,
@@ -214,20 +233,7 @@ def predict(
         output_path = data_path.with_suffix(".predictions")
 
     callbacks = [chimeralm.models.callbacks.PredictionWriter(output_dir=output_path, write_interval="batch")]
-
-    if gpus > 0:
-        if torch.cuda.is_available():
-            accelerator = "gpu"
-            devices = min(gpus, torch.cuda.device_count())
-        elif torch.backends.mps.is_available():
-            accelerator = "mps"
-            devices = "auto"  # MPS currently supports only one device
-        else:
-            accelerator = "cpu"
-            devices = "auto"
-    else:
-        accelerator = "cpu"
-        devices = "auto"
+    accelerator, devices = determine_accelerator_and_devices(gpus)
 
     trainer = lightning.pytorch.trainer.Trainer(
         accelerator=accelerator,
@@ -242,7 +248,7 @@ def predict(
     trainer.predict(model=model, dataloaders=datamodule, return_predictions=False)
     log.info(f"Predictions saved to {output_path}")
     log.info(f"Filtering {data_path} by predictions from {output_path / '0'}")
-    filter_bam_by_predcition(data_path, output_path / "0", index=True)
+    filter_bam_by_predcition(data_path, output_path / "0", progress_bar=progress_bar, index=True)
 
 
 @app.command()
