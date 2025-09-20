@@ -230,8 +230,10 @@ def predict(
     )
 
     if ckpt_path is not None:
+        log.info(f"Loading model from {ckpt_path}")
         model = chimeralm.models.ChimeraLM.new()
     else:
+        log.info("Loading model from Hugging Face")
         model = chimeralm.models.ChimeraLM.from_pretrained("yangliz5/chimeralm")
 
     if output_path is None:
