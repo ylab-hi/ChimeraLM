@@ -85,6 +85,10 @@ def filter_bam_by_predcition(bam_path: Path, prediction_path: Path, *, index: bo
     use parallel processing if n_jobs is greater than 1
     """
     predictions = load_predictions_from_folder(prediction_path)
+    if not predictions:
+        log.warning("No predictions found")
+        return
+
     log.info(f"Loaded {len(predictions)} predictions from {prediction_path}")
 
     # summar 0 and 1 predictions
@@ -190,7 +194,6 @@ def determine_accelerator_and_devices(gpus: int):
     else:
         accelerator = "cpu"
         devices = "auto"
-
     return accelerator, devices
 
 
@@ -201,7 +204,6 @@ def predict(
     output_path: Path | None = typer.Option(None, "--output", "-o", help="Output path for predictions"),
     batch_size: int = typer.Option(12, "--batch-size", "-b", help="Batch size"),
     num_workers: int = typer.Option(0, "--workers", "-w", help="Number of workers"),
-    max_sample: int | None = typer.Option(None, "--max-sample", "-m", help="Maximum number of samples to process"),
     limit_predict_batches: int | None = typer.Option(None, "--limit-batches", "-l", help="Limit prediction batches"),
     ckpt_path: Path | None = typer.Option(None, "--ckpt", "-c", help="Path to the checkpoint file"),
     *,
@@ -217,12 +219,11 @@ def predict(
 
     tokenizer = chimeralm.data.tokenizer.load_tokenizer_from_hyena_model("hyenadna-small-32k-seqlen")
     datamodule: lightning.LightningDataModule = chimeralm.data.bam.BamDataModule(
-        train_data_path="dummy.bam",
+        train_data_path=Path("dummy.bam"),
         tokenizer=tokenizer,
         predict_data_path=data_path,
         batch_size=batch_size,
         num_workers=num_workers,
-        max_predict_samples=max_sample,
     )
 
     if ckpt_path is not None:
@@ -235,7 +236,10 @@ def predict(
     if output_path is None:
         output_path = data_path.with_suffix(".predictions")
 
-    callbacks = [chimeralm.models.callbacks.PredictionWriter(output_dir=output_path, write_interval="batch")]
+    callbacks = [
+        chimeralm.models.callbacks.PredictionWriter(output_dir=output_path, write_interval="batch"),
+        lightning.pytorch.callbacks.RichProgressBar(),
+    ]
     accelerator, devices = determine_accelerator_and_devices(gpus)
 
     trainer = lightning.pytorch.trainer.Trainer(
