@@ -128,6 +128,8 @@ class PredictionWriter(BasePredictionWriter):
                     logger.error(f"Error processing read name at index {i}: {e}")
                     read_names.append(f"error_read_{i}")
 
+            if not self.output_dir.exists():
+                self.output_dir.mkdir(parents=False, exist_ok=True)
             # Write results with buffered I/O for better performance
             output_file = self.output_dir / f"{trainer.global_rank}_{batch_idx}.txt"
             try:
