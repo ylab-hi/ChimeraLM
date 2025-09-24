@@ -204,7 +204,6 @@ def predict(
     output_path: Path | None = typer.Option(None, "--output", "-o", help="Output path for predictions"),
     batch_size: int = typer.Option(12, "--batch-size", "-b", help="Batch size"),
     num_workers: int = typer.Option(0, "--workers", "-w", help="Number of workers"),
-    limit_predict_batches: int | None = typer.Option(None, "--limit-batches", "-l", help="Limit prediction batches"),
     ckpt_path: Path | None = typer.Option(None, "--ckpt", "-c", help="Path to the checkpoint file"),
     *,
     random: bool = typer.Option(False, "--random", "-r", help="Make the prediction not deterministic"),
@@ -248,14 +247,13 @@ def predict(
         callbacks=callbacks,
         deterministic=not random,
         logger=False,
-        limit_predict_batches=limit_predict_batches,
     )
 
     ctx._force_start_method("spawn")
     trainer.predict(model=model, dataloaders=datamodule, return_predictions=False, ckpt_path=ckpt_path)
     log.info(f"Predictions saved to {output_path}")
-    log.info(f"Filtering {data_path} by predictions from {output_path / '0'}")
-    filter_bam_by_predcition(data_path, output_path / "0", index=True)
+    log.info(f"Filtering {data_path} by predictions from {output_path}")
+    # filter_bam_by_predcition(data_path, output_path / "0", index=True)
 
 
 @app.command()
