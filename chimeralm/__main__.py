@@ -254,7 +254,6 @@ def predict(
     ]
 
     accelerator, devices = determine_accelerator_and_devices(gpus)
-
     trainer = lightning.pytorch.trainer.Trainer(
         accelerator=accelerator,
         devices=devices,
@@ -267,7 +266,7 @@ def predict(
     trainer.predict(model=model, dataloaders=datamodule, return_predictions=False, ckpt_path=ckpt_path)
     log.info(f"Predictions saved to {output_path / 'predictions'}")
     log.info(f"Filtering {data_path} by predictions from {output_path / 'predictions'}")
-    # filter_bam_by_predcition(data_path, output_path / "0", index=True)
+    filter_bam_by_predcition(data_path, output_path / "predictions", index=True)
 
 
 @app.command()

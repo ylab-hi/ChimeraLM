@@ -83,7 +83,7 @@ class BamDataModule(LightningDataModule):
         val_data_path: Path | None = None,
         test_data_path: Path | None = None,
         predict_data_path: Path | None = None,
-        num_workers: int = 0,
+        num_workers: int = 1,
         max_train_samples: int | None = None,
         max_val_samples: int | None = None,
         max_test_samples: int | None = None,
@@ -148,12 +148,14 @@ class BamDataModule(LightningDataModule):
                 msg = "Predict data path is required for prediction stage."
                 raise ValueError(msg)
 
-            num_proc = min(self.hparams.num_workers, multiprocessing.cpu_count() - 1)
+            # IMPORTANT: Disable multiprocessing for single-file generator to avoid dropped records
+            num_proc = 1
+            print(f"Using {num_proc} workers for prediction")
 
             predict_dataset = HuggingFaceDataset.from_generator(
                 parse_bam_file,
                 gen_kwargs={"file_path": self.hparams.predict_data_path},
-                num_proc=max(1, num_proc),
+                num_proc=num_proc,
             ).with_format("torch")
 
             if self.hparams.max_predict_samples is not None:
@@ -168,7 +170,7 @@ class BamDataModule(LightningDataModule):
                     tokenizer=self.hparams.tokenizer,
                     max_length=self.hparams.tokenizer.max_len_single_sentence,
                 ),
-                num_proc=max(1, num_proc),  # type: ignore
+                num_proc=num_proc,  # type: ignore
             ).remove_columns([SEQ_FEATURE])
             del predict_dataset
             return
