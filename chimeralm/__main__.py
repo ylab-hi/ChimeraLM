@@ -235,10 +235,24 @@ def predict(
     if output_path is None:
         output_path = data_path.with_suffix(".predictions")
 
+    if not output_path.exists():
+        output_path.mkdir(parents=True, exist_ok=True)
+
     callbacks = [
-        chimeralm.models.callbacks.PredictionWriter(output_dir=output_path, write_interval="batch"),
+        chimeralm.models.callbacks.PredictionWriter(output_dir=output_path / "predictions", write_interval="batch"),
         lightning.pytorch.callbacks.RichProgressBar(),
+        lightning.pytorch.callbacks.ModelCheckpoint(
+            dirpath=output_path / "checkpoints",
+            filename="epoch_{epoch:03d}_f1_{val/f1:.4f}",
+            monitor="val/f1",
+            mode="max",
+            save_last=True,
+            auto_insert_metric_name=False,
+        ),
+        lightning.pytorch.callbacks.EarlyStopping(monitor="val/f1", patience=40, mode="max"),
+        lightning.pytorch.callbacks.ModelSummary(max_depth=1),
     ]
+
     accelerator, devices = determine_accelerator_and_devices(gpus)
 
     trainer = lightning.pytorch.trainer.Trainer(
@@ -251,8 +265,8 @@ def predict(
 
     ctx._force_start_method("spawn")
     trainer.predict(model=model, dataloaders=datamodule, return_predictions=False, ckpt_path=ckpt_path)
-    log.info(f"Predictions saved to {output_path}")
-    log.info(f"Filtering {data_path} by predictions from {output_path}")
+    log.info(f"Predictions saved to {output_path / 'predictions'}")
+    log.info(f"Filtering {data_path} by predictions from {output_path / 'predictions'}")
     # filter_bam_by_predcition(data_path, output_path / "0", index=True)
 
 
