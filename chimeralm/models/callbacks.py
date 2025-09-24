@@ -117,7 +117,7 @@ class PredictionWriter(BasePredictionWriter):
                 return
 
             # Ensure output folder exists (with thread-safe creation)
-            folder = self.output_dir / str(dataloader_idx)
+            folder = self.output_dir
             if folder not in self._created_folders:
                 try:
                     folder.mkdir(parents=True, exist_ok=True)
