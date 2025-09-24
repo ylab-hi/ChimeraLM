@@ -15,7 +15,7 @@ class CustomWriter(BasePredictionWriter):
         self.output_dir = Path(output_dir)
 
     def write_on_batch_end(self, trainer, pl_module, prediction, batch_indices, batch, batch_idx, dataloader_idx):
-        folder = self.output_dir / str(dataloader_idx)
+        folder = self.output_dir
         if not folder.exists():
             folder.mkdir(parents=True, exist_ok=True)
 

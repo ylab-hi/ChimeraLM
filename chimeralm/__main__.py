@@ -53,7 +53,7 @@ def load_predicts(path: Path | str) -> dict[str, int]:
 
     except Exception as e:
         msg = f"Error reading file {path}: {e}"
-        raise ValueError(msg)
+        raise ValueError(msg) from e
 
     return predicts
 
@@ -210,7 +210,7 @@ def predict(
     random: bool = typer.Option(False, "--random", "-r", help="Make the prediction not deterministic"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
 ):
-    """Predict the given dataset using DeepChopper."""
+    """Predict the given dataset using ChimeraLM."""
     set_logging_level(logging.DEBUG if verbose else logging.INFO)
     set_tensor_core_precision()
 
