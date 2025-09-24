@@ -75,7 +75,6 @@ class PredictionWriter(BasePredictionWriter):
         """
         super().__init__(write_interval)
         self.output_dir = Path(output_dir)
-        self._created_folders = set()  # Cache to avoid repeated folder creation checks
 
     def write_on_batch_end(
         self,
@@ -116,16 +115,6 @@ class PredictionWriter(BasePredictionWriter):
                 )
                 return
 
-            # Ensure output folder exists (with thread-safe creation)
-            folder = self.output_dir
-            if folder not in self._created_folders:
-                try:
-                    folder.mkdir(parents=True, exist_ok=True)
-                    self._created_folders.add(folder)
-                except OSError as e:
-                    logger.error(f"Failed to create folder {folder}: {e}")
-                    return
-
             # Batch process read names with error handling
             read_names = []
             for i, batch_id in enumerate(batch_ids):
@@ -140,14 +129,14 @@ class PredictionWriter(BasePredictionWriter):
                     read_names.append(f"error_read_{i}")
 
             # Write results with buffered I/O for better performance
-            output_file = folder / f"{trainer.global_rank}_{batch_idx}.txt"
+            output_file = self.output_dir / f"{trainer.global_rank}_{batch_idx}.txt"
             try:
                 # Use list comprehension and join for more efficient string building
                 lines = [
                     f"{read_name}\t{pred.item()}\n" for read_name, pred in zip(read_names, predictions_cpu, strict=True)
                 ]
 
-                with output_file.open("w", buffering=8192) as f:  # Larger buffer for better I/O
+                with output_file.open("w") as f:
                     f.writelines(lines)
 
             except OSError as e:
