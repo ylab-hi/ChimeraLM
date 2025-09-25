@@ -83,7 +83,7 @@ class BamDataModule(LightningDataModule):
         val_data_path: Path | None = None,
         test_data_path: Path | None = None,
         predict_data_path: Path | None = None,
-        num_workers: int = 0,
+        num_workers: int = 1,
         max_train_samples: int | None = None,
         max_val_samples: int | None = None,
         max_test_samples: int | None = None,
@@ -137,6 +137,8 @@ class BamDataModule(LightningDataModule):
         :param stage: The stage to setup. Either `"fit"`, `"validate"`, `"test"`, or `"predict"`. Defaults to ``None``.
         """
         # Divide batch size by the number of devices.
+        num_proc = min(self.hparams.num_workers, multiprocessing.cpu_count() - 1)
+
         if self.trainer is not None:
             if self.hparams.batch_size % self.trainer.world_size != 0:
                 msg = f"Batch size ({self.hparams.batch_size}) is not divisible by the number of devices ({self.trainer.world_size})."
@@ -147,8 +149,6 @@ class BamDataModule(LightningDataModule):
             if not self.hparams.predict_data_path:
                 msg = "Predict data path is required for prediction stage."
                 raise ValueError(msg)
-
-            num_proc = min(self.hparams.num_workers, multiprocessing.cpu_count() - 1)
 
             predict_dataset = HuggingFaceDataset.from_generator(
                 parse_bam_file,
@@ -175,8 +175,6 @@ class BamDataModule(LightningDataModule):
 
         # load and split datasets only if not loaded already
         if not self.data_train and not self.data_val and not self.data_test:
-            num_proc = min(self.hparams.num_workers, multiprocessing.cpu_count() - 1)
-
             if (
                 self.hparams.val_data_path is None
                 or self.hparams.test_data_path is None

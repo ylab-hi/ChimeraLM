@@ -1,5 +1,6 @@
 import logging
 from collections import Counter
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Literal
 
@@ -9,7 +10,6 @@ import pysam
 import torch
 import typer
 from click import Context
-from lightning_utilities.core.rank_zero import rank_zero_only
 from rich.logging import RichHandler
 from typer.core import TyperGroup
 
@@ -19,7 +19,6 @@ from chimeralm.utils import RankedLogger
 log = RankedLogger(__name__, rank_zero_only=True)
 
 
-@rank_zero_only
 def load_predicts(path: Path | str) -> dict[str, int]:
     """Load predictions from a text file.
 
@@ -53,12 +52,11 @@ def load_predicts(path: Path | str) -> dict[str, int]:
 
     except Exception as e:
         msg = f"Error reading file {path}: {e}"
-        raise ValueError(msg)
+        raise ValueError(msg) from e
 
     return predicts
 
 
-@rank_zero_only
 def load_predictions_from_folder(path: Path | str) -> dict[str, int]:
     """Load predictions from a folder."""
     predictions: dict[str, int] = {}
@@ -67,7 +65,23 @@ def load_predictions_from_folder(path: Path | str) -> dict[str, int]:
     return predictions
 
 
-@rank_zero_only
+def collect_txt_from_file(path: Path | str) -> Iterator[Path]:
+    """Collect txt files from a single prediction file.
+
+    Args:
+        path: Path to the prediction file
+
+    Yields:
+        Path to the txt file
+    """
+    path = Path(path)
+    if not path.exists():
+        log.error(f"File not found: {path}")
+        raise typer.Exit(1)
+
+    yield from path.glob("*.txt")
+
+
 def set_tensor_core_precision(precision="medium") -> None:
     """Set Tensor Core precision for NVIDIA GPUs."""
     # Check if using H100 or A100 and enable Tensor Core operations accordingly
@@ -78,13 +92,24 @@ def set_tensor_core_precision(precision="medium") -> None:
             torch.set_float32_matmul_precision(precision)
 
 
-@rank_zero_only
-def filter_bam_by_predcition(bam_path: Path, prediction_path: Path, *, index: bool = True) -> None:
+def filter_bam_by_predcition(
+    bam_path: Path, prediction_path: Path, *, index: bool = True, output_prediction: bool = False
+) -> None:
     """Filter a BAM file by predictions.
 
     use parallel processing if n_jobs is greater than 1
     """
     predictions = load_predictions_from_folder(prediction_path)
+    if not predictions:
+        log.warning("No predictions found")
+        return
+
+    if output_prediction:
+        log.info(f"Writing all predictions to {prediction_path / 'predictions.txt'}")
+        with Path(prediction_path / "predictions.txt").open("w") as f:
+            for name, label in predictions.items():
+                f.write(f"{name}\t{label}\n")
+
     log.info(f"Loaded {len(predictions)} predictions from {prediction_path}")
 
     # summar 0 and 1 predictions
@@ -124,7 +149,6 @@ def filter_bam_by_predcition(bam_path: Path, prediction_path: Path, *, index: bo
         pysam.index(sorted_output_path.as_posix())
 
 
-@rank_zero_only
 def set_logging_level(level: int = logging.INFO):
     """Set the logging level.
 
@@ -190,7 +214,6 @@ def determine_accelerator_and_devices(gpus: int):
     else:
         accelerator = "cpu"
         devices = "auto"
-
     return accelerator, devices
 
 
@@ -201,14 +224,12 @@ def predict(
     output_path: Path | None = typer.Option(None, "--output", "-o", help="Output path for predictions"),
     batch_size: int = typer.Option(12, "--batch-size", "-b", help="Batch size"),
     num_workers: int = typer.Option(0, "--workers", "-w", help="Number of workers"),
-    max_sample: int | None = typer.Option(None, "--max-sample", "-m", help="Maximum number of samples to process"),
-    limit_predict_batches: int | None = typer.Option(None, "--limit-batches", "-l", help="Limit prediction batches"),
-    ckpt_path: Path | None = typer.Option(None, "--ckpt", "-c", help="Path to the checkpoint file"),
+    ckpt_path: Path | None = typer.Option(None, "--ckpt", "-c", hidden=True, help="Path to the checkpoint file"),
     *,
     random: bool = typer.Option(False, "--random", "-r", help="Make the prediction not deterministic"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
 ):
-    """Predict the given dataset using DeepChopper."""
+    """Predict the given dataset using ChimeraLM."""
     set_logging_level(logging.DEBUG if verbose else logging.INFO)
     set_tensor_core_precision()
 
@@ -217,41 +238,57 @@ def predict(
 
     tokenizer = chimeralm.data.tokenizer.load_tokenizer_from_hyena_model("hyenadna-small-32k-seqlen")
     datamodule: lightning.LightningDataModule = chimeralm.data.bam.BamDataModule(
-        train_data_path="dummy.bam",
+        train_data_path=Path("dummy.bam"),
         tokenizer=tokenizer,
         predict_data_path=data_path,
         batch_size=batch_size,
         num_workers=num_workers,
-        max_predict_samples=max_sample,
     )
+
+    callbacks = [
+        chimeralm.models.callbacks.PredictionWriter(output_dir=output_path, write_interval="batch"),
+    ]
 
     if ckpt_path is not None:
         log.info(f"Loading model from {ckpt_path}")
         model = chimeralm.models.ChimeraLM.new()
+        callbacks.extend(
+            [
+                lightning.pytorch.callbacks.RichProgressBar(),
+                lightning.pytorch.callbacks.ModelCheckpoint(
+                    dirpath=output_path / "checkpoints",
+                    filename="epoch_{epoch:03d}_f1_{val/f1:.4f}",
+                    monitor="val/f1",
+                    mode="max",
+                    save_last=True,
+                    auto_insert_metric_name=False,
+                ),
+                lightning.pytorch.callbacks.EarlyStopping(monitor="val/f1", patience=40, mode="max"),
+                lightning.pytorch.callbacks.ModelSummary(max_depth=1),
+            ]
+        )
     else:
         log.info("Loading model from Hugging Face")
         model = chimeralm.models.ChimeraLM.from_pretrained("yangliz5/chimeralm")
 
     if output_path is None:
         output_path = data_path.with_suffix(".predictions")
+    if not output_path.exists():
+        output_path.mkdir(parents=True, exist_ok=True)
 
-    callbacks = [chimeralm.models.callbacks.PredictionWriter(output_dir=output_path, write_interval="batch")]
     accelerator, devices = determine_accelerator_and_devices(gpus)
-
     trainer = lightning.pytorch.trainer.Trainer(
         accelerator=accelerator,
         devices=devices,
         callbacks=callbacks,
         deterministic=not random,
         logger=False,
-        limit_predict_batches=limit_predict_batches,
     )
 
     ctx._force_start_method("spawn")
     trainer.predict(model=model, dataloaders=datamodule, return_predictions=False, ckpt_path=ckpt_path)
     log.info(f"Predictions saved to {output_path}")
-    log.info(f"Filtering {data_path} by predictions from {output_path / '0'}")
-    filter_bam_by_predcition(data_path, output_path / "0", index=True)
+    log.info(f"Filtering {data_path} by predictions from {output_path}")
 
 
 @app.command()
@@ -259,12 +296,13 @@ def filter(
     bam_path: Path = typer.Argument(..., help="Path to the BAM file"),
     predictions_path: Path = typer.Argument(..., help="Path to the predictions file"),
     *,
+    output_prediction: bool = typer.Option(False, "--output-prediction", "-p", help="write summary of the predictions"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
 ):
     """Filter the BAM file by predictions."""
     set_logging_level(logging.DEBUG if verbose else logging.INFO)
     log.info(f"Filtering {bam_path} by predictions from {predictions_path}")
-    filter_bam_by_predcition(bam_path, predictions_path, index=True)
+    filter_bam_by_predcition(bam_path, predictions_path, index=True, output_prediction=output_prediction)
 
 
 @app.command()
