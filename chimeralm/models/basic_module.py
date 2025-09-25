@@ -95,8 +95,8 @@ class ClassificationLit(LightningModule, PyTorchModelHubMixin):
             - A tensor of target labels.
         """
         input_ids = batch["input_ids"]
-        input_quals = batch.get("input_quals", None)
-        attention_mask = batch.get("attention_mask", None)
+        input_quals = batch.get("input_quals")
+        attention_mask = batch.get("attention_mask")
 
         logits = self.forward(input_ids, input_quals, attention_mask)
 
