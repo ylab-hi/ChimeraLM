@@ -1,8 +1,8 @@
-import chimera
+import chimeralm
 
 def test_character_tokenizer():
     sequence = "ATCG"
-    tokenizer = chimera.data.tokenizer.CharacterTokenizer()
+    tokenizer = chimeralm.data.tokenizer.CharacterTokenizer()
 
     encoded = tokenizer.encode(sequence)
     tokens = tokenizer.convert_ids_to_tokens(encoded)
@@ -17,13 +17,13 @@ def test_character_tokenizer():
 
 def test_character_tokenizer_with_truncation():
     sequence = "ATCG" * 10000
-    tokenizer = chimera.data.tokenizer.CharacterTokenizer(model_max_length=30000)
+    tokenizer = chimeralm.data.tokenizer.CharacterTokenizer(model_max_length=30000)
     encoded = tokenizer.encode(sequence, truncation=True)
     print(len(encoded))
 
 def test_kmer_tokenizer():
     sequence = "ATCGCGATCG"
-    tokenizer = chimera.data.tokenizer.KmerTokenizer(k=3)
+    tokenizer = chimeralm.data.tokenizer.KmerTokenizer(k=3)
 
     encoded = tokenizer.encode(sequence)
     tokens = tokenizer.convert_ids_to_tokens(encoded)
@@ -38,7 +38,7 @@ def test_kmer_tokenizer():
     assert decoded == expected_decoded
 
 def test_hyena_tokenizer():
-    hyena_tokenizer = chimera.data.tokenizer.load_tokenizer_from_hyena_model("hyenadna-small-32k-seqlen")
+    hyena_tokenizer = chimeralm.data.tokenizer.load_tokenizer_from_hyena_model("hyenadna-small-32k-seqlen")
     sequence = "ATCG" * 10000
     hyena_encoded = hyena_tokenizer.encode(sequence, truncation=True)
     print(len(hyena_encoded))

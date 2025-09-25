@@ -94,10 +94,10 @@ class ClassificationLit(LightningModule, PyTorchModelHubMixin):
             - A tensor of target labels.
         """
         input_ids = batch["input_ids"]
-
         input_quals = batch.get("input_quals", None)
+        attention_mask = batch.get("attention_mask", None)
 
-        logits = self.forward(input_ids, input_quals)
+        logits = self.forward(input_ids, input_quals, attention_mask)
 
         loss = self.criterion(logits.reshape(-1, logits.size(-1)), batch["labels"].long().view(-1))
         preds = torch.argmax(logits, dim=-1)
@@ -183,7 +183,8 @@ class ClassificationLit(LightningModule, PyTorchModelHubMixin):
         """
         input_ids = batch["input_ids"]
         input_quals = batch.get("input_quals", None)
-        logits = self.forward(input_ids, input_quals)
+        attention_mask = batch.get("attention_mask", None)
+        logits = self.forward(input_ids, input_quals, attention_mask)
         return logits, batch["labels"]
 
     def setup(self, stage: str) -> None:

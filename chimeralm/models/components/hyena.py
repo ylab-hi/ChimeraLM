@@ -245,6 +245,7 @@ class HyenaDna(nn.Module):
         self,
         input_ids: torch.Tensor,
         input_quals: torch.Tensor | None = None,
+        attention_mask: torch.Tensor | None = None,
     ):
         transformer_outputs = self.backbone(
             input_ids,
@@ -253,4 +254,4 @@ class HyenaDna(nn.Module):
             return_dict=None,
         )
         hidden_states = transformer_outputs[0]
-        return self.head(hidden_states, None)
+        return self.head(hidden_states, attention_mask)

@@ -15,6 +15,7 @@ MODEL_SEQ_INPUT = "input_ids"
 MODEL_QUAL_INPUT = "input_quals"
 MODEL_LABEL_INPUT = "labels"
 PAD_QUAL = 0
+PAD_TOKEN_ID = 4
 
 SEQ_FEATURE = "seq"
 QUAL_FEATURE = "qual"
@@ -157,6 +158,11 @@ class DataCollator(DataCollatorWithPadding):
             pad_to_multiple_of=self.pad_to_multiple_of,
             return_tensors="pt",
         )
+
+        # ensure attention_mask exists for models/heads that need masking
+        if "attention_mask" not in batch:
+            pad_token_id = PAD_TOKEN_ID
+            batch["attention_mask"] = (batch[MODEL_SEQ_INPUT] != pad_token_id).to(dtype=torch.int64)
 
         def to_list(tensor_or_iterable):
             if isinstance(tensor_or_iterable, torch.Tensor):
