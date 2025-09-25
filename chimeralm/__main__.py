@@ -264,9 +264,8 @@ def predict(
 
     ctx._force_start_method("spawn")
     trainer.predict(model=model, dataloaders=datamodule, return_predictions=False, ckpt_path=ckpt_path)
-    log.info(f"Predictions saved to {output_path / 'predictions'}")
-    log.info(f"Filtering {data_path} by predictions from {output_path / 'predictions'}")
-    filter_bam_by_predcition(data_path, output_path / "predictions", index=True)
+    log.info(f"Predictions saved to {output_path}")
+    log.info(f"Filtering {data_path} by predictions from {output_path}")
 
 
 @app.command()
