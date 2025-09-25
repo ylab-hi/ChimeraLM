@@ -162,7 +162,7 @@ class DataCollator(DataCollatorWithPadding):
         # ensure attention_mask exists for models/heads that need masking
         if "attention_mask" not in batch:
             pad_token_id = PAD_TOKEN_ID
-            batch["attention_mask"] = (batch[MODEL_SEQ_INPUT] != pad_token_id).to(dtype=torch.int64)
+            batch["attention_mask"] = (batch[MODEL_SEQ_INPUT] != pad_token_id).to(dtype=torch.int8)
 
         def to_list(tensor_or_iterable):
             if isinstance(tensor_or_iterable, torch.Tensor):
