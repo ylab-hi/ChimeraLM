@@ -28,7 +28,7 @@ trainer:
 
 data:
   tokenizer:
-    _target_: chimera.data.tokenizer.load_tokenizer_from_hyena_model
+    _target_: chimeralm.data.tokenizer.load_tokenizer_from_hyena_model
     model_name: hyenadna-small-32k-seqlen
 
   train_data_path: ${paths.root_dir}/data/train_data/p2_765108_bulk/train.parquet
