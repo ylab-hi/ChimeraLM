@@ -88,14 +88,10 @@ class BinarySequenceClassifier(nn.Module):
         """
         _batch_size, _seq_len, _hidden_dim = hidden_states.shape
 
-        # Pre-compute mask expansion if needed (used in multiple pooling types)
-        mask_expanded = None
-        if attention_mask is not None:
-            mask_expanded = attention_mask.unsqueeze(-1).float()
-
         # Apply pooling to get sequence representation
         if self.pooling_type == "mean":
             if attention_mask is not None:
+                mask_expanded = attention_mask.unsqueeze(-1).float()
                 # Masked mean pooling - optimized
                 masked_hidden = hidden_states * mask_expanded
                 sum_hidden = masked_hidden.sum(dim=1)
@@ -106,6 +102,7 @@ class BinarySequenceClassifier(nn.Module):
 
         elif self.pooling_type == "max":
             if attention_mask is not None:
+                mask_expanded = attention_mask.unsqueeze(-1).float()
                 # Masked max pooling - optimized
                 masked_hidden = hidden_states * mask_expanded
                 # Set masked positions to large negative values
