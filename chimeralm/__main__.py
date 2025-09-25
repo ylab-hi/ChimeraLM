@@ -105,6 +105,7 @@ def filter_bam_by_predcition(
         return
 
     if output_prediction:
+        log.info(f"Writing all predictions to {prediction_path / 'predictions.txt'}")
         with Path(prediction_path / "predictions.txt").open("w") as f:
             for name, label in predictions.items():
                 f.write(f"{name}\t{label}\n")
