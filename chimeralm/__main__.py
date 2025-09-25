@@ -251,19 +251,24 @@ def predict(
         output_path.mkdir(parents=True, exist_ok=True)
 
     callbacks = [
-        chimeralm.models.callbacks.PredictionWriter(output_dir=output_path / "predictions", write_interval="batch"),
-        lightning.pytorch.callbacks.RichProgressBar(),
-        lightning.pytorch.callbacks.ModelCheckpoint(
-            dirpath=output_path / "checkpoints",
-            filename="epoch_{epoch:03d}_f1_{val/f1:.4f}",
-            monitor="val/f1",
-            mode="max",
-            save_last=True,
-            auto_insert_metric_name=False,
-        ),
-        lightning.pytorch.callbacks.EarlyStopping(monitor="val/f1", patience=40, mode="max"),
-        lightning.pytorch.callbacks.ModelSummary(max_depth=1),
+        chimeralm.models.callbacks.PredictionWriter(output_dir=output_path, write_interval="batch"),
     ]
+    if ckpt_path is not None:
+        callbacks.extend(
+            [
+                lightning.pytorch.callbacks.RichProgressBar(),
+                lightning.pytorch.callbacks.ModelCheckpoint(
+                    dirpath=output_path / "checkpoints",
+                    filename="epoch_{epoch:03d}_f1_{val/f1:.4f}",
+                    monitor="val/f1",
+                    mode="max",
+                    save_last=True,
+                    auto_insert_metric_name=False,
+                ),
+                lightning.pytorch.callbacks.EarlyStopping(monitor="val/f1", patience=40, mode="max"),
+                lightning.pytorch.callbacks.ModelSummary(max_depth=1),
+            ]
+        )
 
     accelerator, devices = determine_accelerator_and_devices(gpus)
     trainer = lightning.pytorch.trainer.Trainer(
