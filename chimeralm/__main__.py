@@ -1,5 +1,6 @@
 import logging
 from collections import Counter
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Literal
 
@@ -9,7 +10,6 @@ import pysam
 import torch
 import typer
 from click import Context
-from lightning_utilities.core.rank_zero import rank_zero_only
 from rich.logging import RichHandler
 from typer.core import TyperGroup
 
@@ -19,7 +19,6 @@ from chimeralm.utils import RankedLogger
 log = RankedLogger(__name__, rank_zero_only=True)
 
 
-@rank_zero_only
 def load_predicts(path: Path | str) -> dict[str, int]:
     """Load predictions from a text file.
 
@@ -58,7 +57,6 @@ def load_predicts(path: Path | str) -> dict[str, int]:
     return predicts
 
 
-@rank_zero_only
 def load_predictions_from_folder(path: Path | str) -> dict[str, int]:
     """Load predictions from a folder."""
     predictions: dict[str, int] = {}
@@ -67,7 +65,23 @@ def load_predictions_from_folder(path: Path | str) -> dict[str, int]:
     return predictions
 
 
-@rank_zero_only
+def collect_txt_from_file(path: Path | str) -> Iterator[Path]:
+    """Collect txt files from a single prediction file.
+
+    Args:
+        path: Path to the prediction file
+
+    Yields:
+        Path to the txt file
+    """
+    path = Path(path)
+    if not path.exists():
+        log.error(f"File not found: {path}")
+        raise typer.Exit(1)
+
+    yield from path.glob("*.txt")
+
+
 def set_tensor_core_precision(precision="medium") -> None:
     """Set Tensor Core precision for NVIDIA GPUs."""
     # Check if using H100 or A100 and enable Tensor Core operations accordingly
@@ -78,7 +92,6 @@ def set_tensor_core_precision(precision="medium") -> None:
             torch.set_float32_matmul_precision(precision)
 
 
-@rank_zero_only
 def filter_bam_by_predcition(bam_path: Path, prediction_path: Path, *, index: bool = True) -> None:
     """Filter a BAM file by predictions.
 
@@ -128,7 +141,6 @@ def filter_bam_by_predcition(bam_path: Path, prediction_path: Path, *, index: bo
         pysam.index(sorted_output_path.as_posix())
 
 
-@rank_zero_only
 def set_logging_level(level: int = logging.INFO):
     """Set the logging level.
 
@@ -268,11 +280,31 @@ def predict(
     log.info(f"Filtering {data_path} by predictions from {output_path}")
 
 
+def collect_predictions(
+    input_path: Path = typer.Argument(..., help="Path to the input folder containing prediction files"),
+    output_path: Path | None = typer.Option(None, help="Path to the output file"),
+):
+    """Collect predictions from all prediction files and write results to output file."""
+    if not input_path.exists():
+        log.error(f"Input path does not exist: {input_path}")
+        raise typer.Exit(1)
+
+    txt_files = collect_txt_from_file(input_path)
+    output_path = output_path or input_path.parent.parent / "predictions.txt"
+    log.info(f"Writing predictions to {output_path}")
+    # concat all txt files
+    with Path(output_path).open("w") as output_file:
+        for txt_file in txt_files:
+            with txt_file.open("r") as input_file:
+                output_file.write(input_file.read())
+
+
 @app.command()
 def filter(
     bam_path: Path = typer.Argument(..., help="Path to the BAM file"),
     predictions_path: Path = typer.Argument(..., help="Path to the predictions file"),
     *,
+    summary: bool = typer.Option(False, "--summary", "-s", help="write summary of the predictions"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
 ):
     """Filter the BAM file by predictions."""
