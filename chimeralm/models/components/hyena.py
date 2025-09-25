@@ -48,8 +48,8 @@ class BinarySequenceClassifier(nn.Module):
 
         # Attention-based pooling
         if pooling_type == "attention":
-            self.attention = nn.Sequential(
-                nn.Linear(input_dim, hidden_dim // 2), self.activation, nn.Linear(hidden_dim // 2, 1), nn.Softmax(dim=1)
+            self.attention_mlp = nn.Sequential(
+                nn.Linear(input_dim, hidden_dim // 2), self.activation, nn.Linear(hidden_dim // 2, 1)
             )
 
         # Classification layers - optimized construction
@@ -116,32 +116,25 @@ class BinarySequenceClassifier(nn.Module):
 
         elif self.pooling_type == "attention":
             # Attention-based pooling
-            attention_weights = self.attention(hidden_states)  # (batch_size, seq_len, 1)
-
+            attention_scores = self.attention_mlp(hidden_states)  # (batch_size, seq_len, 1)
             if attention_mask is not None:
-                # Mask attention weights for padding tokens
-                attention_weights = attention_weights * mask_expanded
-                # Renormalize attention weights - use more stable computation
-                attention_sum = attention_weights.sum(dim=1, keepdim=True)
-                attention_weights = attention_weights / (attention_sum + 1e-9)
+                attention_scores = attention_scores.masked_fill(~attention_mask, float("-inf"))
+            attention_weights = torch.softmax(attention_scores, dim=1)
 
             # Only move to CPU after all computations are done
             if self.save_attention:
                 self.attention_weights = attention_weights.detach().cpu()
 
             pooled_output = (hidden_states * attention_weights).sum(dim=1)
-
         elif self.pooling_type == "cls":
-            # Use the first token (CLS token) representation
-            pooled_output = hidden_states[:, 0, :]
-
+            # Use the last token (SEP token) representation, cause left padding
+            pooled_output = hidden_states[:, -1, :]
         else:
             msg = f"Unsupported pooling type: {self.pooling_type}"
             raise ValueError(msg)
 
         # Pass through classifier layers
         features = self.classifier(pooled_output)
-
         # Final binary classification
         return self.output_layer(features)
 
