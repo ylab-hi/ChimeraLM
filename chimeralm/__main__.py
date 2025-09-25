@@ -245,23 +245,13 @@ def predict(
         num_workers=num_workers,
     )
 
-    if ckpt_path is not None:
-        log.info(f"Loading model from {ckpt_path}")
-        model = chimeralm.models.ChimeraLM.new()
-    else:
-        log.info("Loading model from Hugging Face")
-        model = chimeralm.models.ChimeraLM.from_pretrained("yangliz5/chimeralm")
-
-    if output_path is None:
-        output_path = data_path.with_suffix(".predictions")
-
-    if not output_path.exists():
-        output_path.mkdir(parents=True, exist_ok=True)
-
     callbacks = [
         chimeralm.models.callbacks.PredictionWriter(output_dir=output_path, write_interval="batch"),
     ]
+
     if ckpt_path is not None:
+        log.info(f"Loading model from {ckpt_path}")
+        model = chimeralm.models.ChimeraLM.new()
         callbacks.extend(
             [
                 lightning.pytorch.callbacks.RichProgressBar(),
@@ -277,6 +267,14 @@ def predict(
                 lightning.pytorch.callbacks.ModelSummary(max_depth=1),
             ]
         )
+    else:
+        log.info("Loading model from Hugging Face")
+        model = chimeralm.models.ChimeraLM.from_pretrained("yangliz5/chimeralm")
+
+    if output_path is None:
+        output_path = data_path.with_suffix(".predictions")
+    if not output_path.exists():
+        output_path.mkdir(parents=True, exist_ok=True)
 
     accelerator, devices = determine_accelerator_and_devices(gpus)
     trainer = lightning.pytorch.trainer.Trainer(
