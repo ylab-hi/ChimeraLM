@@ -92,7 +92,9 @@ def set_tensor_core_precision(precision="medium") -> None:
             torch.set_float32_matmul_precision(precision)
 
 
-def filter_bam_by_predcition(bam_path: Path, prediction_path: Path, *, index: bool = True) -> None:
+def filter_bam_by_predcition(
+    bam_path: Path, prediction_path: Path, *, index: bool = True, output_prediction: bool = False
+) -> None:
     """Filter a BAM file by predictions.
 
     use parallel processing if n_jobs is greater than 1
@@ -101,6 +103,11 @@ def filter_bam_by_predcition(bam_path: Path, prediction_path: Path, *, index: bo
     if not predictions:
         log.warning("No predictions found")
         return
+
+    if output_prediction:
+        with Path(prediction_path / "predictions.txt").open("w") as f:
+            for name, label in predictions.items():
+                f.write(f"{name}\t{label}\n")
 
     log.info(f"Loaded {len(predictions)} predictions from {prediction_path}")
 
@@ -216,7 +223,7 @@ def predict(
     output_path: Path | None = typer.Option(None, "--output", "-o", help="Output path for predictions"),
     batch_size: int = typer.Option(12, "--batch-size", "-b", help="Batch size"),
     num_workers: int = typer.Option(0, "--workers", "-w", help="Number of workers"),
-    ckpt_path: Path | None = typer.Option(None, "--ckpt", "-c", help="Path to the checkpoint file"),
+    ckpt_path: Path | None = typer.Option(None, "--ckpt", "-c", hidden=True, help="Path to the checkpoint file"),
     *,
     random: bool = typer.Option(False, "--random", "-r", help="Make the prediction not deterministic"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
@@ -285,37 +292,18 @@ def predict(
     log.info(f"Filtering {data_path} by predictions from {output_path}")
 
 
-def collect_predictions(
-    input_path: Path = typer.Argument(..., help="Path to the input folder containing prediction files"),
-    output_path: Path | None = typer.Option(None, help="Path to the output file"),
-):
-    """Collect predictions from all prediction files and write results to output file."""
-    if not input_path.exists():
-        log.error(f"Input path does not exist: {input_path}")
-        raise typer.Exit(1)
-
-    txt_files = collect_txt_from_file(input_path)
-    output_path = output_path or input_path.parent.parent / "predictions.txt"
-    log.info(f"Writing predictions to {output_path}")
-    # concat all txt files
-    with Path(output_path).open("w") as output_file:
-        for txt_file in txt_files:
-            with txt_file.open("r") as input_file:
-                output_file.write(input_file.read())
-
-
 @app.command()
 def filter(
     bam_path: Path = typer.Argument(..., help="Path to the BAM file"),
     predictions_path: Path = typer.Argument(..., help="Path to the predictions file"),
     *,
-    summary: bool = typer.Option(False, "--summary", "-s", help="write summary of the predictions"),
+    output_prediction: bool = typer.Option(False, "--output-prediction", "-p", help="write summary of the predictions"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
 ):
     """Filter the BAM file by predictions."""
     set_logging_level(logging.DEBUG if verbose else logging.INFO)
     log.info(f"Filtering {bam_path} by predictions from {predictions_path}")
-    filter_bam_by_predcition(bam_path, predictions_path, index=True)
+    filter_bam_by_predcition(bam_path, predictions_path, index=True, output_prediction=output_prediction)
 
 
 @app.command()
