@@ -68,13 +68,14 @@ class ClassificationLit(LightningModule, PyTorchModelHubMixin):
         self,
         input_ids: torch.Tensor,
         input_quals: torch.Tensor | None = None,
+        attention_mask: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Perform a forward pass through the model `self.net`.
 
         :param x: A tensor of images.
         :return: A tensor of logits.
         """
-        return self.net(input_ids, input_quals)
+        return self.net(input_ids, input_quals, attention_mask)
 
     def on_train_start(self) -> None:
         """Lightning hook that is called when training begins."""
@@ -84,7 +85,7 @@ class ClassificationLit(LightningModule, PyTorchModelHubMixin):
         self.val_acc.reset()
         self.val_acc_best.reset()
 
-    def model_step(self, batch: tuple[torch.Tensor, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def model_step(self, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Perform a single model step on a batch of data.
 
         :param batch: A batch of data (a tuple) containing the input tensor of images and target labels.

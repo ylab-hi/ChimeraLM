@@ -244,4 +244,4 @@ class HyenaDna(nn.Module):
             return_dict=None,
         )
         hidden_states = transformer_outputs[0]
-        return self.head(hidden_states, attention_mask)
+        return self.head(hidden_states, attention_mask=attention_mask)

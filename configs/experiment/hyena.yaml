@@ -16,7 +16,7 @@ callbacks:
   early_stopping:
     patience: 10
 
-tags: ["hyena"]
+tags: ["hyena with attention mask"]
 
 seed: 12345
 
