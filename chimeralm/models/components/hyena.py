@@ -115,7 +115,7 @@ class BinarySequenceClassifier(nn.Module):
             # Attention-based pooling
             attention_scores = self.attention_mlp(hidden_states)  # (batch_size, seq_len, 1)
             if attention_mask is not None:
-                attention_scores = attention_scores.masked_fill(~attention_mask, float("-inf"))
+                attention_scores = attention_scores.masked_fill(attention_mask == 0, float("-inf"))
             attention_weights = torch.softmax(attention_scores, dim=1)
 
             # Only move to CPU after all computations are done
