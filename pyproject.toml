@@ -2,9 +2,6 @@
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-# requires = ["maturin>=1.2.1,<2"]
-# build-backend = "maturin"
-
 [project]
 name = "chimeralm"
 description = "ChimeraLM: A genomic lanuage model to identify chimera artifact introduced by whole genome amplification (WGA)."
