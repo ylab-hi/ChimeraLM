@@ -146,7 +146,7 @@ jobs:
           source .venv/bin/activate
           pip install chimeralm --find-links dist --force-reinstall
           pip install pytest
-          deepchopper -h
+          chimeralm -h
   sdist:
     runs-on: ubuntu-latest
     steps:
