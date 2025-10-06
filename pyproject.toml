@@ -1,24 +1,24 @@
 [build-system]
-requires = ["maturin>=1.2.1,<2"]
-build-backend = "maturin"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "chimeralm"
 description = "ChimeraLM: A genomic lanuage model to identify chimera artifact introduced by whole genome amplification (WGA)."
 authors = [
-    { name = "Yangyang Li", email = "<yangyang.li@northwestern.edu>" },
-    { name = "Qingxiang Guo", email = "<qingxiang.guo@northwestern.edu>" },
+    { name = "Yangyang Li", email = "yangyang.li@northwestern.edu" },
+    { name = "Qingxiang Guo", email = "qingxiang.guo@northwestern.edu" },
 ]
 readme = "README.md"
-requires-python = ">=3.10"
-version = "0.1.0"
+requires-python = ">=3.10,<3.12"
+version = "1.0.0"
 license = { file = "LICENSE" }
 keywords = ["deep learning", "bioinformatics", "rust"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: GNUv3 License",
+    "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
