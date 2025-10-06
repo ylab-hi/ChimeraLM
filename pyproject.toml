@@ -13,7 +13,7 @@ authors = [
     { name = "Qingxiang Guo", email = "qingxiang.guo@northwestern.edu" },
 ]
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.12"
 version = "0.1.0"
 license = { file = "LICENSE" }
 keywords = ["deep learning", "bioinformatics", "rust"]
