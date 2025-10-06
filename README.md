@@ -1,6 +1,16 @@
 # <img src="./docs/logo.png" alt="logo" height="100"/> **ChimeraLM** [![social](https://img.shields.io/github/stars/ylab-hi/ChimeraLM?style=social)](https://github.com/ylab-hi/ChimeraLM/stargazers)
 
-# ChimeraLM
+[![python](https://img.shields.io/badge/Python-3776AB.svg?style=for-the-badge&logo=Python&logoColor=white)](https://www.python.org/)
+[![pypi](https://img.shields.io/pypi/v/chimeralm.svg?style=for-the-badge)][pypi]
+[![pyversion](https://img.shields.io/pypi/pyversions/chimeralm?style=for-the-badge)][pypi]
+[![download](https://img.shields.io/pypi/dm/chimeralm?logo=pypi&label=pypi%20download&style=for-the-badge)][pypi]
+[![ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg?style=for-the-badge)](https://github.com/charliermarsh/ruff)
+[![release](https://img.shields.io/github/release-date/ylab-hi/chimeralm?style=for-the-badge)](https://github.com/ylab-hi/chimeralm/releases)
+[![open-issue](https://img.shields.io/github/issues-raw/ylab-hi/chimeralm?style=for-the-badge)][open-issue]
+[![close-issue](https://img.shields.io/github/issues-closed-raw/ylab-hi/chimeralm?style=for-the-badge)][close-issue]
+[![activity](https://img.shields.io/github/commit-activity/m/ylab-hi/chimeralm?style=for-the-badge)][repo]
+[![lastcommit](https://img.shields.io/github/last-commit/ylab-hi/chimeralm?style=for-the-badge)][repo]
+[![opull](https://img.shields.io/github/issues-pr-raw/ylab-hi/chimeralm?style=for-the-badge)][opull]
 
 A genomic language model to identify chimera artifacts introduced by whole genome amplification (WGA).
 
@@ -139,3 +149,9 @@ This project is licensed under the Apache License - see the [LICENSE](LICENSE) f
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+[close-issue]: https://github.com/ylab-hi/chimeralm/issues?q=is%3Aissue+sort%3Aupdated-desc+is%3Aclosed
+[open-issue]: https://github.com/ylab-hi/chimeralm/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc
+[opull]: https://github.com/ylab-hi/chimeralm/pulls?q=is%3Apr+is%3Aopen+sort%3Aupdated-desc
+[pypi]: https://pypi.org/project/chimeralm/
+[repo]: https://github.com/ylab-hi/chimeralm
