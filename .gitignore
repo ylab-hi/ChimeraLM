@@ -152,7 +152,6 @@ configs/local/default.yaml
 
 # Aim logging
 .aim
-uv.lock
 tmp/
 analysis/
 .cursorrules
