@@ -48,16 +48,16 @@ run_eval() {
     local chunk_num=$1
     local data_file="${BASE_DATA_PATH}/PC3_10_cells_MDA_P2_dirty.chimeric_${chunk_num}.parquet"
     local output_dir="${BASE_OUTPUT_DIR}/${EXPERIMENT_PREFIX}_${chunk_num}"
-    
+
     log "Starting evaluation for chunk ${chunk_num}..."
     log "Data file: ${data_file}"
     log "Output directory: ${output_dir}"
-    
+
     # Check if data file exists (optional)
     if [[ ! -f "$data_file" ]]; then
         warn "Data file does not exist: $data_file"
     fi
-    
+
     # Run the evaluation
     uv run eval.py \
         ckpt_path=$CKPT_PATH \
@@ -68,7 +68,7 @@ run_eval() {
         +data.predict_data_path=$data_file \
         paths.output_dir=$output_dir \
         paths.log_dir=$output_dir
-    
+
     local exit_code=$?
     if [[ $exit_code -eq 0 ]]; then
         log "Successfully completed evaluation for chunk ${chunk_num}"
@@ -82,10 +82,10 @@ run_eval() {
 main() {
     log "Starting batch evaluation script"
     log "Processing ${#CHUNKS[@]} chunks: ${CHUNKS[*]}"
-    
+
     local failed_chunks=()
     local success_count=0
-    
+
     for chunk in "${CHUNKS[@]}"; do
         if run_eval "$chunk"; then
             ((success_count++))
@@ -94,11 +94,11 @@ main() {
         fi
         echo "----------------------------------------"
     done
-    
+
     # Summary
     log "Batch evaluation completed"
     log "Successful runs: ${success_count}/${#CHUNKS[@]}"
-    
+
     if [[ ${#failed_chunks[@]} -gt 0 ]]; then
         error "Failed chunks: ${failed_chunks[*]}"
         exit 1

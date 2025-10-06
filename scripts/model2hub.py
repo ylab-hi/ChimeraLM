@@ -1,4 +1,4 @@
-import chimera 
+import chimera
 from chimera.models import hyena
 
 from functools import partial
@@ -35,4 +35,3 @@ def main(ckpt_path: str, model_name: str="yangliz5/chimeralm"):
 
 if __name__ == "__main__":
     app()
-
