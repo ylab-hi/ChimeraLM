@@ -49,6 +49,7 @@ dependencies = [
     "gradio>=4.0.0",
     "plotly>=5.0.0",
     "joblib>=1.5.2",
+    "colorama>=0.4.6",
 ]
 
 [project.optional-dependencies]
