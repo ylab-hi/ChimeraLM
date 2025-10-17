@@ -317,54 +317,69 @@ def web():
 
 @app.command()
 def finetune(
-    config_name: str = typer.Option("train", "--config", "-c", help="Name of the config file (without .yaml)"),
-    overrides: list[str] = typer.Option(
-        None, "--override", "-r", help="Hydra config overrides (e.g., model=cnn data=fq)"
-    ),
-    train_data: Path | None = typer.Option(None, "--train-data", help="Path to training data"),
-    val_data: Path | None = typer.Option(None, "--val-data", help="Path to validation data"),
-    test_data: Path | None = typer.Option(None, "--test-data", help="Path to test data"),
+    train_data: Path | None = typer.Option(None, "--train-data", help="Path to training data (BAM file)"),
+    val_data: Path | None = typer.Option(None, "--val-data", help="Path to validation data (BAM file)"),
+    test_data: Path | None = typer.Option(None, "--test-data", help="Path to test data (BAM file)"),
     batch_size: int | None = typer.Option(None, "--batch-size", "-b", help="Batch size"),
     max_epochs: int | None = typer.Option(None, "--epochs", "-e", help="Maximum number of epochs"),
     gpus: int | None = typer.Option(None, "--gpus", "-g", help="Number of GPUs to use"),
-    model: str | None = typer.Option(None, "--model", "-m", help="Model config name (cnn, hyena, mamba, etc.)"),
     seed: int | None = typer.Option(None, "--seed", "-s", help="Random seed for reproducibility"),
+    model: str | None = typer.Option(None, "--model", "-m", help="Model config (default: chimeralm)", hidden=True),
+    data_config: str | None = typer.Option(None, "--data-config", help="Data config (default: bam)", hidden=True),
+    overrides: list[str] = typer.Option(None, "--override", "-r", help="Advanced Hydra config overrides"),
     *,
     no_test: bool = typer.Option(False, "--no-test", help="Skip testing after training"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
 ):
-    """Finetune the ChimeraLM model using Hydra configuration system.
+    """Finetune the ChimeraLM model using the HyenaDNA backbone.
+
+    The model and data configurations are set to chimeralm and bam by default.
 
     Examples:
-        # Basic training with defaults
-        chimeralm finetune
-
-        # Use different model and data
-        chimeralm finetune --model cnn --override data=fq
+        # Basic training with defaults (chimeralm model, bam data)
+        chimeralm finetune --train-data data/train.bam --val-data data/val.bam
 
         # Specify training parameters
-        chimeralm finetune --train-data data/train.bam --batch-size 32 --epochs 100
+        chimeralm finetune --train-data data/train.bam --batch-size 32 --epochs 100 --gpus 1
 
-        # Multiple overrides
-        chimeralm finetune -r model=hyena -r trainer.max_epochs=50 -r data.batch_size=16
+        # With seed for reproducibility
+        chimeralm finetune --train-data data/train.bam --seed 42
+
+        # Advanced: Use different model architecture
+        chimeralm finetune --train-data data/train.bam --model cnn
+
+        # Advanced: Additional Hydra overrides
+        chimeralm finetune --train-data data/train.bam -r trainer.precision=16
     """
-    import subprocess
-    import sys
+    from hydra import compose, initialize_config_dir
+    from hydra.core.global_hydra import GlobalHydra
+    from omegaconf import OmegaConf
 
-    # Build the command to run chimeralm/train.py with Hydra (uses chimeralm/configs)
-    train_script = Path(__file__).parent / "train.py"
+    set_logging_level(logging.DEBUG if verbose else logging.INFO)
 
-    if not train_script.exists():
-        log.error(f"Training script not found: {train_script}")
+    # Get config directory (absolute path)
+    config_dir = (Path(__file__).parent / "configs").absolute()
+
+    if not config_dir.exists():
+        log.error(f"Config directory not found: {config_dir}")
         raise typer.Exit(1)
 
     # Build Hydra overrides from CLI arguments
     hydra_overrides = []
 
-    if overrides:
-        hydra_overrides.extend(overrides)
-
+    # Set defaults
     if model:
         hydra_overrides.append(f"model={model}")
+    else:
+        hydra_overrides.append("model=chimeralm")
+
+    if data_config:
+        hydra_overrides.append(f"data={data_config}")
+    else:
+        hydra_overrides.append("data=bam")
+
+    if overrides:
+        hydra_overrides.extend(overrides)
 
     if train_data:
         hydra_overrides.append(f"data.train_data_path={train_data.absolute()}")
@@ -394,24 +409,48 @@ def finetune(
     if no_test:
         hydra_overrides.append("test=false")
 
-    # Build the full command
-    cmd = [sys.executable, str(train_script)]
-    if config_name != "train":
-        cmd.extend(["--config-name", config_name])
-    cmd.extend(hydra_overrides)
+    log.info("Starting finetuning with model=chimeralm, data=bam")
+    if verbose:
+        log.info(f"Config directory: {config_dir}")
+        log.info(f"Hydra overrides: {hydra_overrides}")
 
-    log.info(f"Running training with command: {' '.join(cmd)}")
-    log.info(f"Hydra overrides: {hydra_overrides}")
+    # Clear any existing Hydra instance
+    GlobalHydra.instance().clear()
 
-    # Run the training script
     try:
-        result = subprocess.run(cmd, check=True)
-        if result.returncode != 0:
-            log.error("Training failed")
-            raise typer.Exit(result.returncode)
-    except subprocess.CalledProcessError as e:
-        log.error(f"Training failed with exit code {e.returncode}")
-        raise typer.Exit(e.returncode) from e
-    except KeyboardInterrupt:
-        log.warning("Training interrupted by user")
-        raise typer.Exit(130) from None
+        # Initialize Hydra with config directory
+        with initialize_config_dir(version_base="1.3", config_dir=str(config_dir), job_name="finetune"):
+            # Register resolvers for hydra runtime values
+            # These allow ${hydra:runtime.cwd} and ${hydra:runtime.output_dir} to work
+            from datetime import datetime
+
+            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            output_dir = Path.cwd() / "logs" / "finetune" / "runs" / timestamp
+
+            OmegaConf.register_new_resolver("hydra", lambda path: {
+                "runtime.cwd": str(Path.cwd()),
+                "runtime.output_dir": str(output_dir),
+            }.get(path, f"${{hydra:{path}}}"), replace=True)
+
+            # Compose configuration with overrides
+            cfg = compose(config_name="train", overrides=hydra_overrides)
+
+            # Import and run training
+            from chimeralm.train import train
+
+            metric_dict, _ = train(cfg)
+
+            log.info("Training completed successfully!")
+            if metric_dict:
+                log.info(f"Final metrics: {metric_dict}")
+
+    except Exception as e:
+        log.error(f"Training failed: {e}")
+        if verbose:
+            import traceback
+
+            traceback.print_exc()
+        raise typer.Exit(1) from e
+    finally:
+        # Clean up Hydra
+        GlobalHydra.instance().clear()
