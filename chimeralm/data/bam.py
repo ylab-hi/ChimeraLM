@@ -83,6 +83,7 @@ class BamDataModule(LightningDataModule):
         val_data_path: Path | None = None,
         test_data_path: Path | None = None,
         predict_data_path: Path | None = None,
+        train_val_test_split: list[float] | None = None,
         num_workers: int = 1,
         max_train_samples: int | None = None,
         max_val_samples: int | None = None,
@@ -93,11 +94,21 @@ class BamDataModule(LightningDataModule):
     ) -> None:
         """Initialize a `BamDataModule`.
 
+        :param tokenizer: Tokenizer for DNA sequences.
+        :param train_data_path: Path to training BAM file.
         :param batch_size: The batch size.
-        :param num_workers: The number of workers. Defaults to `0`.
+        :param val_data_path: Path to validation BAM file (optional, will auto-split if not provided).
+        :param test_data_path: Path to test BAM file (optional, will auto-split if not provided).
+        :param predict_data_path: Path to prediction BAM file.
+        :param train_val_test_split: Split ratios [train, val, test] when auto-splitting. Defaults to [0.7, 0.2, 0.1].
+        :param num_workers: The number of workers. Defaults to `1`.
         :param pin_memory: Whether to pin memory. Defaults to `False`.
         """
         super().__init__()
+
+        # Set default split ratios if not provided
+        if train_val_test_split is None:
+            train_val_test_split = [0.7, 0.2, 0.1]
 
         # this line allows to access init params with 'self.hparams' attribute
         # also ensures init params will be stored in ckpt
@@ -175,31 +186,73 @@ class BamDataModule(LightningDataModule):
 
         # load and split datasets only if not loaded already
         if not self.data_train and not self.data_val and not self.data_test:
-            if (
-                self.hparams.val_data_path is None
-                or self.hparams.test_data_path is None
-                or self.hparams.train_data_path is None
-            ):
-                msg = "Val, test, and train data paths are required for training."
+            if self.hparams.train_data_path is None:
+                msg = "Train data path is required for training."
                 raise ValueError(msg)
 
+            # Load training dataset
             train_dataset = HuggingFaceDataset.from_generator(
                 parse_bam_file,
                 gen_kwargs={"file_path": self.hparams.train_data_path},
                 num_proc=max(1, num_proc),
             ).with_format("torch")
 
-            val_dataset = HuggingFaceDataset.from_generator(
-                parse_bam_file,
-                gen_kwargs={"file_path": self.hparams.val_data_path},
-                num_proc=max(1, num_proc),
-            ).with_format("torch")
+            # Auto-split logic: split train data if val/test paths not provided
+            if self.hparams.val_data_path is None and self.hparams.test_data_path is None:
+                # Get split ratios
+                train_ratio, val_ratio, test_ratio = self.hparams.train_val_test_split
 
-            test_dataset = HuggingFaceDataset.from_generator(
-                parse_bam_file,
-                gen_kwargs={"file_path": self.hparams.test_data_path},
-                num_proc=max(1, num_proc),
-            ).with_format("torch")
+                # Validate ratios
+                if not (0 < train_ratio < 1 and 0 < val_ratio < 1 and 0 < test_ratio < 1):
+                    msg = f"Invalid split ratios: {self.hparams.train_val_test_split}. All must be between 0 and 1."
+                    raise ValueError(msg)
+
+                if abs(train_ratio + val_ratio + test_ratio - 1.0) > 1e-6:
+                    msg = f"Split ratios must sum to 1.0, got {train_ratio + val_ratio + test_ratio}"
+                    raise ValueError(msg)
+
+                # First split: separate test set
+                train_val_dataset = train_dataset.train_test_split(
+                    test_size=test_ratio,
+                    seed=42,
+                )
+                test_dataset = train_val_dataset["test"]
+
+                # Second split: separate train and val from remaining data
+                # Calculate val ratio relative to the remaining data (train + val)
+                val_ratio_adjusted = val_ratio / (train_ratio + val_ratio)
+                train_val_split = train_val_dataset["train"].train_test_split(
+                    test_size=val_ratio_adjusted,
+                    seed=42,
+                )
+                train_dataset = train_val_split["train"]
+                val_dataset = train_val_split["test"]
+
+                from chimeralm.utils import RankedLogger
+                log = RankedLogger(__name__, rank_zero_only=True)
+                log.info(
+                    f"Auto-split train data into train={len(train_dataset)}, "
+                    f"val={len(val_dataset)}, test={len(test_dataset)} "
+                    f"(ratios: {train_ratio:.1%}/{val_ratio:.1%}/{test_ratio:.1%})"
+                )
+
+            elif self.hparams.val_data_path is None or self.hparams.test_data_path is None:
+                msg = "Either provide both val_data_path and test_data_path, or neither (for auto-split)."
+                raise ValueError(msg)
+
+            else:
+                # Load val and test datasets separately
+                val_dataset = HuggingFaceDataset.from_generator(
+                    parse_bam_file,
+                    gen_kwargs={"file_path": self.hparams.val_data_path},
+                    num_proc=max(1, num_proc),
+                ).with_format("torch")
+
+                test_dataset = HuggingFaceDataset.from_generator(
+                    parse_bam_file,
+                    gen_kwargs={"file_path": self.hparams.test_data_path},
+                    num_proc=max(1, num_proc),
+                ).with_format("torch")
 
             if self.hparams.max_train_samples is not None:
                 max_train_samples = min(self.hparams.max_train_samples, len(train_dataset))
