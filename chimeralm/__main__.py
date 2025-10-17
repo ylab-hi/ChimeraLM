@@ -189,17 +189,18 @@ def print_logo():
     """Print ChimeraLM pixel art logo."""
     logo = Text()
     logo.append("\n")
-    # Purple chimera head (pixel art style inspired by Claude Code)
-    logo.append("    ▄▄▄   ▄▄▄  \n", style="bold magenta")
-    logo.append("   ███████████ \n", style="bold magenta")
-    logo.append("  ███▄▄█▄▄███  \n", style="bold magenta")
-    logo.append(" ████ ███ ████ \n", style="bold magenta")
-    logo.append(" ▀▀▀█████▀▀▀   \n", style="bold magenta")
-    logo.append("    ▀███▀      \n", style="bold magenta")
-    logo.append("   ▄▄█▄█▄▄     \n", style="bold magenta")
+    # DNA helix + Chimera creature design matching SVG logo
+    logo.append("       ▄▀▀▄  ▄▀▀▄      \n", style="bold magenta")
+    logo.append("      ██████████       \n", style="bold magenta")
+    logo.append("     ███▄▀▀▀▀▄███      \n", style="bold magenta")
+    logo.append("  ◢  ██  ▀▀  ██  ◣    \n", style="bold magenta")
+    logo.append("  ◥   ▀███▄▄███▀   ◤   \n", style="bold magenta")
+    logo.append("  ◢     ▀████▀     ◣   \n", style="bold magenta")
+    logo.append("  ◥    ▄▄██▄▄    ◤    \n", style="bold magenta")
+    logo.append("      ▀  ▀▀  ▀        \n", style="dim magenta")
     logo.append("\n")
-    logo.append("   ChimeraLM   \n", style="bold cyan")
-    logo.append(" Genomic Language Model\n", style="dim cyan")
+    logo.append("      ChimeraLM        \n", style="bold cyan")
+    logo.append("  Genomic Language Model\n", style="dim cyan")
     console.print(logo)
 
 app = typer.Typer(
