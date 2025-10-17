@@ -11,10 +11,14 @@ import torch
 import typer
 from click import Context
 from colorama import init
+from rich.console import Console
 from rich.logging import RichHandler
+from rich.text import Text
 from typer.core import TyperGroup
 
 init(autoreset=True)
+
+console = Console()
 
 import chimeralm
 from chimeralm.utils import RankedLogger
@@ -181,6 +185,23 @@ def version_callback(value: bool):
         raise typer.Exit()
 
 
+def print_logo():
+    """Print ChimeraLM pixel art logo."""
+    logo = Text()
+    logo.append("\n")
+    # Purple chimera head (pixel art style inspired by Claude Code)
+    logo.append("    ▄▄▄   ▄▄▄  \n", style="bold magenta")
+    logo.append("   ███████████ \n", style="bold magenta")
+    logo.append("  ███▄▄█▄▄███  \n", style="bold magenta")
+    logo.append(" ████ ███ ████ \n", style="bold magenta")
+    logo.append(" ▀▀▀█████▀▀▀   \n", style="bold magenta")
+    logo.append("    ▀███▀      \n", style="bold magenta")
+    logo.append("   ▄▄█▄█▄▄     \n", style="bold magenta")
+    logo.append("\n")
+    logo.append("   ChimeraLM   \n", style="bold cyan")
+    logo.append(" Genomic Language Model\n", style="dim cyan")
+    console.print(logo)
+
 app = typer.Typer(
     cls=OrderCommands,
     context_settings={"help_option_names": ["-h", "--help"]},
@@ -189,8 +210,9 @@ app = typer.Typer(
 
 
 # Add the version option to the main app
-@app.callback()
+@app.callback(invoke_without_command=True)
 def main(
+    ctx: typer.Context,
     version: bool | None = typer.Option(
         None,
         "--version",
@@ -201,6 +223,9 @@ def main(
     ),
 ):
     """Main entry point for the Chimera CLI."""
+    if ctx.invoked_subcommand is None:
+        print_logo()
+        console.print("\n[yellow]Run with --help to see available commands[/yellow]\n")
 
 
 def determine_accelerator_and_devices(gpus: int):
@@ -316,4 +341,4 @@ def web():
 
 
 if __name__ == "__main__":
-    main()
+    app()

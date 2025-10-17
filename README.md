@@ -1,22 +1,42 @@
-# <img src="./docs/logo.png" alt="logo" height="100"/> **ChimeraLM** [![social](https://img.shields.io/github/stars/ylab-hi/ChimeraLM?style=social)](https://github.com/ylab-hi/ChimeraLM/stargazers)
+<div align="center">
+
+<img src="./docs/logo-pixel.svg" alt="ChimeraLM Logo" width="128" height="128"/>
+
+# ChimeraLM
+
+**A Genomic Language Model for Detecting WGA Chimeric Artifacts**
 
 [![python](https://img.shields.io/badge/Python-3776AB.svg?style=for-the-badge&logo=Python&logoColor=white)](https://www.python.org/)
 [![pypi](https://img.shields.io/pypi/v/chimeralm.svg?style=for-the-badge)][pypi]
 [![pyversion](https://img.shields.io/pypi/pyversions/chimeralm?style=for-the-badge)][pypi]
-[![download](https://img.shields.io/pypi/dm/chimeralm?logo=pypi&label=pypi%20download&style=for-the-badge)][pypi]
+[![download](https://img.shields.io/pypi/dm/chimeralm?logo=pypi&label=downloads&style=for-the-badge)][pypi]
 [![ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg?style=for-the-badge)](https://github.com/charliermarsh/ruff)
+
 [![release](https://img.shields.io/github/release-date/ylab-hi/chimeralm?style=for-the-badge)](https://github.com/ylab-hi/chimeralm/releases)
-[![open-issue](https://img.shields.io/github/issues-raw/ylab-hi/chimeralm?style=for-the-badge)][open-issue]
-[![close-issue](https://img.shields.io/github/issues-closed-raw/ylab-hi/chimeralm?style=for-the-badge)][close-issue]
+[![stars](https://img.shields.io/github/stars/ylab-hi/ChimeraLM?style=for-the-badge&logo=github)](https://github.com/ylab-hi/ChimeraLM/stargazers)
 [![activity](https://img.shields.io/github/commit-activity/m/ylab-hi/chimeralm?style=for-the-badge)][repo]
 [![lastcommit](https://img.shields.io/github/last-commit/ylab-hi/chimeralm?style=for-the-badge)][repo]
-[![opull](https://img.shields.io/github/issues-pr-raw/ylab-hi/chimeralm?style=for-the-badge)][opull]
+
+[Installation](#installation) • [Quick Start](#quick-start) • [Documentation](#cli-usage) • [Citation](#citation)
+
+</div>
+
+---
 
 A genomic language model to identify chimera artifacts introduced by whole genome amplification (WGA).
 
 ## Overview
 
-ChimeraLM is a deep learning model designed to detect artificial chimeric reads that arise during whole genome amplification processes.
+ChimeraLM is a deep learning-powered genomic language model that detects artificial chimeric reads arising from whole genome amplification (WGA) processes. Built with PyTorch Lightning and optimized for modern GPUs, it provides fast and accurate identification of chimeric artifacts in BAM files.
+
+### Key Features
+
+- **High Accuracy**: Deep learning model trained on real WGA data
+- **GPU Accelerated**: Optimized for CUDA, MPS (Apple Silicon), and CPU
+- **Easy to Use**: Simple CLI with sensible defaults
+- **Fast Processing**: Batch inference with configurable parallelism
+- **Web Interface**: Interactive web UI for visualization and analysis
+- **Production Ready**: Includes filtering, sorting, and indexing of BAM files
 
 ## Installation
 
@@ -39,9 +59,28 @@ uv sync
 uv run chimeralm --version
 ```
 
+## Quick Start
+
+Detect chimeric reads in your BAM file:
+
+```bash
+# Install ChimeraLM
+pip install chimeralm
+
+# Predict chimeric reads (CPU)
+chimeralm predict your_data.bam
+
+# Predict with GPU acceleration
+chimeralm predict your_data.bam --gpus 1 --batch-size 24
+```
+
 ## CLI Usage
 
-ChimeraLM provides a Python CLI with two main commands for chimeric read detection and filtering.
+ChimeraLM provides a Python CLI with three main commands:
+
+- `predict`: Detect chimeric reads using pre-trained models
+- `filter`: Filter BAM files based on predictions
+- `web`: Launch interactive web interface
 
 ### Command Structure
 
@@ -88,6 +127,42 @@ chimeralm predict input.bam --gpus 1 --batch-size 24
 chimeralm predict input.bam --output results/ --progress-bar --verbose
 ```
 
+#### `filter` - Filter BAM Files
+
+Filter BAM files based on prediction results.
+
+```bash
+chimeralm filter [OPTIONS] INPUT_BAM PREDICTIONS_DIR
+```
+
+**Arguments:**
+
+- `INPUT_BAM`: Path to the input BAM file
+- `PREDICTIONS_DIR`: Directory containing prediction results
+
+**Options:**
+
+- `-o, --output-prediction PATH`: Output path for filtered BAM file
+
+**Example:**
+
+```bash
+chimeralm filter input.bam predictions/ --output-prediction filtered.bam
+```
+
+#### `web` - Launch Web Interface
+
+Launch an interactive web interface for visualizing and analyzing chimeric reads.
+
+```bash
+chimeralm web
+```
+
+This command starts a local web server that provides:
+- Interactive visualization of predictions
+- Analysis dashboards and metrics
+- Easy-to-use interface for non-technical users
+
 ### Performance Tips
 
 1. **GPU Usage**: Use `--gpus 1` for faster processing if CUDA is available
@@ -97,10 +172,10 @@ chimeralm predict input.bam --output results/ --progress-bar --verbose
 
 ### Output Files
 
-The `predict` command generates:
-
-- Prediction results in the specified output directory
-- Filtered and sorted BAM file with index (automatically created)
+**Prediction outputs:**
+- `{output_dir}/predictions.txt`: Tab-separated file with read names and predicted labels (0=biological, 1=chimeric)
+- `{input}.filtered.sorted.bam`: BAM file with chimeric reads removed (auto-generated by filter command)
+- `{input}.filtered.sorted.bam.bai`: BAM index file
 
 ### Troubleshooting
 
@@ -128,6 +203,21 @@ chimeralm --help
 # Command-specific help
 chimeralm predict --help
 ```
+
+## Architecture
+
+ChimeraLM combines deep learning with high-performance genomic data processing:
+
+### Model
+- **Sequence Length**: Handles DNA sequences up to 32,768 base pairs
+- **Classification**: Binary classifier (biological vs. chimeric)
+- **Features**: Attention-based sequence pooling for accurate predictions
+
+### Hybrid Python/Rust Implementation
+
+- **Python**: Deep learning training and inference (PyTorch Lightning)
+- **Rust**: High-performance genomic file I/O and processing (via PyO3 bindings)
+- **Benefits**: Speed of Rust with the flexibility and ML ecosystem of Python
 
 ## Citation
 
