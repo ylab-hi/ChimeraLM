@@ -10,10 +10,9 @@ import pysam
 import torch
 import typer
 from click import Context
+from colorama import init
 from rich.logging import RichHandler
 from typer.core import TyperGroup
-
-from colorama import Fore, Back, Style, init
 
 init(autoreset=True)
 
@@ -178,6 +177,7 @@ class OrderCommands(TyperGroup):
 def version_callback(value: bool):
     """Print the version and exit."""
     if value:
+        typer.echo(f"ChimeraLM v{chimeralm.__version__}")
         raise typer.Exit()
 
 
@@ -186,29 +186,6 @@ app = typer.Typer(
     context_settings={"help_option_names": ["-h", "--help"]},
     help="ChimeraLM: A genomic lanuage model to identify chimera artifact introduced by whole genome amplification (WGA).",
 )
-
-
-def show_banner():
-    """Enhanced V3 - Modern Clean"""
-    print(f"""
-    {Fore.CYAN}{"━" * 45}{Style.RESET_ALL}
-    
-       {Fore.CYAN}{Style.BRIGHT}╔══╗  ╦ ╦ ╦  ╔╦╗  ╔═╗  ╦═╗  ╔═╗   ╦   ╔╦╗{Style.RESET_ALL}
-       {Fore.CYAN}{Style.BRIGHT}║     ╠═╣ ║  ║║║  ║╣   ╠╦╝  ╠═╣   ║   ║║║{Style.RESET_ALL}
-       {Fore.BLUE}{Style.BRIGHT}╚══╝  ╩ ╩ ╩  ╩ ╩  ╚═╝  ╩╚═  ╩ ╩   ╩═╝ ╩ ╩{Style.RESET_ALL}
-    
-    {Fore.CYAN}{"━" * 45}{Style.RESET_ALL}
-    {Fore.YELLOW}    ◆ Genomic Language Model{Style.RESET_ALL}
-    {Fore.WHITE}{Style.DIM}    ◆ WGA Chimera Detection{Style.RESET_ALL}
-    {Fore.CYAN}{"━" * 45}{Style.RESET_ALL}
-    """)
-
-
-@app.callback(invoke_without_command=True)
-def callback(ctx: typer.Context):
-    """ChimeraLM - AI CLI Tool"""
-    show_banner()
-    typer.echo()  # Add spacing
 
 
 # Add the version option to the main app
@@ -224,7 +201,6 @@ def main(
     ),
 ):
     """Main entry point for the Chimera CLI."""
-    show_banner()
 
 
 def determine_accelerator_and_devices(gpus: int):
@@ -339,5 +315,13 @@ def web():
     chimeralm.ui.main()
 
 
-if __name__ == "__main__":
-    main()
+@app.command()
+def finetune():
+    """Finetune the model."""
+    from hydra import initialize_config_dir, compose
+
+    config_dir = Path(__file__).parent / "configs"
+
+    with initialize_config_dir(config_dir=config_dir.as_posix(), version_base="1.3"):
+        cfg = compose(config_name="train.yaml")
+        chimeralm.train.train(cfg)
