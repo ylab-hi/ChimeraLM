@@ -1,4 +1,3 @@
-from importlib.resources import files
 from typing import TYPE_CHECKING, Any
 
 import hydra
@@ -107,10 +106,7 @@ def train(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
     return metric_dict, object_dict
 
 
-config_path = str(files("chimeralm").joinpath("configs"))
-
-
-@hydra.main(version_base="1.3", config_path=config_path, config_name="train.yaml")
+@hydra.main(version_base="1.3", config_path="configs", config_name="train.yaml")
 def main(cfg: DictConfig) -> float | None:
     """Main entry point for training.
 

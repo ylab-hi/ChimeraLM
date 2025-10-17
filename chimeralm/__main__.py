@@ -316,12 +316,102 @@ def web():
 
 
 @app.command()
-def finetune():
-    """Finetune the model."""
-    from hydra import initialize_config_dir, compose
+def finetune(
+    config_name: str = typer.Option("train", "--config", "-c", help="Name of the config file (without .yaml)"),
+    overrides: list[str] = typer.Option(
+        None, "--override", "-r", help="Hydra config overrides (e.g., model=cnn data=fq)"
+    ),
+    train_data: Path | None = typer.Option(None, "--train-data", help="Path to training data"),
+    val_data: Path | None = typer.Option(None, "--val-data", help="Path to validation data"),
+    test_data: Path | None = typer.Option(None, "--test-data", help="Path to test data"),
+    batch_size: int | None = typer.Option(None, "--batch-size", "-b", help="Batch size"),
+    max_epochs: int | None = typer.Option(None, "--epochs", "-e", help="Maximum number of epochs"),
+    gpus: int | None = typer.Option(None, "--gpus", "-g", help="Number of GPUs to use"),
+    model: str | None = typer.Option(None, "--model", "-m", help="Model config name (cnn, hyena, mamba, etc.)"),
+    seed: int | None = typer.Option(None, "--seed", "-s", help="Random seed for reproducibility"),
+    *,
+    no_test: bool = typer.Option(False, "--no-test", help="Skip testing after training"),
+):
+    """Finetune the ChimeraLM model using Hydra configuration system.
 
-    config_dir = Path(__file__).parent / "configs"
+    Examples:
+        # Basic training with defaults
+        chimeralm finetune
 
-    with initialize_config_dir(config_dir=config_dir.as_posix(), version_base="1.3"):
-        cfg = compose(config_name="train.yaml")
-        chimeralm.train.train(cfg)
+        # Use different model and data
+        chimeralm finetune --model cnn --override data=fq
+
+        # Specify training parameters
+        chimeralm finetune --train-data data/train.bam --batch-size 32 --epochs 100
+
+        # Multiple overrides
+        chimeralm finetune -r model=hyena -r trainer.max_epochs=50 -r data.batch_size=16
+    """
+    import subprocess
+    import sys
+
+    # Build the command to run chimeralm/train.py with Hydra (uses chimeralm/configs)
+    train_script = Path(__file__).parent / "train.py"
+
+    if not train_script.exists():
+        log.error(f"Training script not found: {train_script}")
+        raise typer.Exit(1)
+
+    # Build Hydra overrides from CLI arguments
+    hydra_overrides = []
+
+    if overrides:
+        hydra_overrides.extend(overrides)
+
+    if model:
+        hydra_overrides.append(f"model={model}")
+
+    if train_data:
+        hydra_overrides.append(f"data.train_data_path={train_data.absolute()}")
+
+    if val_data:
+        hydra_overrides.append(f"data.val_data_path={val_data.absolute()}")
+
+    if test_data:
+        hydra_overrides.append(f"data.test_data_path={test_data.absolute()}")
+
+    if batch_size:
+        hydra_overrides.append(f"data.batch_size={batch_size}")
+
+    if max_epochs:
+        hydra_overrides.append(f"trainer.max_epochs={max_epochs}")
+
+    if gpus is not None:
+        if gpus > 0:
+            hydra_overrides.append("trainer.accelerator=gpu")
+            hydra_overrides.append(f"trainer.devices={gpus}")
+        else:
+            hydra_overrides.append("trainer.accelerator=cpu")
+
+    if seed is not None:
+        hydra_overrides.append(f"seed={seed}")
+
+    if no_test:
+        hydra_overrides.append("test=false")
+
+    # Build the full command
+    cmd = [sys.executable, str(train_script)]
+    if config_name != "train":
+        cmd.extend(["--config-name", config_name])
+    cmd.extend(hydra_overrides)
+
+    log.info(f"Running training with command: {' '.join(cmd)}")
+    log.info(f"Hydra overrides: {hydra_overrides}")
+
+    # Run the training script
+    try:
+        result = subprocess.run(cmd, check=True)
+        if result.returncode != 0:
+            log.error("Training failed")
+            raise typer.Exit(result.returncode)
+    except subprocess.CalledProcessError as e:
+        log.error(f"Training failed with exit code {e.returncode}")
+        raise typer.Exit(e.returncode) from e
+    except KeyboardInterrupt:
+        log.warning("Training interrupted by user")
+        raise typer.Exit(130) from None
