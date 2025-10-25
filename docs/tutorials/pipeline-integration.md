@@ -53,9 +53,9 @@ chimeralm predict $INPUT_BAM --gpus $GPUS --batch-size $BATCH_SIZE
 
 # Step 2: Filter BAM
 echo "Step 2/3: Filtering BAM file..."
-FILTERED_BAM="${OUTPUT_DIR}/$(basename ${INPUT_BAM%.bam}).filtered.bam"
-chimeralm filter $INPUT_BAM ${INPUT_BAM}.predictions/ \
-    --output-prediction $FILTERED_BAM
+# Filter creates .filtered.sorted.bam automatically
+chimeralm filter $INPUT_BAM ${INPUT_BAM}.predictions/
+FILTERED_BAM="${INPUT_BAM%.bam}.filtered.sorted.bam"
 
 # Step 3: Generate QC report
 echo "Step 3/3: Generating QC report..."
@@ -155,13 +155,14 @@ log "Found $PRED_COUNT predictions"
 
 # Step 3: Filter
 log "Step 3/4: Filtering BAM..."
-mkdir -p $OUTPUT_DIR
-FILTERED_BAM="${OUTPUT_DIR}/$(basename ${INPUT_BAM%.bam}).filtered.bam"
-if chimeralm filter $INPUT_BAM ${INPUT_BAM}.predictions/ --output-prediction $FILTERED_BAM 2>&1 | tee -a pipeline.log; then
+if chimeralm filter $INPUT_BAM ${INPUT_BAM}.predictions/ 2>&1 | tee -a pipeline.log; then
     log "Filtering complete"
 else
     error_exit "Filtering failed"
 fi
+
+# ChimeraLM automatically creates .filtered.sorted.bam
+FILTERED_BAM="${INPUT_BAM%.bam}.filtered.sorted.bam"
 
 # Step 4: Verify output
 log "Step 4/4: Verifying output..."
@@ -215,12 +216,12 @@ process filter {
     tuple path(bam), path(predictions)
 
     output:
-    path "${bam.baseName}.filtered.bam"
-    path "${bam.baseName}.filtered.bam.bai"
+    path "${bam.baseName}.filtered.sorted.bam"
+    path "${bam.baseName}.filtered.sorted.bam.bai"
 
     script:
     """
-    chimeralm filter ${bam} \$(dirname ${predictions}) --output-prediction ${bam.baseName}.filtered.bam
+    chimeralm filter ${bam} \$(dirname ${predictions})
     """
 }
 
@@ -359,16 +360,19 @@ rule filter:
         bam="data/{sample}.bam",
         predictions="results/predictions/{sample}.predictions/predictions.txt"
     output:
-        filtered_bam="results/filtered_bams/{sample}.filtered.bam",
-        filtered_bai="results/filtered_bams/{sample}.filtered.bam.bai"
+        filtered_bam="results/filtered_bams/{sample}.filtered.sorted.bam",
+        filtered_bai="results/filtered_bams/{sample}.filtered.sorted.bam.bai"
     log:
         "logs/filter/{sample}.log"
     shell:
         """
         chimeralm filter {input.bam} \
             results/predictions/{wildcards.sample}.predictions/ \
-            --output-prediction {output.filtered_bam} \
             2>&1 | tee {log}
+
+        # Move output to expected location
+        mv data/{wildcards.sample}.filtered.sorted.bam {output.filtered_bam}
+        mv data/{wildcards.sample}.filtered.sorted.bam.bai {output.filtered_bai}
         """
 
 rule qc_report:
@@ -512,12 +516,15 @@ task Filter {
     }
 
     command <<<
-        chimeralm filter ~{bam} $(dirname ~{predictions}) \
-            --output-prediction filtered.bam
+        chimeralm filter ~{bam} $(dirname ~{predictions})
+
+        # ChimeraLM creates basename(bam).filtered.sorted.bam
+        # Move to expected output name
+        mv $(basename ~{bam} .bam).filtered.sorted.bam filtered.sorted.bam
     >>>
 
     output {
-        File filtered_bam = "filtered.bam"
+        File filtered_bam = "filtered.sorted.bam"
     }
 
     runtime {

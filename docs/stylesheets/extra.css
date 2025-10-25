@@ -1,21 +1,107 @@
-/* Custom CSS for ChimeraLM Documentation */
+/* Custom CSS for ChimeraLM Documentation - Modern & Fancy Edition */
 
-/* Hero section styling */
+/* ============================================
+   Typography & Headers
+   ============================================ */
+
+/* Hero section styling with custom gradient text */
 .md-typeset h1 {
   font-weight: 700;
-  color: var(--md-primary-fg-color);
+  background: linear-gradient(135deg, #6b2c91, #a66dd1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-/* Homepage hero styling */
+/* Dark mode h1 */
+[data-md-color-scheme="slate"] .md-typeset h1 {
+  background: linear-gradient(135deg, #a66dd1, #c99de8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Homepage hero styling with modern gradient */
 .md-typeset .hero {
   text-align: center;
   padding: 2rem 0;
 }
 
-/* Code block enhancements */
-.highlight pre {
+/* Smooth heading animations with purple accent */
+.md-typeset h2,
+.md-typeset h3 {
+  position: relative;
+  padding-bottom: 0.3em;
+  color: #6b2c91;
+}
+
+[data-md-color-scheme="slate"] .md-typeset h2,
+[data-md-color-scheme="slate"] .md-typeset h3 {
+  color: #a66dd1;
+}
+
+.md-typeset h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, #8b4cb8, #c99de8);
+  border-radius: 2px;
+}
+
+/* ============================================
+   Code Block Styling - Clean & Elegant
+   ============================================ */
+
+/* Clean, compact code blocks */
+.md-typeset .highlight pre {
   border-radius: 0.5rem;
-  padding: 1.5rem;
+  padding: 1rem 1.2rem;
+  margin: 1.2rem 0;
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+
+/* Code block container with subtle shadow */
+.md-typeset .highlight {
+  margin: 1.2rem 0;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  border: 1px solid var(--md-code-bg-color);
+}
+
+[data-md-color-scheme="slate"] .md-typeset .highlight {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Inline code - clean and readable */
+.md-typeset code {
+  padding: 0.2em 0.4em;
+  font-size: 0.88em;
+  border-radius: 0.3rem;
+}
+
+/* Reduce code block wrapper padding */
+.md-typeset pre > code {
+  padding: 0;
+}
+
+/* Compact tabbed code blocks */
+.md-typeset .tabbed-set > input:checked + label + .tabbed-content .highlight {
+  margin-top: 0.5rem;
+}
+
+/* Spacing around code blocks in lists */
+.md-typeset li .highlight {
+  margin: 0.8rem 0;
+}
+
+/* Admonitions with code */
+.md-typeset .admonition .highlight:last-child {
+  margin-bottom: 0.8rem;
 }
 
 /* Admonition styling */
@@ -66,13 +152,7 @@
   box-shadow: 0 4px 16px rgba(0,0,0,0.15);
 }
 
-/* Enhanced code blocks with shadows */
-.highlight {
-  border-radius: 0.75rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  margin: 1.5rem 0;
-  overflow: hidden;
-}
+/* Code block shadows are now handled above with purple theme */
 
 /* Admonition enhancements with gradient accents */
 .admonition {
@@ -151,4 +231,172 @@ html {
 
 .md-content {
   animation: fadeIn 0.5s ease-out;
+}
+
+/* ============================================
+   Modern Enhancements
+   ============================================ */
+
+/* Glassmorphism effect for cards */
+.md-typeset .admonition {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-md-color-scheme="default"] .md-typeset .admonition {
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Gradient progress indicator */
+.md-progress {
+  background: linear-gradient(90deg, var(--md-primary-fg-color), var(--md-accent-fg-color));
+  box-shadow: 0 0 10px var(--md-primary-fg-color);
+}
+
+/* Enhanced copy button with pulse animation */
+.md-clipboard {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.md-clipboard:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.md-clipboard--copied {
+  animation: pulse 0.5s ease-in-out;
+}
+
+/* Modern scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--md-primary-fg-color), var(--md-accent-fg-color));
+  border-radius: 4px;
+  transition: background 0.3s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--md-accent-fg-color);
+}
+
+/* Animated anchor links */
+.md-typeset .headerlink {
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  transform: translateX(-8px);
+}
+
+.md-typeset :hover > .headerlink {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Code block title enhancement */
+.md-typeset .highlight code[class*="language-"]::before {
+  font-size: 0.8em;
+  font-weight: 500;
+  color: var(--md-code-fg-color);
+  opacity: 0.6;
+  padding: 0.2em 0.5em;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.1);
+  margin-right: 0.5em;
+}
+
+/* Keyboard key styling */
+.md-typeset kbd {
+  background: linear-gradient(180deg, #fff, #f0f0f0);
+  border: 1px solid #ccc;
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 0.1em 0.4em;
+  font-family: 'Roboto Mono', monospace;
+}
+
+[data-md-color-scheme="slate"] .md-typeset kbd {
+  background: linear-gradient(180deg, #3a3a3a, #2a2a2a);
+  border-color: #555;
+}
+
+/* Improved table styling with hover effects */
+.md-typeset table:not([class]) tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.md-typeset table:not([class]) tbody tr:hover {
+  background-color: rgba(var(--md-primary-fg-color--rgb), 0.05);
+  transform: scale(1.01);
+}
+
+/* Enhanced footer navigation */
+.md-footer-meta {
+  background: linear-gradient(135deg, rgba(var(--md-primary-fg-color--rgb), 0.05), rgba(var(--md-accent-fg-color--rgb), 0.05));
+}
+
+/* Animated navigation tabs */
+.md-tabs__item {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.md-tabs__item:hover {
+  transform: translateY(-2px);
+}
+
+/* Modern badge styles */
+.md-typeset .badge {
+  display: inline-block;
+  padding: 0.2em 0.6em;
+  font-size: 0.85em;
+  font-weight: 500;
+  line-height: 1;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--md-primary-fg-color), var(--md-accent-fg-color));
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* Back to top button enhancement */
+.md-top {
+  background: linear-gradient(135deg, var(--md-primary-fg-color), var(--md-accent-fg-color));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.md-top:hover {
+  transform: translateY(-4px) scale(1.1);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Search box modern styling */
+.md-search__form {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s;
+}
+
+.md-search__form:hover {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.md-search__form:focus-within {
+  box-shadow: 0 0 0 3px rgba(var(--md-primary-fg-color--rgb), 0.2);
 }

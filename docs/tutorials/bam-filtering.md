@@ -15,6 +15,29 @@ Learn how to filter chimeric artifacts from BAM files using ChimeraLM prediction
 
     **Time**: ~20 minutes
 
+## Get Sample Data
+
+If you haven't already, download the sample BAM file with its index:
+
+```bash
+# Download sample BAM file with index
+wget https://github.com/ylab-hi/chimera/raw/main/tests/data/mk1c_test.sort.bam
+wget https://github.com/ylab-hi/chimera/raw/main/tests/data/mk1c_test.sort.bam.bai
+
+# Or using curl
+curl -L -o mk1c_test.sort.bam https://github.com/ylab-hi/chimera/raw/main/tests/data/mk1c_test.sort.bam
+curl -L -o mk1c_test.sort.bam.bai https://github.com/ylab-hi/chimera/raw/main/tests/data/mk1c_test.sort.bam.bai
+
+# Verify files
+ls -lh mk1c_test.sort.bam*
+```
+
+!!! info "About the Test Data"
+    The `mk1c_test.sort.bam` file contains 1000 reads subsampled from **PC3 cell line** (human prostate cancer) sequenced using **Nanopore MinION Mk1C** with whole genome amplification. All reads have SA tags (chimeric candidates), making it ideal for testing ChimeraLM filtering.
+
+!!! tip "Using Your Own Data"
+    This tutorial uses `mk1c_test.sort.bam` as an example. Replace it with your own BAM file path throughout the tutorial.
+
 ## Workflow Overview
 
 The ChimeraLM filtering workflow has three steps:
@@ -39,17 +62,17 @@ First, identify chimeric reads in your BAM file:
 
 ```bash
 # Predict chimeric reads
-chimeralm predict input.bam --gpus 1 --batch-size 24
+chimeralm predict mk1c_test.sort.bam --gpus 1 --batch-size 24
 
-# Output directory: input.bam.predictions/
-# Predictions file: input.bam.predictions/predictions.txt
+# Output directory: mk1c_test.sort.bam.predictions/
+# Predictions file: mk1c_test.sort.bam.predictions/predictions.txt
 ```
 
 ### Inspect Predictions
 
 ```bash
 # View first 10 predictions
-head input.bam.predictions/predictions.txt
+head mk1c_test.sort.bam.predictions/predictions.txt
 
 # Output format (tab-separated):
 # read_name<TAB>label
@@ -61,10 +84,10 @@ head input.bam.predictions/predictions.txt
 
 ```bash
 # Count chimeric reads (label 1)
-CHIMERIC=$(grep -c "1$" input.bam.predictions/predictions.txt)
+CHIMERIC=$(grep -c "1$" mk1c_test.sort.bam.predictions/predictions.txt)
 
 # Count biological reads (label 0)
-BIOLOGICAL=$(grep -c "0$" input.bam.predictions/predictions.txt)
+BIOLOGICAL=$(grep -c "0$" mk1c_test.sort.bam.predictions/predictions.txt)
 
 # Calculate chimera rate
 echo "Chimeric: $CHIMERIC"
@@ -89,46 +112,52 @@ Chimera rate: 23.41%
 
 Remove chimeric reads from your BAM file:
 
-=== "Default Filtering"
+=== "Basic Filtering"
 
     ```bash
     # Filter out chimeric reads (label 1), keep biological (label 0)
-    chimeralm filter input.bam input.bam.predictions/ \
-        --output-prediction filtered.bam
+    chimeralm filter mk1c_test.sort.bam mk1c_test.sort.bam.predictions/
     ```
 
-    This creates:
-    - `filtered.bam`: BAM file with only biological reads (label 0)
+    This automatically creates:
+    - `mk1c_test.sort.filtered.bam` - Unsorted filtered reads
+    - `mk1c_test.sort.filtered.sorted.bam` - **Final sorted output**
+    - `mk1c_test.sort.filtered.sorted.bam.bai` - BAM index
 
-=== "Custom Output Directory"
+=== "With Predictions Export"
 
     ```bash
-    # Specify custom output location
-    chimeralm filter input.bam input.bam.predictions/ \
-        --output-prediction output/clean.bam
+    # Filter AND export consolidated predictions.txt
+    chimeralm filter mk1c_test.sort.bam mk1c_test.sort.bam.predictions/ --output-prediction
     ```
 
-=== "Keep Original Directory Structure"
+    Same BAM output, plus:
+    - `mk1c_test.sort.bam.predictions/predictions.txt` - Consolidated predictions
+
+=== "Your Own Data"
 
     ```bash
-    # Output to same directory as input
-    chimeralm filter input.bam input.bam.predictions/ \
-        --output-prediction $(dirname input.bam)/filtered.bam
+    # Replace with your BAM file
+    chimeralm filter your_data.bam your_data.bam.predictions/
     ```
+
+    Output: `your_data.filtered.sorted.bam`
 
 ### Expected Output
 
 ```bash
 # Filter command output:
-Reading predictions from input.bam.predictions/predictions.txt...
-Found 10000 predictions (2341 chimeric, 7659 biological)
-Filtering input.bam...
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:15
-Wrote 7659 reads to filtered.bam
-Sorting filtered BAM...
-Indexing filtered BAM...
-Done! Filtered BAM: filtered.bam
+INFO - Filtering mk1c_test.sort.bam by predictions from mk1c_test.sort.bam.predictions/
+INFO - Loaded 1000 predictions from mk1c_test.sort.bam.predictions/
+INFO - Biological: 766 (76.6%), Chimera artifact: 234 (23.4%)
+INFO - Sorting mk1c_test.sort.filtered.bam
+INFO - Indexing mk1c_test.sort.filtered.sorted.bam
 ```
+
+**Files created:**
+- `mk1c_test.sort.filtered.sorted.bam` - Final sorted output (use this!)
+- `mk1c_test.sort.filtered.sorted.bam.bai` - Index file
+- `mk1c_test.sort.filtered.bam` - Intermediate unsorted file (can be deleted)
 
 ## Step 3: Verify Filtering Results
 
@@ -136,13 +165,13 @@ Done! Filtered BAM: filtered.bam
 
 ```bash
 # Count reads in original BAM
-ORIGINAL=$(samtools view -c input.bam)
+ORIGINAL=$(samtools view -c mk1c_test.sort.bam)
 
 # Count reads in filtered BAM
 FILTERED=$(samtools view -c filtered.bam)
 
 # Count reads with SA tags in original (chimeric candidates)
-SA_TAGS=$(samtools view input.bam | grep -c "SA:Z:")
+SA_TAGS=$(samtools view mk1c_test.sort.bam | grep -c "SA:Z:")
 
 echo "Original reads: $ORIGINAL"
 echo "Filtered reads: $FILTERED"
@@ -150,12 +179,12 @@ echo "Removed reads: $((ORIGINAL - FILTERED))"
 echo "Reads with SA tags: $SA_TAGS"
 ```
 
-Expected output:
+Expected output for test data:
 ```text
-Original reads: 50000
-Filtered reads: 47659
-Removed reads: 2341
-Reads with SA tags: 10000
+Original reads: 1000
+Filtered reads: 766
+Removed reads: 234
+Reads with SA tags: 1000
 ```
 
 !!! note "Read Count Math"
@@ -262,7 +291,8 @@ Process multiple BAM files:
 for bam in *.bam; do
     echo "Processing $bam..."
     chimeralm predict $bam --gpus 1
-    chimeralm filter $bam ${bam}.predictions/ --output-prediction filtered_${bam}
+    chimeralm filter $bam ${bam}.predictions/
+    # Output: ${bam%.bam}.filtered.sorted.bam
 done
 
 echo "All files filtered!"
@@ -280,8 +310,8 @@ Use GNU parallel for faster processing:
 # Predict in parallel
 ls *.bam | parallel -j 4 'chimeralm predict {} --gpus 1'
 
-# Filter in parallel
-ls *.bam | parallel -j 8 'chimeralm filter {} {}.predictions/ --output-prediction filtered_{}'
+# Filter in parallel (creates .filtered.sorted.bam for each)
+ls *.bam | parallel -j 8 'chimeralm filter {} {}.predictions/'
 ```
 
 ## Troubleshooting
@@ -296,8 +326,8 @@ ls *.bam | parallel -j 8 'chimeralm filter {} {}.predictions/ --output-predictio
 
     **Solution**:
     ```bash
-    # Check for SA tags
-    samtools view input.bam | grep "SA:Z:" | wc -l
+    # Check for SA tags in your BAM file
+    samtools view your_data.bam | grep "SA:Z:" | wc -l
 
     # If count is 0:
     # Your BAM has no chimeric candidates (expected for non-WGA data)
@@ -315,15 +345,17 @@ ls *.bam | parallel -j 8 'chimeralm filter {} {}.predictions/ --output-predictio
     **Solution**:
     ```bash
     # 1. Check if using correct model
-    chimeralm predict input.bam --gpus 1  # Uses default pretrained model
+    chimeralm predict your_data.bam --gpus 1  # Uses default pretrained model
 
     # 2. Verify input data quality
-    samtools stats input.bam | grep "^SN"
+    samtools stats your_data.bam | grep "^SN"
 
-    # 3. Try with test data
-    chimeralm predict tests/data/mk1c_test.sort.bam --gpus 1
+    # 3. Try with test data to verify model works
+    # Download test data first (see "Get Sample Data" section above)
+    chimeralm predict mk1c_test.sort.bam --gpus 1
 
-    # 4. If still all chimeric, contact support with your data
+    # 4. If test data works but yours doesn't, check data quality
+    # 5. If still all chimeric, contact support with your data
     ```
 
 ### Filtered BAM Same Size as Input
@@ -350,18 +382,18 @@ ls *.bam | parallel -j 8 'chimeralm filter {} {}.predictions/ --output-predictio
     1. **Predictions directory not found**
        ```bash
        # Ensure predictions directory exists
-       ls input.bam.predictions/predictions.txt
+       ls your_data.bam.predictions/predictions.txt
        ```
 
     2. **BAM file corrupted**
        ```bash
        # Verify BAM integrity
-       samtools quickcheck input.bam
+       samtools quickcheck your_data.bam
        ```
 
     3. **Insufficient disk space**
        ```bash
-       # Check available space
+       # Check available space (need ~2x input BAM size)
        df -h .
        ```
 
@@ -387,25 +419,28 @@ ls *.bam | parallel -j 8 'chimeralm filter {} {}.predictions/ --output-predictio
 # Complete filtering pipeline with checks
 BAM="input.bam"
 PRED_DIR="${BAM}.predictions"
-FILTERED="filtered_${BAM}"
+FILTERED="${BAM%.bam}.filtered.sorted.bam"
 
 # Step 1: Predict
 chimeralm predict $BAM --gpus 1 || { echo "Prediction failed"; exit 1; }
 
-# Step 2: Check predictions
-PRED_COUNT=$(wc -l < ${PRED_DIR}/predictions.txt)
-if [ $PRED_COUNT -eq 0 ]; then
-    echo "No predictions generated - input has no chimeric candidates"
-    exit 0
+# Step 2: Check predictions exist
+if [ ! -d "$PRED_DIR" ]; then
+    echo "No predictions directory - prediction may have failed"
+    exit 1
 fi
 
-# Step 3: Filter
-chimeralm filter $BAM $PRED_DIR --output-prediction $FILTERED || { echo "Filtering failed"; exit 1; }
+# Step 3: Filter (creates .filtered.sorted.bam automatically)
+chimeralm filter $BAM $PRED_DIR || { echo "Filtering failed"; exit 1; }
 
-# Step 4: Verify
-samtools quickcheck $FILTERED || { echo "Filtered BAM is corrupted"; exit 1; }
-
-echo "Filtering complete: $FILTERED"
+# Step 4: Verify output exists and is valid
+if [ -f "$FILTERED" ]; then
+    samtools quickcheck $FILTERED || { echo "Filtered BAM is corrupted"; exit 1; }
+    echo "Filtering complete: $FILTERED"
+else
+    echo "Error: Filtered BAM not created"
+    exit 1
+fi
 ```
 
 ## Next Steps

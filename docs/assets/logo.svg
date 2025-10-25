@@ -3,8 +3,7 @@
     rect { shape-rendering: crispEdges; }
   </style>
 
-  <!-- Background -->
-  <rect width="32" height="32" fill="#f8f9fa"/>
+  <!-- Transparent background (removed white background) -->
 
   <!-- Purple color palette inspired by the original logo -->
   <defs>

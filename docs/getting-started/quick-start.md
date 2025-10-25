@@ -40,7 +40,7 @@ ls -lh mk1c_test.sort.bam*
 ```
 
 !!! tip "About the Sample Data"
-    The sample file `mk1c_test.sort.bam` contains 1000 reads with SA tags (chimeric candidates) from a PacBio WGA dataset. It's perfect for testing ChimeraLM predictions.
+    The sample file `mk1c_test.sort.bam` contains 1000 reads with SA tags (chimeric candidates) subsampled from PC3 cell line sequenced by Nanopore MinION Mk1C. It's perfect for testing ChimeraLM predictions.
 
 ## Step 2: Run Your First Prediction
 
@@ -143,18 +143,20 @@ Now that you've completed the basics:
 **Filter your BAM file** to remove chimeric reads:
 
 ```bash
-chimeralm filter mk1c_test.sort.bam \
-    mk1c_test.sort.bam.predictions/ \
-    --output-prediction filtered.bam
+chimeralm filter mk1c_test.sort.bam mk1c_test.sort.bam.predictions/
 ```
 
-This creates `filtered.bam` with only biological reads (label 0).
+This creates:
+- `mk1c_test.sort.filtered.bam` - Filtered reads (unsorted)
+- `mk1c_test.sort.filtered.sorted.bam` - Sorted and indexed final output
+
+For comprehensive filtering guidance including verification, troubleshooting, and batch processing, see the [Filtering BAM Files Tutorial](../tutorials/bam-filtering.md).
 
 ### For Learning
 
-- **Fine-tune on your data**: See [Fine-Tuning Tutorial](../tutorials/fine-tuning.md)
 - **Optimize performance**: See [Performance Optimization](../tutorials/performance-optimization.md)
 - **Integrate into pipelines**: See [Pipeline Integration](../tutorials/pipeline-integration.md)
+- **Use the web interface**: See [Web Command](../reference/cli.md#web-command)
 
 ### For Development
 

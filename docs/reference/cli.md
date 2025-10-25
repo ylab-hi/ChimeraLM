@@ -8,7 +8,7 @@ ChimeraLM provides a Typer-based CLI with three main commands:
 
 - **`predict`**: Predict chimeric reads in BAM files
 - **`filter`**: Filter BAM files based on predictions
-- **`finetune`**: Fine-tune the model on custom data
+- **`web`**: Launch the web interface for visualization
 
 ## Command Structure
 
@@ -18,7 +18,7 @@ chimeralm [OPTIONS] COMMAND [ARGS]...
 
 ## Global Options
 
-### `--version`
+### `--version`, `-V`
 
 Display ChimeraLM version information.
 
@@ -31,7 +31,7 @@ chimeralm --version
 ChimeraLM v0.1.0
 ```
 
-### `--help`
+### `--help`, `-h`
 
 Display help information for all commands.
 
@@ -48,12 +48,12 @@ Predict whether reads in a BAM file are chimeric (label 1) or biological (label 
 ### Syntax
 
 ```bash
-chimeralm predict [OPTIONS] BAM_FILE
+chimeralm predict [OPTIONS] DATA_PATH
 ```
 
 ### Arguments
 
-#### `BAM_FILE`
+#### `DATA_PATH`
 
 **Type:** Path (required)
 
@@ -70,49 +70,47 @@ chimeralm predict /path/to/data/sample.bam
 
 ### Options
 
-#### `--ckpt PATH`
-
-**Type:** Path
-**Default:** `yangliz5/chimeralm` (Hugging Face Hub)
-
-Path to model checkpoint file or Hugging Face model ID.
-
-**Examples:**
-```bash
-# Use default pretrained model
-chimeralm predict input.bam
-
-# Use local checkpoint
-chimeralm predict input.bam --ckpt /path/to/checkpoint.ckpt
-
-# Use specific Hugging Face model
-chimeralm predict input.bam --ckpt username/model-name
-```
-
-#### `--gpus INTEGER`
+#### `--gpus`, `-g`
 
 **Type:** Integer
-**Default:** Auto-detect (1 if GPU available, 0 otherwise)
+**Default:** `0` (CPU mode)
 
 Number of GPUs to use for inference.
 
 - `0`: CPU mode
 - `1`: Single GPU (CUDA or MPS)
-- `>1`: Currently not supported (use `1`)
+- `>1`: Multiple GPUs (if supported)
 
 **Examples:**
 ```bash
-# Auto-detect (recommended)
+# CPU mode (default)
 chimeralm predict input.bam
 
-# Force CPU mode
-chimeralm predict input.bam --gpus 0
-
-# Use GPU
+# Use single GPU
 chimeralm predict input.bam --gpus 1
+chimeralm predict input.bam -g 1
 ```
 
-#### `--batch-size INTEGER`
+#### `--output`, `-o`
+
+**Type:** Path
+**Default:** `{DATA_PATH}.predictions/`
+
+Output directory for predictions.
+
+**Examples:**
+```bash
+# Default output location
+chimeralm predict input.bam
+# Creates: input.bam.predictions/predictions.txt
+
+# Custom output directory
+chimeralm predict input.bam --output results/
+chimeralm predict input.bam -o predictions/
+# Creates: results/predictions.txt or predictions/predictions.txt
+```
+
+#### `--batch-size`, `-b`
 
 **Type:** Integer
 **Default:** `12`
@@ -132,12 +130,13 @@ chimeralm predict input.bam
 
 # Small batch for limited memory
 chimeralm predict input.bam --batch-size 8
+chimeralm predict input.bam -b 8
 
 # Large batch for high-memory GPU
-chimeralm predict input.bam --gpus 1 --batch-size 48
+chimeralm predict input.bam -g 1 -b 48
 ```
 
-#### `--workers INTEGER`
+#### `--workers`, `-w`
 
 **Type:** Integer
 **Default:** `0` (main thread only)
@@ -147,6 +146,7 @@ Number of worker processes for data loading.
 **Recommendations:**
 - CPU mode: 4-8 workers
 - GPU mode: 2-4 workers
+- Default: 0 (single-threaded)
 
 **Examples:**
 ```bash
@@ -154,52 +154,32 @@ Number of worker processes for data loading.
 chimeralm predict input.bam
 
 # Multi-threaded CPU
-chimeralm predict input.bam --gpus 0 --workers 8
+chimeralm predict input.bam -g 0 -w 8
 
 # GPU with parallel data loading
-chimeralm predict input.bam --gpus 1 --workers 4
+chimeralm predict input.bam -g 1 -w 4
 ```
 
-#### `--max-sample INTEGER`
+#### `--random`, `-r`
 
-**Type:** Integer
-**Default:** `None` (process all reads)
+**Type:** Boolean flag
+**Default:** `False` (deterministic)
 
-Maximum number of reads to process. Useful for testing or processing large files in chunks.
+Make predictions non-deterministic. By default, predictions are deterministic for reproducibility.
 
 **Examples:**
 ```bash
-# Process all reads
+# Deterministic predictions (default)
 chimeralm predict input.bam
 
-# Process first 1000 reads
-chimeralm predict input.bam --max-sample 1000
-
-# Process first 100K reads for testing
-chimeralm predict input.bam --max-sample 100000
+# Non-deterministic predictions
+chimeralm predict input.bam --random
+chimeralm predict input.bam -r
 ```
 
-#### `--output PATH`
+#### `--verbose`, `-v`
 
-**Type:** Path
-**Default:** `{BAM_FILE}.predictions/`
-
-Output directory for predictions.
-
-**Examples:**
-```bash
-# Default output location
-chimeralm predict input.bam
-# Creates: input.bam.predictions/predictions.txt
-
-# Custom output directory
-chimeralm predict input.bam --output results/predictions/
-# Creates: results/predictions/predictions.txt
-```
-
-#### `--verbose / --no-verbose`
-
-**Type:** Boolean
+**Type:** Boolean flag
 **Default:** `False`
 
 Enable verbose logging for debugging.
@@ -211,6 +191,7 @@ chimeralm predict input.bam
 
 # Verbose mode
 chimeralm predict input.bam --verbose
+chimeralm predict input.bam -v
 ```
 
 ### Output Format
@@ -243,6 +224,11 @@ chimeralm predict input.bam \
     --verbose
 ```
 
+**Short form:**
+```bash
+chimeralm predict input.bam -g 1 -b 24 -w 4 -o predictions/ -v
+```
+
 ---
 
 ## `filter` Command
@@ -252,245 +238,149 @@ Filter BAM file to remove chimeric reads based on ChimeraLM predictions.
 ### Syntax
 
 ```bash
-chimeralm filter [OPTIONS] BAM_FILE PREDICTIONS_DIR
+chimeralm filter [OPTIONS] BAM_PATH PREDICTIONS_PATH
 ```
 
 ### Arguments
 
-#### `BAM_FILE`
+#### `BAM_PATH`
 
 **Type:** Path (required)
 
 Path to input BAM file (same as used for prediction).
 
-#### `PREDICTIONS_DIR`
+#### `PREDICTIONS_PATH`
 
 **Type:** Path (required)
 
-Path to predictions directory containing `predictions.txt`.
+Path to predictions directory or predictions file.
 
-**Example:**
+**Examples:**
 ```bash
+# Using predictions directory
 chimeralm filter input.bam input.bam.predictions/
+
+# Using predictions file directly
+chimeralm filter input.bam input.bam.predictions/predictions.txt
 ```
 
 ### Options
 
-#### `--output-prediction PATH`
+#### `--output-prediction`, `-p`
 
-**Type:** Path
-**Default:** `{BAM_FILE}.filtered.bam`
+**Type:** Boolean flag
+**Default:** `False`
 
-Path to output filtered BAM file.
+Write a consolidated predictions.txt file to the predictions directory. This merges all .txt files in the folder into a single file.
+
+**Note:** The filtered BAM file is **always created** regardless of this flag. This flag only controls whether to write the consolidated predictions.txt.
 
 **Examples:**
 ```bash
-# Default output
+# Filter BAM (creates filtered.bam automatically)
 chimeralm filter input.bam predictions/
-# Creates: input.bam.filtered.bam
 
-# Custom output path
-chimeralm filter input.bam predictions/ --output-prediction clean.bam
-# Creates: clean.bam
+# Filter BAM AND write consolidated predictions.txt
+chimeralm filter input.bam predictions/ --output-prediction
+chimeralm filter input.bam predictions/ -p
+```
+
+!!! info "Output Files Created"
+    The filter command always creates:
+    - `{BAM_PATH}.filtered.bam` - Filtered reads (unsorted)
+    - `{BAM_PATH}.filtered.sorted.bam` - Sorted filtered BAM
+    - `{BAM_PATH}.filtered.sorted.bam.bai` - BAM index
+
+    Example: `input.bam` → `input.filtered.sorted.bam`
+
+#### `--verbose`, `-v`
+
+**Type:** Boolean flag
+**Default:** `False`
+
+Enable verbose logging.
+
+**Examples:**
+```bash
+# Normal logging
+chimeralm filter input.bam predictions/ -p
+
+# Verbose mode
+chimeralm filter input.bam predictions/ -p -v
 ```
 
 ### Output
 
-Creates three files:
+**Always created:**
+- `{BAM_PATH}.filtered.bam` - Unsorted filtered BAM
+- `{BAM_PATH}.filtered.sorted.bam` - Sorted filtered BAM (final output)
+- `{BAM_PATH}.filtered.sorted.bam.bai` - BAM index
+- Console output with summary statistics
 
-1. **Filtered BAM**: Contains only biological reads (label 0)
-2. **BAM index**: `.bam.bai` file for indexed access
-3. **Sorted BAM**: Output is sorted and indexed
+**With `--output-prediction` flag:**
+- Additionally creates: `predictions.txt` in the predictions directory
+- Consolidates all .txt files into a single predictions file
 
 ### Complete Example
 
 ```bash
-# Predict
-chimeralm predict input.bam --gpus 1
+# Step 1: Predict
+chimeralm predict input.bam -g 1
 
-# Filter
-chimeralm filter input.bam input.bam.predictions/ \
-    --output-prediction clean.bam
+# Step 2: Filter (creates sorted BAM automatically)
+chimeralm filter input.bam input.bam.predictions/
 
-# Verify
-samtools view -c clean.bam
+# Step 3: Verify output
+samtools view -c input.filtered.sorted.bam
 ```
 
 ---
 
-## `finetune` Command
+## `web` Command
 
-Fine-tune ChimeraLM on custom labeled data.
+Launch the ChimeraLM web interface for interactive visualization and analysis.
 
 ### Syntax
 
 ```bash
-chimeralm finetune [OPTIONS]
+chimeralm web [OPTIONS]
 ```
 
 ### Options
 
-#### `--train-data PATH`
+Currently, the `web` command has no additional options besides `--help`.
 
-**Type:** Path (required)
-
-Path to training BAM file with labeled reads.
-
-**Example:**
-```bash
-chimeralm finetune --train-data labeled_data.bam
-```
-
-#### `--val-data PATH`
-
-**Type:** Path
-**Default:** `None` (auto-split from train-data)
-
-Path to validation BAM file.
-
-**Example:**
-```bash
-chimeralm finetune --train-data train.bam --val-data val.bam
-```
-
-#### `--test-data PATH`
-
-**Type:** Path
-**Default:** `None` (auto-split from train-data)
-
-Path to test BAM file.
-
-**Example:**
-```bash
-chimeralm finetune \
-    --train-data train.bam \
-    --val-data val.bam \
-    --test-data test.bam
-```
-
-#### `--epochs INTEGER`
-
-**Type:** Integer
-**Default:** `50`
-
-Number of training epochs.
-
-**Example:**
-```bash
-chimeralm finetune --train-data data.bam --epochs 100
-```
-
-#### `--batch-size INTEGER`
-
-**Type:** Integer
-**Default:** `12`
-
-Training batch size.
-
-**Example:**
-```bash
-chimeralm finetune --train-data data.bam --batch-size 32
-```
-
-#### `--gpus INTEGER`
-
-**Type:** Integer
-**Default:** Auto-detect
-
-Number of GPUs for training.
-
-**Example:**
-```bash
-chimeralm finetune --train-data data.bam --gpus 1
-```
-
-#### `--seed INTEGER`
-
-**Type:** Integer
-**Default:** `None` (random)
-
-Random seed for reproducibility.
-
-**Example:**
-```bash
-chimeralm finetune --train-data data.bam --seed 42
-```
-
-#### `--no-test`
-
-**Type:** Boolean flag
-**Default:** `False` (test is run)
-
-Skip final test evaluation.
-
-**Example:**
-```bash
-chimeralm finetune --train-data data.bam --no-test
-```
-
-#### `--model STRING`
-
-**Type:** String
-**Default:** `chimeralm`
-
-Model architecture (hidden option for advanced users).
-
-**Choices:** `chimeralm`, `cnn`, `hyena`, `mamba`
-
-**Example:**
-```bash
-chimeralm finetune --train-data data.bam --model cnn
-```
-
-#### `-r, --override KEY=VALUE`
-
-**Type:** String (repeatable)
-
-Hydra configuration overrides for advanced customization.
-
-**Examples:**
-```bash
-# Single override
-chimeralm finetune --train-data data.bam -r model.optimizer.lr=0.0001
-
-# Multiple overrides
-chimeralm finetune --train-data data.bam \
-    -r model.optimizer.lr=0.0001 \
-    -r trainer.precision=16-mixed \
-    -r data.num_workers=8
-```
-
-**Common Overrides:**
-- `model.optimizer.lr=FLOAT`: Learning rate
-- `model.optimizer.weight_decay=FLOAT`: Weight decay
-- `trainer.precision=STRING`: Precision mode (`16-mixed`, `32`)
-- `data.num_workers=INT`: Data loading workers
-- `data.train_val_test_split=LIST`: Split ratios (e.g., `[0.8,0.1,0.1]`)
-
-### Complete Example
+### Usage
 
 ```bash
-chimeralm finetune \
-    --train-data labeled_data.bam \
-    --epochs 100 \
-    --batch-size 32 \
-    --gpus 1 \
-    --seed 42 \
-    -r model.optimizer.lr=0.0001 \
-    -r trainer.precision=16-mixed
+# Launch web interface
+chimeralm web
 ```
 
-### Output
+**Expected behavior:**
+- Starts a local web server
+- Opens browser to the ChimeraLM web interface
+- Provides interactive tools for prediction and visualization
 
-Training checkpoints and logs are saved to:
+**Typical output:**
+```text
+Starting ChimeraLM web interface...
+Server running at: http://localhost:8000
+Open your browser to visualize predictions
+Press Ctrl+C to stop
 ```
-logs/train/runs/YYYY-MM-DD_HH-MM-SS/
-├── checkpoints/
-│   ├── best.ckpt          # Best model by validation loss
-│   └── last.ckpt          # Latest checkpoint
-├── config.yaml            # Full configuration
-└── tensorboard/           # TensorBoard logs
-```
+
+### Web Interface Features
+
+The web interface typically provides:
+
+- **Interactive prediction**: Upload BAM files for prediction
+- **Visualization**: View prediction results graphically
+- **Batch processing**: Process multiple files
+- **Export results**: Download predictions and filtered BAM files
+
+!!! tip "Web Interface Access"
+    If the browser doesn't open automatically, manually navigate to `http://localhost:8000` (or the URL shown in the terminal).
 
 ---
 
@@ -513,49 +403,30 @@ Control which GPUs are visible to ChimeraLM.
 
 ```bash
 # Use GPU 0
-CUDA_VISIBLE_DEVICES=0 chimeralm predict input.bam
+CUDA_VISIBLE_DEVICES=0 chimeralm predict input.bam -g 1
 
 # Use GPU 1
-CUDA_VISIBLE_DEVICES=1 chimeralm predict input.bam
+CUDA_VISIBLE_DEVICES=1 chimeralm predict input.bam -g 1
 
-# Use multiple GPUs (not fully supported yet)
-CUDA_VISIBLE_DEVICES=0,1 chimeralm predict input.bam
-```
-
-### `WANDB_API_KEY`
-
-Weights & Biases API key for experiment tracking during fine-tuning.
-
-```bash
-export WANDB_API_KEY="your_key_here"
-chimeralm finetune --train-data data.bam
-```
-
-### `HF_HOME`
-
-Hugging Face cache directory for downloaded models.
-
-```bash
-export HF_HOME="/path/to/cache"
-chimeralm predict input.bam
+# Use multiple GPUs
+CUDA_VISIBLE_DEVICES=0,1 chimeralm predict input.bam -g 2
 ```
 
 ---
 
 ## Common Workflows
 
-### Basic Prediction
+### Basic Prediction and Filtering
 
 ```bash
 # 1. Predict
-chimeralm predict input.bam --gpus 1
+chimeralm predict input.bam -g 1 -b 24
 
-# 2. Filter
-chimeralm filter input.bam input.bam.predictions/ \
-    --output-prediction filtered.bam
+# 2. Filter (automatically creates sorted BAM)
+chimeralm filter input.bam input.bam.predictions/
 
 # 3. Verify
-samtools view -c filtered.bam
+samtools view -c input.filtered.sorted.bam
 ```
 
 ### Batch Processing
@@ -564,30 +435,57 @@ samtools view -c filtered.bam
 # Process multiple files
 for bam in data/*.bam; do
     echo "Processing $bam..."
-    chimeralm predict $bam --gpus 1 --batch-size 24
-    chimeralm filter $bam ${bam}.predictions/ \
-        --output-prediction filtered_$(basename $bam)
+    chimeralm predict $bam -g 1 -b 24
+    chimeralm filter $bam ${bam}.predictions/
+    # Output: ${bam%.bam}.filtered.sorted.bam
 done
 ```
 
-### Fine-Tuning Workflow
+### Using Web Interface
 
 ```bash
-# 1. Fine-tune
-chimeralm finetune --train-data labeled.bam --epochs 100 --gpus 1
+# Launch web interface for interactive analysis
+chimeralm web
 
-# 2. Find checkpoint
-CKPT=$(ls -t logs/train/runs/*/checkpoints/best.ckpt | head -1)
-
-# 3. Predict with fine-tuned model
-chimeralm predict input.bam --ckpt $CKPT --gpus 1
+# Access at http://localhost:8000
+# Upload BAM files through the web UI
 ```
+
+### High-Performance Prediction
+
+```bash
+# Maximize GPU utilization
+chimeralm predict input.bam \
+    --gpus 1 \
+    --batch-size 64 \
+    --workers 4 \
+    --output predictions/
+
+# Then filter (creates sorted BAM)
+chimeralm filter input.bam predictions/
+```
+
+---
+
+## Shell Completion
+
+Install shell completion for easier command usage:
+
+```bash
+# Install completion
+chimeralm --install-completion
+
+# Show completion script
+chimeralm --show-completion
+```
+
+Supports: Bash, Zsh, Fish, PowerShell
 
 ---
 
 ## See Also
 
 - [Quick Start Tutorial](../getting-started/quick-start.md)
-- [Fine-Tuning Tutorial](../tutorials/fine-tuning.md)
 - [Performance Optimization](../tutorials/performance-optimization.md)
+- [BAM Filtering Tutorial](../tutorials/bam-filtering.md)
 - [Models API Reference](models.md)

@@ -8,29 +8,54 @@ theme:
   name: material
   palette:
     # Light mode
-    - scheme: default
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
       primary: indigo
       accent: teal
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     # Dark mode
-    - scheme: slate
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
       primary: indigo
       accent: teal
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
+  font:
+    text: Roboto
+    code: Roboto Mono
+  language: en
   features:
+    # Navigation
     - navigation.tabs          # Top-level sections as tabs
+    - navigation.tabs.sticky   # Sticky navigation tabs
     - navigation.sections      # Expandable sections
+    - navigation.expand        # Expand all sections by default
+    - navigation.path          # Show breadcrumb path
+    - navigation.indexes       # Allow index pages for sections
     - navigation.instant       # SPA-like instant loading
+    - navigation.instant.progress  # Show progress bar for instant loading
     - navigation.tracking      # Update URL on scroll
     - navigation.top           # Back-to-top button
+    - navigation.footer        # Footer with prev/next navigation
+    - toc.follow               # TOC follows scroll
+    - toc.integrate            # Integrate TOC into navigation
+
+    # Search
     - search.highlight         # Highlight search terms
     - search.suggest           # Search suggestions
+    - search.share             # Share search results
+
+    # Content
     - content.code.copy        # Copy button on code blocks
+    - content.code.select      # Select code blocks
+    - content.code.annotate    # Code annotations
     - content.tabs.link        # Linked content tabs
+    - content.tooltips         # Improved tooltips
+    - content.action.edit      # Edit button on pages
+    - content.action.view      # View source button
   icon:
     repo: fontawesome/brands/github
   logo: assets/logo.svg
@@ -43,7 +68,16 @@ extra_css:
 extra_javascript:
   - https://unpkg.com/mermaid@10/dist/mermaid.min.js
 
-# Social cards for better link previews
+# Announcement bar for important updates
+# Uncomment and customize when needed:
+# theme:
+#   custom_dir: overrides
+# extra:
+#   announcement:
+#     text: "🎉 New release! ChimeraLM v0.2.0 with improved accuracy"
+#     link: https://github.com/ylab-hi/chimera/releases
+
+# Social cards and metadata
 extra:
   social:
     - icon: fontawesome/brands/github
@@ -54,6 +88,15 @@ extra:
       name: ChimeraLM on PyPI
   generator: false  # Remove "Made with Material for MkDocs"
 
+  # Analytics (uncomment when ready)
+  # analytics:
+  #   provider: google
+  #   property: G-XXXXXXXXXX
+
+  # Version selector (for when you have multiple versions)
+  # version:
+  #   provider: mike
+
 # Navigation structure based on contracts/nav-structure.yaml
 nav:
   - Home: index.md
@@ -62,20 +105,21 @@ nav:
       - Quick Start: getting-started/quick-start.md
       - Troubleshooting: getting-started/troubleshooting.md
   - Tutorials:
-      - Fine-Tuning Models: tutorials/fine-tuning.md
-      - Performance Optimization: tutorials/performance-optimization.md
       - Filtering BAM Files: tutorials/bam-filtering.md
+      - Web Interface: tutorials/web-interface.md
+      - Performance Optimization: tutorials/performance-optimization.md
       - Pipeline Integration: tutorials/pipeline-integration.md
   - Reference:
       - CLI Commands: reference/cli.md
-      - Models API: reference/models.md
-      - Data API: reference/data.md
-      - Utils API: reference/utils.md
-  - Architecture:
-      - Overview: architecture/overview.md
-      - Model Design: architecture/model-design.md
-      - Data Pipeline: architecture/data-pipeline.md
-      - Training Process: architecture/training.md
+      - API Reference:
+          - Models API: reference/models.md
+          - Data API: reference/data.md
+          - Utils API: reference/utils.md
+      - Architecture:
+          - Overview: architecture/overview.md
+          - Model Design: architecture/model-design.md
+          - Data Pipeline: architecture/data-pipeline.md
+          - Training Process: architecture/training.md
   - Contributing:
       - Development Setup: contributing/development-setup.md
       - Testing: contributing/testing.md
@@ -105,9 +149,14 @@ plugins:
 
 # Markdown extensions
 markdown_extensions:
-  # Syntax highlighting
+  # Syntax highlighting with advanced features
   - pymdownx.highlight:
       anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+      auto_title: false
+      linenums: false
+  - pymdownx.inlinehilite
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid
@@ -117,21 +166,49 @@ markdown_extensions:
   # Tabbed content
   - pymdownx.tabbed:
       alternate_style: true
+      combine_header_slug: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
 
   # Icons and emojis
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
-  # Admonitions
+  # Admonitions with collapsible support
   - admonition
   - pymdownx.details
 
   # Markdown enhancements
   - attr_list
   - md_in_html
-  - pymdownx.snippets
+  - pymdownx.snippets:
+      check_paths: false
   - pymdownx.tasklist:
       custom_checkbox: true
+      clickable_checkbox: true
   - pymdownx.keys
   - footnotes
+  - tables
+  - def_list
+
+  # Advanced typography
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.smartsymbols
+
+  # Better formatting
+  - pymdownx.betterem:
+      smart_enable: all
+
+  # Table of contents
+  - toc:
+      permalink: true
+      permalink_title: Anchor link to this section
+      toc_depth: 3
+
+  # Abbreviations
+  - abbr
