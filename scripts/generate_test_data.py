@@ -5,6 +5,7 @@
 #     "typer",
 # ]
 # ///
+from collections import defaultdict
 import random
 from pathlib import Path
 from typer import Typer
@@ -41,50 +42,44 @@ def generate_test_data(
     # the output bam include number_chimera_artifact_reads + number_chimeric_reads_not_in_chimera_artifacts + number_non_chimeric_reads
 
     # Collect reads from different categories
-    chimeric_artifact_reads: set[pysam.AlignedSegment] = set()
-    chimeric_non_artifact_reads: set[pysam.AlignedSegment] = set()
-    non_chimeric_reads: set[pysam.AlignedSegment] = set()
+    chimeric_artifact_reads: dict[str, list[pysam.AlignedSegment]] = defaultdict(list)
+    chimeric_non_artifact_reads: dict[str, list[pysam.AlignedSegment]] = defaultdict(list)
+    non_chimeric_reads: dict[str, list[pysam.AlignedSegment]] = defaultdict(list)
 
     with pysam.AlignmentFile(input_bam.as_posix(), "rb") as bam_in:
         for read in bam_in.fetch(until_eof=True):
             if is_chimeric(read):
                 if read.query_name in chimera_artifacts:
-                    chimeric_artifact_reads.add(read)
+                    chimeric_artifact_reads[read.query_name].append(read)
                 else:
-                    chimeric_non_artifact_reads.add(read)
+                    chimeric_non_artifact_reads[read.query_name].append(read)
             else:
-                non_chimeric_reads.add(read)
+                non_chimeric_reads[read.query_name].append(read)
 
     # Sample the required number of reads from each category
-    sampled_chimeric_artifacts = random.sample(
-        chimeric_artifact_reads,
-        min(number_chimera_artifact_reads, len(chimeric_artifact_reads))
-    )
-    sampled_chimeric_non_artifacts = random.sample(
-        chimeric_non_artifact_reads,
-        min(number_chimeric_reads_not_in_chimera_artifacts, len(chimeric_non_artifact_reads))
-    )
-    sampled_non_chimeric = random.sample(
-        non_chimeric_reads,
-        min(number_non_chimeric_reads, len(non_chimeric_reads))
-    )
+    sampled_chimeric_artifacts =random.sample(chimeric_artifact_reads.keys(), number_chimera_artifact_reads)
+    sampled_chimeric_non_artifacts = random.sample(chimeric_non_artifact_reads.keys(), number_chimeric_reads_not_in_chimera_artifacts)
+    sampled_non_chimeric = random.sample(non_chimeric_reads.keys(), number_non_chimeric_reads)
 
     # Write the sampled reads to the output BAM file
-    with pysam.AlignmentFile(input_bam, "rb") as bam_in:
-        with pysam.AlignmentFile(output_bam, "wb", template=bam_in) as bam_out:
+    with pysam.AlignmentFile(input_bam.as_posix(), "rb") as bam_in:
+        with pysam.AlignmentFile(output_bam.as_posix(), "wb", template=bam_in) as bam_out:
             # Write all sampled reads
-            for read in sampled_chimeric_artifacts:
-                bam_out.write(read)
-            for read in sampled_chimeric_non_artifacts:
-                bam_out.write(read)
-            for read in sampled_non_chimeric:
-                bam_out.write(read)
+            for read_name in sampled_chimeric_artifacts:
+                for read in chimeric_artifact_reads[read_name]:
+                    bam_out.write(read)
+            for read_name in sampled_chimeric_non_artifacts:
+                for read in chimeric_non_artifact_reads[read_name]:
+                    bam_out.write(read)
+            for read_name in sampled_non_chimeric:
+                for read in non_chimeric_reads[read_name]:
+                    bam_out.write(read)
     
     # Sort and index the output BAM file using pysam
-    sorted_bam = str(output_bam) + ".sorted.bam"
-    pysam.sort("-o", sorted_bam, str(output_bam))
-    pysam.index(sorted_bam)
-    os.replace(sorted_bam, output_bam)
+    sorted_bam = output_bam.with_suffix(".sorted.bam")
+    pysam.sort("-o", sorted_bam.as_posix(), output_bam.as_posix())
+    pysam.index(sorted_bam.as_posix())
+    os.replace(sorted_bam.as_posix(), output_bam.as_posix())
 
     print(f"Generated test data with:")
     print(f"  - {len(sampled_chimeric_artifacts)} chimeric artifact reads")
