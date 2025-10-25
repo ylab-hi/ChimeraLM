@@ -26,6 +26,7 @@ def parse_fastq_file(file_path: Path) -> Iterator[dict]:
         file_path: Path to the FastQ file (.fq, .fastq, .fq.gz, .fastq.gz)
         has_targets: Whether the file contains target labels in the identifier line
         build_index: Whether to build an index for random access (uses more memory)
+
     """
     try:
         # Use pyfastx to parse the file

@@ -79,6 +79,7 @@ class MambaSequenceClassification(nn.Module):
 
         Returns:
             Classification logits of shape (batch_size, n_classes)
+
         """
         # Embed input
         x = self.embedding(x)  # (batch, seq_len, d_model)
@@ -172,6 +173,7 @@ class MambaSequenceClassificationSP(nn.Module):
 
         Returns:
             Classification logits of shape (batch_size, n_classes)
+
         """
         # Embed input
         x = self.embedding(input_ids)  # (batch, seq_len, d_model)
@@ -293,6 +295,7 @@ class MambaSequenceClassificationPositional(nn.Module):
 
         Returns:
             Classification logits of shape (batch_size, n_classes).
+
         """
         _batch_size, seq_len = input_ids.shape
 

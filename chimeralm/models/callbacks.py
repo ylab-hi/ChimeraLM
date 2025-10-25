@@ -43,6 +43,7 @@ def resume_read_name(bytes_data: torch.Tensor | list[int]) -> str:
 
     Returns:
         Extracted read name string
+
     """
     # Convert bytes to string
     if isinstance(bytes_data, torch.Tensor):
@@ -72,6 +73,7 @@ class PredictionWriter(BasePredictionWriter):
         Args:
             output_dir: Directory to write predictions to
             write_interval: When to write predictions (batch or epoch)
+
         """
         super().__init__(write_interval)
         self.output_dir = Path(output_dir)

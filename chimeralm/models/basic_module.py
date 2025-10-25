@@ -206,6 +206,7 @@ class ClassificationLit(LightningModule, PyTorchModelHubMixin):
             https://lightning.ai/docs/pytorch/latest/common/lightning_module.html#configure-optimizers
 
         :return: A dict containing the configured optimizers and learning-rate schedulers to be used for training.
+
         """
         optimizer = self.hparams.optimizer(params=self.trainer.model.parameters())
 

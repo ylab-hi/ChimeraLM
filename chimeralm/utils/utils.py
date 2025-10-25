@@ -61,6 +61,7 @@ def task_wrapper(task_func: Callable) -> Callable:
     :param task_func: The task function to be wrapped.
 
     :return: The wrapped task function.
+
     """
 
     def wrap(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:

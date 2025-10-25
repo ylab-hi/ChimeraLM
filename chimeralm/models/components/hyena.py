@@ -85,6 +85,7 @@ class BinarySequenceClassifier(nn.Module):
 
         Returns:
             Binary classification logits
+
         """
         _batch_size, _seq_len, _hidden_dim = hidden_states.shape
 
@@ -155,6 +156,7 @@ class ResidualBlock(nn.Module):
         Args:
             hidden_dim: Hidden dimension
             dropout: Dropout rate
+
         """
         super().__init__()
         self.layers = nn.Sequential(
@@ -173,6 +175,7 @@ class ResidualBlock(nn.Module):
 
         Returns:
             Output tensor with residual connection
+
         """
         residual = x
         out = self.layers(x)
@@ -188,6 +191,7 @@ class QualLayer(nn.Module):
 
         Args:
             hidden_dim: Hidden dimension for quality embeddings
+
         """
         super().__init__()
         # Combine into single sequential for better performance
@@ -206,6 +210,7 @@ class QualLayer(nn.Module):
 
         Returns:
             Quality embeddings
+
         """
         # Optimize: avoid unsqueeze by using view
         qual_input = input_quals.view(-1, 1)
@@ -230,6 +235,7 @@ class HyenaDna(nn.Module):
             head: Classification head module
             backbone_name: Name of the backbone model
             freeze_backbone: Whether to freeze backbone parameters
+
         """
         super().__init__()
         self.number_of_classes = number_of_classes

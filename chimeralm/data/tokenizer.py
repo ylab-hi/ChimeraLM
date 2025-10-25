@@ -223,6 +223,7 @@ class CharacterTokenizer(PreTrainedTokenizer):
                     "[UNK]": 6
                 an id (starting at 7) will be assigned to each character.
             model_max_length (int): Model maximum sequence length.
+
         """
         self.characters = ("A", "C", "G", "T", "N")
         self.model_max_length = model_max_length
@@ -341,6 +342,7 @@ class KmerTokenizer(PreTrainedTokenizer):
         >>> sequence = "ACGTACGTACGT"  # Input DNA sequence
         >>> encoded = tokenizer(sequence)  # Returns dict with input_ids
         >>> decoded = tokenizer.decode(encoded)  # Recovers original sequence
+
     """
 
     model_input_names = [MODEL_SEQ_INPUT]
@@ -367,6 +369,7 @@ class KmerTokenizer(PreTrainedTokenizer):
             k (int): Length of k-mers (default: 6)
             model_max_length (int): Maximum sequence length
             **kwargs: Additional arguments passed to PreTrainedTokenizer
+
         """
         self.k = k
         self.model_max_length = model_max_length

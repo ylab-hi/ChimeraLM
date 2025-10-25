@@ -15,10 +15,10 @@ from rich.logging import RichHandler
 from rich.text import Text
 from typer.core import TyperGroup
 
-console = Console()
-
 import chimeralm
 from chimeralm.utils import RankedLogger
+
+console = Console()
 
 log = RankedLogger(__name__, rank_zero_only=True)
 
@@ -31,6 +31,7 @@ def load_predicts(path: Path | str) -> dict[str, int]:
 
     Returns:
         List of Predict objects
+
     """
     predicts = {}
     try:
@@ -77,6 +78,7 @@ def collect_txt_from_file(path: Path | str) -> Iterator[Path]:
 
     Yields:
         Path to the txt file
+
     """
     path = Path(path)
     if not path.exists():
@@ -156,8 +158,10 @@ def filter_bam_by_predcition(
 def set_logging_level(level: int = logging.INFO):
     """Set the logging level.
 
-    Parameters:
+    Parameters
+    ----------
         level (int): The logging level to set.
+
     """
     FORMAT = "%(message)s"
     logging.basicConfig(
