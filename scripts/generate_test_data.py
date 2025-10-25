@@ -41,19 +41,19 @@ def generate_test_data(
     # the output bam include number_chimera_artifact_reads + number_chimeric_reads_not_in_chimera_artifacts + number_non_chimeric_reads
 
     # Collect reads from different categories
-    chimeric_artifact_reads = []
-    chimeric_non_artifact_reads = []
-    non_chimeric_reads = []
+    chimeric_artifact_reads: set[pysam.AlignedSegment] = set()
+    chimeric_non_artifact_reads: set[pysam.AlignedSegment] = set()
+    non_chimeric_reads: set[pysam.AlignedSegment] = set()
 
     with pysam.AlignmentFile(input_bam.as_posix(), "rb") as bam_in:
         for read in bam_in.fetch(until_eof=True):
             if is_chimeric(read):
                 if read.query_name in chimera_artifacts:
-                    chimeric_artifact_reads.append(read)
+                    chimeric_artifact_reads.add(read)
                 else:
-                    chimeric_non_artifact_reads.append(read)
+                    chimeric_non_artifact_reads.add(read)
             else:
-                non_chimeric_reads.append(read)
+                non_chimeric_reads.add(read)
 
     # Sample the required number of reads from each category
     sampled_chimeric_artifacts = random.sample(
