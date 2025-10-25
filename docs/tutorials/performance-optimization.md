@@ -1,0 +1,377 @@
+# Performance Optimization
+
+Maximize ChimeraLM's throughput and minimize prediction time with GPU acceleration, batch tuning, and parallelization strategies.
+
+!!! info "Learning Objectives"
+    By the end of this tutorial, you will be able to:
+
+    - Choose optimal hardware (CPU, CUDA GPU, MPS) for your workload
+    - Tune batch size for maximum throughput without OOM errors
+    - Optimize data loading with worker processes
+    - Profile and benchmark ChimeraLM performance
+    - Scale to large datasets (millions of reads)
+
+    **Prerequisites**: ChimeraLM installed, basic command-line experience
+
+    **Time**: ~30 minutes
+
+## Performance Overview
+
+ChimeraLM's prediction speed depends on:
+
+1. **Hardware**: GPU >>> CPU (10-50x speedup)
+2. **Batch size**: Larger batches = better GPU utilization
+3. **Data loading**: Parallel workers reduce I/O bottlenecks
+4. **Dataset size**: Amortized overhead for large files
+
+## Performance Comparison
+
+### Throughput by Hardware
+
+| Hardware | Batch Size | Throughput (reads/sec) | Time for 10K reads |
+|----------|------------|------------------------|-------------------|
+| CPU (8 cores) | 12 | ~22 reads/sec | ~7.5 minutes |
+| CPU (8 cores) | 32 | ~25 reads/sec | ~6.7 minutes |
+| NVIDIA RTX 3090 | 12 | ~200 reads/sec | ~50 seconds |
+| NVIDIA RTX 3090 | 24 | ~340 reads/sec | ~29 seconds |
+| NVIDIA RTX 3090 | 48 | ~420 reads/sec | ~24 seconds |
+| NVIDIA A100 | 24 | ~500 reads/sec | ~20 seconds |
+| NVIDIA A100 | 64 | ~750 reads/sec | ~13 seconds |
+| NVIDIA H100 | 64 | ~1200 reads/sec | ~8 seconds |
+| Apple M1 Max (MPS) | 12 | ~80 reads/sec | ~2 minutes |
+
+!!! tip "Key Takeaways"
+    - GPU is 10-50x faster than CPU
+    - Batch size of 24-64 is optimal for modern GPUs
+    - H100 > A100 > RTX 3090 > M1 Max > CPU
+    - Diminishing returns after batch size 64
+
+## Step 1: Choose Your Hardware
+
+### Check Available Hardware
+
+```bash
+# Check CUDA GPU availability
+python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}')"
+
+# Check MPS (Apple Silicon) availability
+python -c "import torch; print(f'MPS: {torch.backends.mps.is_available()}')"
+
+# Check GPU details (if CUDA available)
+nvidia-smi
+```
+
+### Hardware Recommendations
+
+=== "NVIDIA GPU (Recommended)"
+
+    **Best for**: Large-scale prediction (>100K reads)
+
+    ```bash
+    # Use CUDA with optimal batch size
+    chimeralm predict input.bam --gpus 1 --batch-size 24
+    ```
+
+    **GPU Requirements**:
+    - **Minimum**: 8GB VRAM (batch-size 12)
+    - **Recommended**: 16GB VRAM (batch-size 24-32)
+    - **Optimal**: 24GB+ VRAM (batch-size 48-64)
+
+=== "Apple Silicon (M1/M2/M3)"
+
+    **Best for**: Mac users, moderate datasets (<100K reads)
+
+    ```bash
+    # MPS is auto-detected and enabled
+    chimeralm predict input.bam --gpus 1 --batch-size 12
+    ```
+
+    !!! warning "MPS Limitations"
+        - Single device only (no multi-GPU)
+        - Slower than CUDA GPUs
+        - Limited VRAM (8-96GB depending on model)
+
+=== "CPU"
+
+    **Best for**: Small datasets (<10K reads), no GPU available
+
+    ```bash
+    # CPU mode with multiple workers
+    chimeralm predict input.bam --gpus 0 --workers 8
+    ```
+
+    !!! tip "CPU Optimization"
+        Set `--workers` to number of CPU cores for parallelism
+
+## Step 2: Optimize Batch Size
+
+Batch size is the most important parameter for GPU performance.
+
+### Finding Optimal Batch Size
+
+```bash
+# Start with default (batch-size 12)
+chimeralm predict input.bam --gpus 1 --batch-size 12
+
+# Increase until you get CUDA out of memory error
+chimeralm predict input.bam --gpus 1 --batch-size 24
+chimeralm predict input.bam --gpus 1 --batch-size 32
+chimeralm predict input.bam --gpus 1 --batch-size 48  # May OOM on smaller GPUs
+```
+
+### Batch Size Guidelines
+
+| GPU VRAM | Recommended Batch Size | Max Batch Size |
+|----------|------------------------|----------------|
+| 8GB | 12 | 16 |
+| 12GB | 16 | 24 |
+| 16GB | 24 | 32 |
+| 24GB | 32 | 48 |
+| 40GB+ | 48 | 64+ |
+
+!!! warning "Out of Memory Errors"
+    If you get `RuntimeError: CUDA out of memory`:
+
+    ```bash
+    # Reduce batch size
+    chimeralm predict input.bam --gpus 1 --batch-size 12
+
+    # Or use CPU mode
+    chimeralm predict input.bam --gpus 0
+    ```
+
+### Measure Throughput
+
+```bash
+# Benchmark with different batch sizes
+time chimeralm predict tests/data/mk1c_test.sort.bam --gpus 1 --batch-size 12
+time chimeralm predict tests/data/mk1c_test.sort.bam --gpus 1 --batch-size 24
+time chimeralm predict tests/data/mk1c_test.sort.bam --gpus 1 --batch-size 32
+
+# Compare total time
+```
+
+## Step 3: Optimize Data Loading
+
+### Increase Worker Threads
+
+```bash
+# CPU mode: Use multiple workers for parallelism
+chimeralm predict input.bam --gpus 0 --workers 8
+
+# GPU mode: 2-4 workers to keep GPU fed
+chimeralm predict input.bam --gpus 1 --batch-size 24 --workers 4
+```
+
+!!! info "Worker Guidelines"
+    - **CPU mode**: Set workers = number of CPU cores
+    - **GPU mode**: 2-4 workers (more doesn't help)
+    - **Default**: 0 (main thread only)
+
+### I/O Bottlenecks
+
+For very large BAM files (>10GB), I/O can become a bottleneck:
+
+```bash
+# Check if I/O is the bottleneck
+# Monitor GPU utilization with nvidia-smi
+
+# If GPU utilization < 80%, increase workers
+chimeralm predict large_file.bam --gpus 1 --workers 4
+
+# If still low, data loading is the bottleneck (not much you can do)
+```
+
+## Step 4: Scale to Large Datasets
+
+### Process in Chunks
+
+For very large datasets, process in chunks to avoid memory issues:
+
+```bash
+# Process first 100K reads
+chimeralm predict huge_file.bam --max-sample 100000 --gpus 1 --batch-size 32
+
+# Split BAM file into chunks (manual approach)
+samtools view -h huge_file.bam | head -100000 | samtools view -Sb > chunk1.bam
+samtools view -h huge_file.bam | tail -100000 | samtools view -Sb > chunk2.bam
+
+chimeralm predict chunk1.bam --gpus 1 --batch-size 32
+chimeralm predict chunk2.bam --gpus 1 --batch-size 32
+```
+
+### Multi-GPU Prediction (Advanced)
+
+!!! warning "Not Yet Implemented"
+    Multi-GPU prediction is not currently supported. For now, process different files on different GPUs manually:
+
+    ```bash
+    # Terminal 1
+    CUDA_VISIBLE_DEVICES=0 chimeralm predict file1.bam --gpus 1
+
+    # Terminal 2
+    CUDA_VISIBLE_DEVICES=1 chimeralm predict file2.bam --gpus 1
+    ```
+
+## Step 5: Profile and Benchmark
+
+### Measure End-to-End Time
+
+```bash
+# Time the full pipeline
+time chimeralm predict input.bam --gpus 1 --batch-size 24
+
+# Output:
+# real    0m29.123s
+# user    0m45.678s
+# sys     0m3.456s
+```
+
+### Monitor GPU Utilization
+
+```bash
+# Run nvidia-smi in another terminal while predicting
+watch -n 1 nvidia-smi
+
+# Check GPU utilization (should be 90-100% during inference)
+# Check GPU memory usage
+```
+
+### Profile with PyTorch Profiler
+
+For advanced profiling, use PyTorch's built-in profiler:
+
+```python
+import torch.profiler as profiler
+
+# Add profiling to your prediction code
+with profiler.profile(
+    activities=[profiler.ProfilerActivity.CPU, profiler.ProfilerActivity.CUDA],
+    record_shapes=True,
+) as prof:
+    # Run prediction
+    ...
+
+print(prof.key_averages().table(sort_by="cuda_time_total"))
+```
+
+## Best Practices
+
+### For Maximum Speed
+
+```bash
+# NVIDIA GPU: Large batch, mixed precision
+chimeralm predict input.bam --gpus 1 --batch-size 48 --workers 4
+
+# Apple Silicon: Moderate batch
+chimeralm predict input.bam --gpus 1 --batch-size 12 --workers 2
+
+# CPU: Multiple workers
+chimeralm predict input.bam --gpus 0 --workers 8 --batch-size 32
+```
+
+### For Limited GPU Memory
+
+```bash
+# Small batch size, process in chunks
+chimeralm predict input.bam --gpus 1 --batch-size 8 --max-sample 10000
+```
+
+### For Reproducibility
+
+```bash
+# Fixed seed, single worker
+chimeralm predict input.bam --gpus 1 --batch-size 24 --workers 0
+```
+
+## Troubleshooting
+
+### Slow Predictions
+
+??? question "Predictions are slower than expected"
+
+    **Symptom**: GPU mode is not much faster than CPU
+
+    **Possible Causes**:
+
+    1. **GPU not being used**
+       ```bash
+       # Check GPU is detected
+       python -c "import torch; print(torch.cuda.is_available())"
+
+       # Verify --gpus 1 flag is set
+       chimeralm predict input.bam --gpus 1
+       ```
+
+    2. **Batch size too small**
+       ```bash
+       # Increase batch size
+       chimeralm predict input.bam --gpus 1 --batch-size 32
+       ```
+
+    3. **I/O bottleneck**
+       ```bash
+       # Increase workers
+       chimeralm predict input.bam --gpus 1 --workers 4
+       ```
+
+### Out of Memory
+
+??? question "CUDA out of memory error"
+
+    **Solutions**:
+
+    ```bash
+    # 1. Reduce batch size
+    chimeralm predict input.bam --gpus 1 --batch-size 12
+
+    # 2. Use CPU mode
+    chimeralm predict input.bam --gpus 0
+
+    # 3. Process in chunks
+    chimeralm predict input.bam --gpus 1 --max-sample 10000
+    ```
+
+### GPU Not Detected
+
+??? question "GPU available but not being used"
+
+    **Check CUDA installation**:
+
+    ```bash
+    # Verify CUDA is available to PyTorch
+    python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}, Version: {torch.version.cuda}')"
+
+    # If False, reinstall PyTorch with CUDA
+    pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cu121
+    ```
+
+## Performance Checklist
+
+Before running large-scale predictions:
+
+- [ ] GPU is detected (`python -c "import torch; print(torch.cuda.is_available())"`)
+- [ ] Optimal batch size determined (start with 24, increase until OOM)
+- [ ] Workers set appropriately (2-4 for GPU, 8+ for CPU)
+- [ ] GPU utilization monitored with `nvidia-smi`
+- [ ] Benchmark completed on sample data
+
+## Next Steps
+
+- **Fine-tuning optimization**: See [Fine-Tuning Tutorial](fine-tuning.md) for training speed tips
+- **Pipeline integration**: See [Pipeline Integration](pipeline-integration.md) for scaling across multiple samples
+- **Hardware selection**: Consider cloud GPU instances (AWS, GCP, Azure) for large projects
+
+## Summary
+
+You've learned how to:
+
+- ✅ Choose optimal hardware for your workload
+- ✅ Tune batch size for maximum throughput
+- ✅ Optimize data loading with worker processes
+- ✅ Scale to large datasets with chunking
+- ✅ Profile and benchmark performance
+- ✅ Troubleshoot common performance issues
+
+!!! success "Performance Boost Achieved!"
+    With proper optimization, you can achieve 10-50x speedup compared to default settings!

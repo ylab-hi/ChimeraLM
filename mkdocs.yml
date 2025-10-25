@@ -1,0 +1,137 @@
+site_name: ChimeraLM Documentation
+site_url: https://ylab-hi.github.io/chimera/
+repo_url: https://github.com/ylab-hi/chimera
+repo_name: ylab-hi/chimera
+
+# Theme configuration with Material for MkDocs
+theme:
+  name: material
+  palette:
+    # Light mode
+    - scheme: default
+      primary: indigo
+      accent: teal
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - scheme: slate
+      primary: indigo
+      accent: teal
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs          # Top-level sections as tabs
+    - navigation.sections      # Expandable sections
+    - navigation.instant       # SPA-like instant loading
+    - navigation.tracking      # Update URL on scroll
+    - navigation.top           # Back-to-top button
+    - search.highlight         # Highlight search terms
+    - search.suggest           # Search suggestions
+    - content.code.copy        # Copy button on code blocks
+    - content.tabs.link        # Linked content tabs
+  icon:
+    repo: fontawesome/brands/github
+  logo: assets/logo.svg
+  favicon: assets/logo.svg
+
+# Custom CSS and JavaScript
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - https://unpkg.com/mermaid@10/dist/mermaid.min.js
+
+# Social cards for better link previews
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/ylab-hi/chimera
+      name: ChimeraLM on GitHub
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/chimeralm/
+      name: ChimeraLM on PyPI
+  generator: false  # Remove "Made with Material for MkDocs"
+
+# Navigation structure based on contracts/nav-structure.yaml
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Quick Start: getting-started/quick-start.md
+      - Troubleshooting: getting-started/troubleshooting.md
+  - Tutorials:
+      - Fine-Tuning Models: tutorials/fine-tuning.md
+      - Performance Optimization: tutorials/performance-optimization.md
+      - Filtering BAM Files: tutorials/bam-filtering.md
+      - Pipeline Integration: tutorials/pipeline-integration.md
+  - Reference:
+      - CLI Commands: reference/cli.md
+      - Models API: reference/models.md
+      - Data API: reference/data.md
+      - Utils API: reference/utils.md
+  - Architecture:
+      - Overview: architecture/overview.md
+      - Model Design: architecture/model-design.md
+      - Data Pipeline: architecture/data-pipeline.md
+      - Training Process: architecture/training.md
+  - Contributing:
+      - Development Setup: contributing/development-setup.md
+      - Testing: contributing/testing.md
+      - Adding Features: contributing/adding-features.md
+  - About:
+      - Citation: about/citation.md
+      - License: about/license.md
+
+# Plugins configuration
+plugins:
+  - search:
+      separator: '[\s\-\.]+'  # Support genomics terms like "BAM", "WGA"
+  # - social:  # Requires mkdocs-material[imaging] - optional enhancement
+  #     cards: true
+  #     cards_layout_options:
+  #       background_color: "#3f51b5"  # Indigo
+  #       color: "#ffffff"
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_signature_annotations: true
+            separate_signature: true
+
+# Markdown extensions
+markdown_extensions:
+  # Syntax highlighting
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+  # Tabbed content
+  - pymdownx.tabbed:
+      alternate_style: true
+
+  # Icons and emojis
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+  # Admonitions
+  - admonition
+  - pymdownx.details
+
+  # Markdown enhancements
+  - attr_list
+  - md_in_html
+  - pymdownx.snippets
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.keys
+  - footnotes

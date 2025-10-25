@@ -160,3 +160,7 @@ slurmlog
 CLAUDE.md
 .claude
 .specify
+
+# MkDocs build output
+site/
+specs/
