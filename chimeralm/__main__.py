@@ -253,7 +253,7 @@ def determine_accelerator_and_devices(gpus: int):
 @app.command()
 def predict(
     data_path: Path = typer.Argument(..., help="Path to the dataset"),
-    output_path: Path = typer.Argument(..., help="Output path for predictions"),
+    output_path: Path|None = typer.Option(None, "--output", "-o", help="Output path for predictions"),
     gpus: int = typer.Option(0, "--gpus", "-g", help="Number of GPUs to use"),
     batch_size: int = typer.Option(12, "--batch-size", "-b", help="Batch size"),
     num_workers: int = typer.Option(0, "--workers", "-w", help="Number of workers"),
@@ -268,6 +268,9 @@ def predict(
 
     if not random:
         lightning.seed_everything(42, workers=True)
+
+    if output_path is None:
+        output_path = data_path.with_suffix(".predictions")
 
     tokenizer = chimeralm.data.tokenizer.load_tokenizer_from_hyena_model("hyenadna-small-32k-seqlen")
     datamodule: lightning.LightningDataModule = chimeralm.data.bam.BamDataModule(
