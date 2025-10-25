@@ -158,3 +158,5 @@ analysis/
 slurmlog
 *.txt
 CLAUDE.md
+.claude
+.specify
