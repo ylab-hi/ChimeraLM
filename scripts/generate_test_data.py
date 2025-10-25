@@ -9,6 +9,7 @@ from collections import defaultdict
 import random
 from pathlib import Path
 from typing import Optional
+import typer
 from typer import Typer
 import pysam
 import os
