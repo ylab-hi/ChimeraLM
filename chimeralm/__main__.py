@@ -253,7 +253,7 @@ def determine_accelerator_and_devices(gpus: int):
 @app.command()
 def predict(
     data_path: Path = typer.Argument(..., help="Path to the dataset"),
-    output_path: Path  = typer.Argument(..., "--output", "-o", help="Output path for predictions"),
+    output_path: Path = typer.Argument(..., help="Output path for predictions"),
     gpus: int = typer.Option(0, "--gpus", "-g", help="Number of GPUs to use"),
     batch_size: int = typer.Option(12, "--batch-size", "-b", help="Batch size"),
     num_workers: int = typer.Option(0, "--workers", "-w", help="Number of workers"),
@@ -268,7 +268,6 @@ def predict(
 
     if not random:
         lightning.seed_everything(42, workers=True)
-
 
     tokenizer = chimeralm.data.tokenizer.load_tokenizer_from_hyena_model("hyenadna-small-32k-seqlen")
     datamodule: lightning.LightningDataModule = chimeralm.data.bam.BamDataModule(
@@ -322,7 +321,6 @@ def predict(
     ctx._force_start_method("spawn")
     trainer.predict(model=model, dataloaders=datamodule, return_predictions=False, ckpt_path=ckpt_path)
     log.info(f"Predictions saved to {output_path}")
-    log.info(f"Filtering {data_path} by predictions from {output_path}")
 
 
 @app.command()
@@ -330,13 +328,12 @@ def filter(
     bam_path: Path = typer.Argument(..., help="Path to the BAM file"),
     predictions_path: Path = typer.Argument(..., help="Path to the predictions file"),
     *,
-    output_prediction: bool = typer.Option(False, "--output-prediction", "-p", help="write summary of the predictions"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
 ):
     """Filter the BAM file by predictions."""
     set_logging_level(logging.DEBUG if verbose else logging.INFO)
     log.info(f"Filtering {bam_path} by predictions from {predictions_path}")
-    filter_bam_by_predcition(bam_path, predictions_path, index=True, output_prediction=output_prediction)
+    filter_bam_by_predcition(bam_path, predictions_path, index=True, output_prediction=True)
 
 
 @app.command()
