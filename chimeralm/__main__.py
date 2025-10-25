@@ -10,13 +10,10 @@ import pysam
 import torch
 import typer
 from click import Context
-from colorama import init
 from rich.console import Console
 from rich.logging import RichHandler
 from rich.text import Text
 from typer.core import TyperGroup
-
-init(autoreset=True)
 
 console = Console()
 
