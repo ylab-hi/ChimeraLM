@@ -3,19 +3,17 @@
 Learn how to use ChimeraLM's interactive web interface for analyzing individual DNA sequences and visualizing predictions in real-time.
 
 !!! info "Learning Objectives"
-By the end of this tutorial, you will be able to:
+    By the end of this tutorial, you will be able to:
 
-```
-- Launch the ChimeraLM web interface
-- Input DNA sequences for analysis
-- Interpret prediction results and confidence scores
-- Understand the visual probability distribution
-- Use example sequences for testing
+    - Launch the ChimeraLM web interface
+    - Input DNA sequences for analysis
+    - Interpret prediction results and confidence scores
+    - Understand the visual probability distribution
+    - Use example sequences for testing
 
-**Prerequisites**: ChimeraLM installed, web browser
+    **Prerequisites**: ChimeraLM installed, web browser
 
-**Time**: ~10 minutes
-```
+    **Time**: ~10 minutes
 
 ## Overview
 
@@ -28,7 +26,7 @@ The ChimeraLM web interface provides a user-friendly Gradio-based interface for:
 - **Example Sequences**: Pre-loaded examples to get started quickly
 
 !!! note "Use Case"
-The web interface is ideal for **exploring individual sequences**. For analyzing BAM files with thousands of reads, use the [CLI commands](../reference/cli.md) instead.
+    The web interface is ideal for **exploring individual sequences**. For analyzing BAM files with thousands of reads, use the [CLI commands](../reference/cli.md) instead.
 
 ## Step 1: Launch the Web Interface
 
@@ -47,7 +45,7 @@ Running on local URL:  http://127.0.0.1:7860
 The interface will automatically open in your default browser. If it doesn't, manually navigate to the URL shown (typically `http://127.0.0.1:7860`).
 
 !!! tip "First Launch"
-The first time you run the web interface, ChimeraLM will download the pretrained model from Hugging Face (`yangliz5/chimeralm`). This may take a few minutes depending on your internet connection.
+    The first time you run the web interface, ChimeraLM will download the pretrained model from Hugging Face (`yangliz5/chimeralm`). This may take a few minutes depending on your internet connection.
 
 ## Step 2: Understanding the Interface
 
@@ -112,16 +110,15 @@ Click the **"🔬 Analyze Sequence"** button to start analysis.
 - Results display (~1-2 seconds)
 
 !!! note "Valid Characters"
-Only standard DNA nucleotides are accepted:
-\- **A** (Adenine)
-\- **C** (Cytosine)
-\- **G** (Guanine)
-\- **T** (Thymine)
-\- **N** (Any nucleotide / unknown)
+    Only standard DNA nucleotides are accepted:
 
-```
-Both uppercase and lowercase are accepted and will be converted to uppercase.
-```
+    - **A** (Adenine)
+    - **C** (Cytosine)
+    - **G** (Guanine)
+    - **T** (Thymine)
+    - **N** (Any nucleotide / unknown)
+
+    Both uppercase and lowercase are accepted and will be converted to uppercase.
 
 ## Step 4: Interpret Results
 
@@ -244,9 +241,11 @@ AAAAAACCCCCCGGGGGGTTTTTTAAAA
 ```
 
 !!! tip "Testing Your Own Sequences"
-Extract sequences from your BAM files using samtools:
-`bash     samtools view your_file.bam | head -1 | cut -f10     `
-Then paste the sequence into the web interface.
+    Extract sequences from your BAM files using samtools:
+    ```bash
+    samtools view your_file.bam | head -1 | cut -f10
+    ```
+    Then paste the sequence into the web interface.
 
 ## Advanced Features
 
@@ -255,7 +254,6 @@ Then paste the sequence into the web interface.
 The web interface uses:
 
 - **Model**: `yangliz5/chimeralm` (Hugging Face Hub)
-- **Architecture**: HyenaDNA-based binary classifier
 - **Max Sequence Length**: 32,768 nucleotides
 - **Tokenizer**: Character-level (A, C, G, T, N)
 
@@ -284,83 +282,76 @@ Model loaded successfully on cpu
 
 ??? question "Error: Invalid characters in sequence"
 
-````
-**Problem**: Sequence contains non-ACGTN characters
+    **Problem**: Sequence contains non-ACGTN characters
 
-**Solution**:
-- Remove spaces, numbers, or special characters
-- Only use: A, C, G, T, N
-- Check for accidental letters (like O vs 0)
+    **Solution**:
 
-**Example Fix:**
-```
-❌ ACG TAG CTG  (spaces not allowed)
-✅ ACGTAGCTG
+    - Remove spaces, numbers, or special characters
+    - Only use: A, C, G, T, N
+    - Check for accidental letters (like O vs 0)
 
-❌ ACGT123ACGT  (numbers not allowed)
-✅ ACGTNNACGT   (use N for unknowns)
-```
-````
+    **Example Fix:**
+    ```
+    ❌ ACG TAG CTG  (spaces not allowed)
+    ✅ ACGTAGCTG
+
+    ❌ ACGT123ACGT  (numbers not allowed)
+    ✅ ACGTNNACGT   (use N for unknowns)
+    ```
 
 ### Model Loading Fails
 
 ??? question "Error: Failed to load model"
 
-```
-**Possible causes:**
+    **Possible causes:**
 
-1. **No internet connection** (first time only)
-   - ChimeraLM needs to download the model
-   - Check your internet connection
+    1. **No internet connection** (first time only)
+        - ChimeraLM needs to download the model
+        - Check your internet connection
 
-2. **Insufficient memory**
-   - Model requires ~2GB RAM
-   - Close other applications
+    2. **Insufficient memory**
+        - Model requires ~2GB RAM
+        - Close other applications
 
-3. **GPU out of memory**
-   - Model will fall back to CPU automatically
-   - Check terminal for device messages
-```
+    3. **GPU out of memory**
+        - Model will fall back to CPU automatically
+        - Check terminal for device messages
 
 ### Empty or No Results
 
 ??? question "Results don't appear after clicking Analyze"
 
-```
-**Solutions:**
+    **Solutions:**
 
-1. **Check sequence length**
-   - Minimum: ~10 nucleotides
-   - Maximum: 32,768 nucleotides
+    1. **Check sequence length**
+        - Minimum: ~10 nucleotides
+        - Maximum: 32,768 nucleotides
 
-2. **Refresh the page**
-   - Click browser refresh
-   - Re-enter sequence and try again
+    2. **Refresh the page**
+        - Click browser refresh
+        - Re-enter sequence and try again
 
-3. **Check terminal for errors**
-   - Look at the terminal where you launched `chimeralm web`
-   - Error messages will appear there
-```
+    3. **Check terminal for errors**
+        - Look at the terminal where you launched `chimeralm web`
+        - Error messages will appear there
 
 ### Port Already in Use
 
 ??? question "Error: Address already in use"
 
-````
-**Problem**: Port 7860 is already in use
+    **Problem**: Port 7860 is already in use
 
-**Solution**:
-```bash
-# Find what's using the port
-lsof -i :7860
+    **Solution**:
+    ```bash
+    # Find what's using the port
+    lsof -i :7860
 
-# Kill the process
-kill <PID>
+    # Kill the process
+    kill <PID>
 
-# Or just try again (Gradio will auto-select another port)
-chimeralm web
-```
-````
+    # Or just try again (Gradio will auto-select another port)
+    chimeralm web
+    ```
 
 ## Best Practices
 
@@ -421,27 +412,6 @@ chimeralm web
 | **Automation**    | ❌ Manual only            | ✅ Scriptable         |
 | **Best For**      | Exploration, testing      | Production, pipelines |
 
-## Technical Details
-
-### Gradio Interface
-
-ChimeraLM uses [Gradio](https://www.gradio.app/) for the web interface:
-
-- **Framework**: Python-based web UI framework
-- **Styling**: Custom CSS with gradient backgrounds
-- **Charts**: Plotly for interactive visualization
-- **Theme**: Modern with purple gradient accents
-
-### Model Architecture
-
-The web interface uses the same model as the CLI:
-
-- **Backbone**: HyenaDNA-small-32k
-- **Head**: Binary sequence classifier
-- **Training**: Whole genome amplification artifact detection
-- **Input**: Tokenized DNA sequences
-- **Output**: Binary logits → Softmax probabilities
-
 ### Confidence Calculation
 
 ```python
@@ -470,11 +440,11 @@ You've learned how to:
 - ✅ Troubleshoot common issues
 
 !!! success "Ready to Explore!"
-The web interface makes ChimeraLM accessible for quick sequence analysis and exploration. For production workflows with large BAM files, use the CLI commands.
+    The web interface makes ChimeraLM accessible for quick sequence analysis and exploration. For production workflows with large BAM files, use the CLI commands.
 
 ## Additional Resources
 
 - [CLI Commands Reference](../reference/cli.md) - Full command documentation
 - [Filtering BAM Files](bam-filtering.md) - Process large datasets
 - [Models API](../reference/models.md) - Use ChimeraLM programmatically
-- [GitHub Repository](https://github.com/ylab-hi/chimera) - Source code and issues
+- [GitHub Repository](https://github.com/ylab-hi/ChimeraLM) - Source code and issues

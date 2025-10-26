@@ -3,19 +3,17 @@
 Maximize ChimeraLM's throughput and minimize prediction time with GPU acceleration, batch tuning, and parallelization strategies.
 
 !!! info "Learning Objectives"
-By the end of this tutorial, you will be able to:
+    By the end of this tutorial, you will be able to:
 
-```
-- Choose optimal hardware (CPU, CUDA GPU, MPS) for your workload
-- Tune batch size for maximum throughput without OOM errors
-- Optimize data loading with worker processes
-- Profile and benchmark ChimeraLM performance
-- Scale to large datasets (millions of reads)
+    - Choose optimal hardware (CPU, CUDA GPU, MPS) for your workload
+    - Tune batch size for maximum throughput without OOM errors
+    - Optimize data loading with worker processes
+    - Profile and benchmark ChimeraLM performance
+    - Scale to large datasets (millions of reads)
 
-**Prerequisites**: ChimeraLM installed, basic command-line experience
+    **Prerequisites**: ChimeraLM installed, basic command-line experience
 
-**Time**: ~30 minutes
-```
+    **Time**: ~30 minutes
 
 ## Performance Overview
 
@@ -27,9 +25,9 @@ ChimeraLM's prediction speed depends on:
 4. **Dataset size**: Amortized overhead for large files
 
 !!! tip "Key Takeaways"
-\- GPU is 10-50x faster than CPU
-\- Batch size of 24-64 is optimal for modern GPUs
-\- Diminishing returns after batch size 64
+    - GPU is 10-50x faster than CPU
+    - Batch size of 24-64 is optimal for modern GPUs
+    - Diminishing returns after batch size 64
 
 ## Step 1: Choose Your Hardware
 
@@ -50,49 +48,44 @@ nvidia-smi
 
 === "NVIDIA GPU (Recommended)"
 
-````
-**Best for**: Large-scale prediction (>100K reads)
+    **Best for**: Large-scale prediction (>100K reads)
 
-```bash
-# Use CUDA with optimal batch size
-chimeralm predict input.bam --gpus 1 --batch-size 24
-```
+    ```bash
+    # Use CUDA with optimal batch size
+    chimeralm predict input.bam --gpus 1 --batch-size 24
+    ```
 
-**GPU Requirements**:
-- **Minimum**: 8GB VRAM (batch-size 12)
-- **Recommended**: 16GB VRAM (batch-size 24-32)
-- **Optimal**: 24GB+ VRAM (batch-size 48-64)
-````
+    **GPU Requirements**:
+
+    - **Minimum**: 8GB VRAM (batch-size 12)
+    - **Recommended**: 16GB VRAM (batch-size 24-32)
+    - **Optimal**: 24GB+ VRAM (batch-size 48-64)
 
 === "Apple Silicon (M1/M2/M3)"
 
-````
-**Best for**: Mac users, moderate datasets (<100K reads)
+    **Best for**: Mac users, moderate datasets (<100K reads)
 
-```bash
-# MPS is auto-detected and enabled
-chimeralm predict input.bam --gpus 1 --batch-size 12
-```
+    ```bash
+    # MPS is auto-detected and enabled
+    chimeralm predict input.bam --gpus 1 --batch-size 12
+    ```
 
-!!! warning "MPS Limitations"
-    - Single device only (no multi-GPU)
-    - Slower than CUDA GPUs
-    - Limited VRAM (8-96GB depending on model)
-````
+    !!! warning "MPS Limitations"
+        - Single device only (no multi-GPU)
+        - Slower than CUDA GPUs
+        - Limited VRAM (8-96GB depending on model)
 
 === "CPU"
 
-````
-**Best for**: Small datasets (<10K reads), no GPU available
+    **Best for**: Small datasets (<10K reads), no GPU available
 
-```bash
-# CPU mode with multiple workers
-chimeralm predict input.bam --workers 8
-```
+    ```bash
+    # CPU mode with multiple workers
+    chimeralm predict input.bam --workers 8
+    ```
 
-!!! tip "CPU Optimization"
-    Set `--workers` to number of CPU cores for parallelism
-````
+    !!! tip "CPU Optimization"
+        Set `--workers` to number of CPU cores for parallelism
 
 ## Step 2: Optimize Batch Size
 
@@ -121,17 +114,15 @@ chimeralm predict input.bam --gpus 1 --batch-size 48  # May OOM on smaller GPUs
 | 40GB+    | 48                     | 64+            |
 
 !!! warning "Out of Memory Errors"
-If you get `RuntimeError: CUDA out of memory`:
+    If you get `RuntimeError: CUDA out of memory`:
 
-````
-```bash
-# Reduce batch size
-chimeralm predict input.bam --gpus 1 --batch-size 12
+    ```bash
+    # Reduce batch size
+    chimeralm predict input.bam --gpus 1 --batch-size 12
 
-# Or use CPU mode
-chimeralm predict input.bam
-```
-````
+    # Or use CPU mode
+    chimeralm predict input.bam
+    ```
 
 ### Measure Throughput
 
@@ -157,9 +148,9 @@ chimeralm predict input.bam --gpus 1 --batch-size 24 --workers 4
 ```
 
 !!! info "Worker Guidelines"
-\- **CPU mode**: Set workers = number of CPU cores
-\- **GPU mode**: 2-4 workers (more doesn't help)
-\- **Default**: 0 (main thread only)
+    - **CPU mode**: Set workers = number of CPU cores
+    - **GPU mode**: 2-4 workers (more doesn't help)
+    - **Default**: 0 (main thread only)
 
 ### I/O Bottlenecks
 
@@ -177,6 +168,14 @@ chimeralm predict large_file.bam --gpus 1 --workers 4
 
 ## Step 4: Scale to Large Datasets
 
+### Multi-GPU Prediction (Advanced)
+
+Multi-GPU prediction is currently supported. You can process different files on multiple GPUs:
+
+```bash
+chimeralm predict file1.bam --gpus 2
+```
+
 ### Process in Chunks
 
 For very large datasets, process in chunks to avoid memory issues:
@@ -192,21 +191,6 @@ samtools view -h huge_file.bam | tail -100000 | samtools view -Sb > chunk2.bam
 chimeralm predict chunk1.bam --gpus 1 --batch-size 32
 chimeralm predict chunk2.bam --gpus 1 --batch-size 32
 ```
-
-### Multi-GPU Prediction (Advanced)
-
-!!! warning "Not Yet Implemented"
-Multi-GPU prediction is not currently supported. For now, process different files on different GPUs manually:
-
-````
-```bash
-# Terminal 1
-CUDA_VISIBLE_DEVICES=0 chimeralm predict file1.bam --gpus 1
-
-# Terminal 2
-CUDA_VISIBLE_DEVICES=1 chimeralm predict file2.bam --gpus 1
-```
-````
 
 ## Step 5: Profile and Benchmark
 
@@ -267,64 +251,58 @@ chimeralm predict input.bam --gpus 1 --batch-size 24 --workers 0
 
 ??? question "Predictions are slower than expected"
 
-````
-**Symptom**: GPU mode is not much faster than CPU
+    **Symptom**: GPU mode is not much faster than CPU
 
-**Possible Causes**:
+    **Possible Causes**:
 
-1. **GPU not being used**
-   ```bash
-   # Check GPU is detected
-   python -c "import torch; print(torch.cuda.is_available())"
+    1. **GPU not being used**
+        ```bash
+        # Check GPU is detected
+        python -c "import torch; print(torch.cuda.is_available())"
 
-   # Verify --gpus 1 flag is set
-   chimeralm predict input.bam --gpus 1
-   ```
+        # Verify --gpus 1 flag is set
+        chimeralm predict input.bam --gpus 1
+        ```
 
-2. **Batch size too small**
-   ```bash
-   # Increase batch size
-   chimeralm predict input.bam --gpus 1 --batch-size 32
-   ```
+    2. **Batch size too small**
+        ```bash
+        # Increase batch size
+        chimeralm predict input.bam --gpus 1 --batch-size 32
+        ```
 
-3. **I/O bottleneck**
-   ```bash
-   # Increase workers
-   chimeralm predict input.bam --gpus 1 --workers 4
-   ```
-````
+    3. **I/O bottleneck**
+        ```bash
+        # Increase workers
+        chimeralm predict input.bam --gpus 1 --workers 4
+        ```
 
 ### Out of Memory
 
 ??? question "CUDA out of memory error"
 
-````
-**Solutions**:
+    **Solutions**:
 
-```bash
-# 1. Reduce batch size
-chimeralm predict input.bam --gpus 1 --batch-size 12
+    ```bash
+    # 1. Reduce batch size
+    chimeralm predict input.bam --gpus 1 --batch-size 12
 
-# 2. Use CPU mode
-chimeralm predict input.bam --gpus 0
-```
-````
+    # 2. Use CPU mode
+    chimeralm predict input.bam --gpus 0
+    ```
 
 ### GPU Not Detected
 
 ??? question "GPU available but not being used"
 
-````
-**Check CUDA installation**:
+    **Check CUDA installation**:
 
-```bash
-# Verify CUDA is available to PyTorch
-python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}, Version: {torch.version.cuda}')"
+    ```bash
+    # Verify CUDA is available to PyTorch
+    python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}, Version: {torch.version.cuda}')"
 
-# If False, reinstall PyTorch with CUDA
-pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cu121
-```
-````
+    # If False, reinstall PyTorch with CUDA
+    pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cu121
+    ```
 
 ## Performance Checklist
 
@@ -353,4 +331,4 @@ You've learned how to:
 - ✅ Troubleshoot common performance issues
 
 !!! success "Performance Boost Achieved!"
-With proper optimization, you can achieve 10-50x speedup compared to default settings!
+    With proper optimization, you can achieve 10-50x speedup compared to default settings!

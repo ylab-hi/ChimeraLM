@@ -3,19 +3,17 @@
 Learn how to filter chimera artifacts induced by whole genome amplification (WGA) from BAM files using ChimeraLM, producing clean datasets for downstream analysis.
 
 !!! info "Learning Objectives"
-By the end of this tutorial, you will be able to:
+    By the end of this tutorial, you will be able to:
 
-```
-- Run predictions on BAM files to identify chimera reads induced by WGA
-- Filter BAM files to remove chimera artifacts induced by WGA
-- Verify filtering results and quality metrics
-- Integrate filtering into analysis pipelines
-- Handle edge cases (empty predictions, all chimera induced by WGA, etc.)
+    - Run predictions on BAM files to identify chimera reads induced by WGA
+    - Filter BAM files to remove chimera artifacts induced by WGA
+    - Verify filtering results and quality metrics
+    - Integrate filtering into analysis pipelines
+    - Handle edge cases (empty predictions, all chimera induced by WGA, etc.)
 
-**Prerequisites**: ChimeraLM installed, SAMtools installed, basic command-line experience
+    **Prerequisites**: ChimeraLM installed, SAMtools installed, basic command-line experience
 
-**Time**: ~20 minutes
-```
+    **Time**: ~20 minutes
 
 ## Get Sample Data
 
@@ -35,10 +33,10 @@ ls -lh mk1c_test.bam*
 ```
 
 !!! info "About the Test Data"
-The `mk1c_test.bam` file contains 175 reads, in which 75 chimeric reads and 100 non-chimeric reads, subsampled from **PC3 cell line** (human prostate cancer) sequenced using **Nanopore MinION Mk1C** with whole genome amplification.
+    The `mk1c_test.bam` file contains 175 reads, in which 75 chimeric reads and 100 non-chimeric reads, subsampled from **PC3 cell line** (human prostate cancer) sequenced using **Nanopore MinION Mk1C** with whole genome amplification.
 
 !!! tip "Using Your Own Data"
-This tutorial uses `mk1c_test.bam` as an example. Replace it with your own BAM file path throughout the tutorial.
+    This tutorial uses `mk1c_test.bam` as an example. Replace it with your own BAM file path throughout the tutorial.
 
 ## Workflow Overview
 
@@ -91,29 +89,26 @@ Remove chimera artifacts from your BAM file:
 
 === "Basic Filtering"
 
-````
-```bash
-# Filter out chimera artifacts induced by WGA (label 1), keep biological reads (label 0)
-chimeralm filter mk1c_test.bam mk1c_test.predictions
-```
+    ```bash
+    # Filter out chimera artifacts induced by WGA (label 1), keep biological reads (label 0)
+    chimeralm filter mk1c_test.bam mk1c_test.predictions
+    ```
 
-This automatically creates:
-- `mk1c_test.filtered.bam` - Unsorted filtered reads
-- `mk1c_test.filtered.sorted.bam` - **Final sorted output**
-- `mk1c_test.filtered.sorted.bam.bai` - BAM index
-- `mk1c_test.predictions/predictions.txt` - Consolidated predictions.txt
-````
+    This automatically creates:
+
+    - `mk1c_test.filtered.bam` - Unsorted filtered reads
+    - `mk1c_test.filtered.sorted.bam` - **Final sorted output**
+    - `mk1c_test.filtered.sorted.bam.bai` - BAM index
+    - `mk1c_test.predictions/predictions.txt` - Consolidated predictions.txt
 
 === "Your Own Data"
 
-````
-```bash
-# Replace with your BAM file
-chimeralm filter your_data.bam your_data.predictions
-```
+    ```bash
+    # Replace with your BAM file
+    chimeralm filter your_data.bam your_data.predictions
+    ```
 
-Output: `your_data.filtered.sorted.bam`
-````
+    Output: `your_data.filtered.sorted.bam`
 
 ### Expected Output
 
@@ -228,90 +223,82 @@ ls *.bam | parallel -j 8 'chimeralm filter {} {}.predictions'
 
 ??? question "predictions.txt is empty or has very few reads"
 
-````
-**Symptom**: Predictions file exists but has 0-10 predictions
+    **Symptom**: Predictions file exists but has 0-10 predictions
 
-**Cause**: BAM file has no reads with SA tags (chimeric candidates)
+    **Cause**: BAM file has no reads with SA tags (chimeric candidates)
 
-**Solution**:
-```bash
-# Check for SA tags in your BAM file
-samtools view your_data.bam | grep "SA:Z:" | wc -l
+    **Solution**:
+    ```bash
+    # Check for SA tags in your BAM file
+    samtools view your_data.bam | grep "SA:Z:" | wc -l
 
-# If count is 0:
-# Your BAM has no chimeric candidates (expected for non-WGA data)
-# No filtering needed - your data is already clean!
-```
-````
+    # If count is 0:
+    # Your BAM has no chimeric candidates (expected for non-WGA data)
+    # No filtering needed - your data is already clean!
+    ```
 
 ### All Reads Labeled Chimeric
 
 ??? question "All predictions are label 1 (chimeric)"
 
-````
-**Symptom**: `grep -c "0$" predictions.txt` returns 0
+    **Symptom**: `grep -c "0$" predictions.txt` returns 0
 
-**Cause**: Model is not working correctly or data is severely contaminated
+    **Cause**: Model is not working correctly or data is severely contaminated
 
-**Solution**:
-```bash
-# 1. Check if using correct model
-chimeralm predict your_data.bam --gpus 1  # Uses default pretrained model
+    **Solution**:
+    ```bash
+    # 1. Check if using correct model
+    chimeralm predict your_data.bam --gpus 1  # Uses default pretrained model
 
-# 2. Verify input data quality
-samtools stats your_data.bam | grep "^SN"
+    # 2. Verify input data quality
+    samtools stats your_data.bam | grep "^SN"
 
-# 3. Try with test data to verify model works
-# Download test data first (see "Get Sample Data" section above)
-chimeralm predict mk1c_test.bam --gpus 1
+    # 3. Try with test data to verify model works
+    # Download test data first (see "Get Sample Data" section above)
+    chimeralm predict mk1c_test.bam --gpus 1
 
-# 4. If test data works but yours doesn't, check data quality
-# 5. If still all chimeric, contact support with your data
-```
-````
+    # 4. If test data works but yours doesn't, check data quality
+    # 5. If still all chimeric, contact support with your data
+    ```
 
 ### Filtered BAM Same Size as Input
 
 ??? question "Filtered BAM has same number of reads as input"
 
-````
-**Symptom**: No reads were removed
+    **Symptom**: No reads were removed
 
-**Cause**: All reads labeled as biological (label 0)
+    **Cause**: All reads labeled as biological (label 0)
 
-**Check**:
-```bash
-grep -c "1$" predictions.txt  # Should be > 0
+    **Check**:
+    ```bash
+    grep -c "1$" predictions.txt  # Should be > 0
 
-# If 0, no chimeric reads detected (good quality data!)
-```
-````
+    # If 0, no chimeric reads detected (good quality data!)
+    ```
 
 ### Filter Command Fails
 
 ??? question "chimeralm filter command fails with error"
 
-````
-**Common Errors**:
+    **Common Errors**:
 
-1. **Predictions directory not found**
-   ```bash
-   # Ensure predictions directory exists
-   ls your_data.bam.predictions/predictions.txt
-   ```
+    1. **Predictions directory not found**
+       ```bash
+       # Ensure predictions directory exists
+       ls your_data.bam.predictions/predictions.txt
+       ```
 
-2. **BAM file corrupted**
-   ```bash
-   # Verify BAM integrity
-   samtools quickcheck your_data.bam
-   ```
+    2. **BAM file corrupted**
+       ```bash
+       # Verify BAM integrity
+       samtools quickcheck your_data.bam
+       ```
 
-3. **Insufficient disk space**
-   ```bash
-   # Check available space (need ~2x input BAM size)
-   df -h .
-   ```
-````
+    3. **Insufficient disk space**
+       ```bash
+       # Check available space (need ~2x input BAM size)
+       df -h .
+       ```
 
 ## Best Practices
 
@@ -376,4 +363,4 @@ You've learned how to:
 - ✅ Batch process multiple BAM files
 
 !!! success "Clean Data Ready!"
-Your filtered BAM file is now ready for high-quality downstream analysis!
+    Your filtered BAM file is now ready for high-quality downstream analysis!

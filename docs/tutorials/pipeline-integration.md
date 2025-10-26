@@ -3,19 +3,17 @@
 Integrate ChimeraLM into your bioinformatics pipelines using Bash, Nextflow, and Snakemake for reproducible, scalable analysis.
 
 !!! info "Learning Objectives"
-By the end of this tutorial, you will be able to:
+    By the end of this tutorial, you will be able to:
 
-```
-- Integrate ChimeraLM into Bash scripts for simple automation
-- Build Nextflow pipelines with ChimeraLM filtering
-- Create Snakemake workflows for reproducible analysis
-- Handle errors and logging in production pipelines
-- Scale to large cohorts (100s-1000s of samples)
+    - Integrate ChimeraLM into Bash scripts for simple automation
+    - Build Nextflow pipelines with ChimeraLM filtering
+    - Create Snakemake workflows for reproducible analysis
+    - Handle errors and logging in production pipelines
+    - Scale to large cohorts (100s-1000s of samples)
 
-**Prerequisites**: ChimeraLM installed, basic knowledge of Bash/Nextflow/Snakemake
+    **Prerequisites**: ChimeraLM installed, basic knowledge of Bash/Nextflow/Snakemake
 
-**Time**: ~45 minutes
-```
+    **Time**: ~45 minutes
 
 ## Integration Options
 
@@ -574,4 +572,4 @@ You've learned how to:
 - ✅ Follow best practices for bioinformatics pipelines
 
 !!! success "Pipeline Ready!"
-You're now ready to integrate ChimeraLM into production bioinformatics workflows!
+    You're now ready to integrate ChimeraLM into production bioinformatics workflows!
