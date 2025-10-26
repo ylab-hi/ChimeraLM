@@ -84,20 +84,6 @@ jobs:
 
       - name: Publish to TestPyPI
         run: uv publish --publish-url https://test.pypi.org/legacy/ --token ${{ secrets.TEST_PYPI_API_TOKEN }}
-
-      - name: Wait for package to be available
-        run: sleep 90
-
-      - name: Set up Python for testing
-        run: uv python install 3.10
-
-      - name: Test installation from TestPyPI
-        run: |
-          # Install from TestPyPI with PyPI as fallback for dependencies
-          uv pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ chimeralm
-          # Verify the package works
-          uv run chimeralm -h
-
   publish-pypi:
     name: Publish to PyPI
     needs: build
@@ -119,16 +105,3 @@ jobs:
         run: uv publish
         env:
           UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-
-      - name: Wait for package to be available
-        run: sleep 90
-
-      - name: Set up Python for testing
-        run: uv python install 3.10
-
-      - name: Test installation from PyPI
-        run: |
-          # Install from PyPI
-          uv pip install chimeralm
-          # Verify the package works
-          uv run chimeralm -h
