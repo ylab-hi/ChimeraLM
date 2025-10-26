@@ -70,7 +70,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     # Only publish to TestPyPI for release branches (not tags)
-    if: startsWith(github.ref, 'refs/heads/release') || github.event.inputs.publish_to == 'testpypi'
+    if: startsWith(github.ref, 'refs/heads/main') || github.event.inputs.publish_to == 'testpypi'
 
     steps:
       - name: Download distributions
