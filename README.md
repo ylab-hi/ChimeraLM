@@ -23,7 +23,7 @@
 
 ______________________________________________________________________
 
-A deep learning-powered tool to identify chimeric artifacts introduced by whole genome amplification (WGA). Built with PyTorch Lightning and HyenaDNA, optimized for modern GPUs.
+A deep learning-powered tool to identify chimeric artifacts introduced by whole genome amplification (WGA).
 
 ## Installation
 
