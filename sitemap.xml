@@ -1,67 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://ylab-hi.github.io/chimera/</loc>
+         <loc>https://ylab-hi.github.io/ChimeraLM/</loc>
          <lastmod>2025-10-26</lastmod>
     </url>
     <url>
-         <loc>https://ylab-hi.github.io/chimera/about/citation/</loc>
+         <loc>https://ylab-hi.github.io/ChimeraLM/about/citation/</loc>
          <lastmod>2025-10-26</lastmod>
     </url>
     <url>
-         <loc>https://ylab-hi.github.io/chimera/about/license/</loc>
+         <loc>https://ylab-hi.github.io/ChimeraLM/about/license/</loc>
          <lastmod>2025-10-26</lastmod>
     </url>
     <url>
-         <loc>https://ylab-hi.github.io/chimera/contributing/adding-features/</loc>
+         <loc>https://ylab-hi.github.io/ChimeraLM/contributing/adding-features/</loc>
          <lastmod>2025-10-26</lastmod>
     </url>
     <url>
-         <loc>https://ylab-hi.github.io/chimera/contributing/code_of_conduct/</loc>
+         <loc>https://ylab-hi.github.io/ChimeraLM/contributing/code_of_conduct/</loc>
          <lastmod>2025-10-26</lastmod>
     </url>
     <url>
-         <loc>https://ylab-hi.github.io/chimera/contributing/development-setup/</loc>
+         <loc>https://ylab-hi.github.io/ChimeraLM/contributing/development-setup/</loc>
          <lastmod>2025-10-26</lastmod>
     </url>
     <url>
-         <loc>https://ylab-hi.github.io/chimera/contributing/testing/</loc>
+         <loc>https://ylab-hi.github.io/ChimeraLM/contributing/testing/</loc>
          <lastmod>2025-10-26</lastmod>
     </url>
     <url>
-         <loc>https://ylab-hi.github.io/chimera/getting-started/installation/</loc>
+         <loc>https://ylab-hi.github.io/ChimeraLM/getting-started/installation/</loc>
          <lastmod>2025-10-26</lastmod>
     </url>
     <url>
-         <loc>https://ylab-hi.github.io/chimera/getting-started/quick-start/</loc>
+         <loc>https://ylab-hi.github.io/ChimeraLM/getting-started/quick-start/</loc>
          <lastmod>2025-10-26</lastmod>
     </url>
     <url>
-         <loc>https://ylab-hi.github.io/chimera/getting-started/troubleshooting/</loc>
+         <loc>https://ylab-hi.github.io/ChimeraLM/getting-started/troubleshooting/</loc>
          <lastmod>2025-10-26</lastmod>
     </url>
     <url>
-         <loc>https://ylab-hi.github.io/chimera/reference/cli/</loc>
+         <loc>https://ylab-hi.github.io/ChimeraLM/reference/cli/</loc>
          <lastmod>2025-10-26</lastmod>
     </url>
     <url>
-         <loc>https://ylab-hi.github.io/chimera/reference/models/</loc>
+         <loc>https://ylab-hi.github.io/ChimeraLM/reference/models/</loc>
          <lastmod>2025-10-26</lastmod>
     </url>
     <url>
-         <loc>https://ylab-hi.github.io/chimera/tutorials/bam-filtering/</loc>
+         <loc>https://ylab-hi.github.io/ChimeraLM/tutorials/bam-filtering/</loc>
          <lastmod>2025-10-26</lastmod>
     </url>
     <url>
-         <loc>https://ylab-hi.github.io/chimera/tutorials/performance-optimization/</loc>
+         <loc>https://ylab-hi.github.io/ChimeraLM/tutorials/performance-optimization/</loc>
          <lastmod>2025-10-26</lastmod>
     </url>
     <url>
-         <loc>https://ylab-hi.github.io/chimera/tutorials/pipeline-integration/</loc>
+         <loc>https://ylab-hi.github.io/ChimeraLM/tutorials/pipeline-integration/</loc>
          <lastmod>2025-10-26</lastmod>
     </url>
     <url>
-         <loc>https://ylab-hi.github.io/chimera/tutorials/web-interface/</loc>
+         <loc>https://ylab-hi.github.io/ChimeraLM/tutorials/web-interface/</loc>
          <lastmod>2025-10-26</lastmod>
     </url>
 </urlset>
