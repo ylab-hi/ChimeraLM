@@ -24,26 +24,9 @@ ChimeraLM's prediction speed depends on:
 3. **Data loading**: Parallel workers reduce I/O bottlenecks
 4. **Dataset size**: Amortized overhead for large files
 
-## Performance Comparison
-
-### Throughput by Hardware
-
-| Hardware | Batch Size | Throughput (reads/sec) | Time for 10K reads |
-|----------|------------|------------------------|-------------------|
-| CPU (8 cores) | 12 | ~22 reads/sec | ~7.5 minutes |
-| CPU (8 cores) | 32 | ~25 reads/sec | ~6.7 minutes |
-| NVIDIA RTX 3090 | 12 | ~200 reads/sec | ~50 seconds |
-| NVIDIA RTX 3090 | 24 | ~340 reads/sec | ~29 seconds |
-| NVIDIA RTX 3090 | 48 | ~420 reads/sec | ~24 seconds |
-| NVIDIA A100 | 24 | ~500 reads/sec | ~20 seconds |
-| NVIDIA A100 | 64 | ~750 reads/sec | ~13 seconds |
-| NVIDIA H100 | 64 | ~1200 reads/sec | ~8 seconds |
-| Apple M1 Max (MPS) | 12 | ~80 reads/sec | ~2 minutes |
-
 !!! tip "Key Takeaways"
     - GPU is 10-50x faster than CPU
     - Batch size of 24-64 is optimal for modern GPUs
-    - H100 > A100 > RTX 3090 > M1 Max > CPU
     - Diminishing returns after batch size 64
 
 ## Step 1: Choose Your Hardware
@@ -97,7 +80,7 @@ nvidia-smi
 
     ```bash
     # CPU mode with multiple workers
-    chimeralm predict input.bam --gpus 0 --workers 8
+    chimeralm predict input.bam --workers 8
     ```
 
     !!! tip "CPU Optimization"
@@ -137,7 +120,7 @@ chimeralm predict input.bam --gpus 1 --batch-size 48  # May OOM on smaller GPUs
     chimeralm predict input.bam --gpus 1 --batch-size 12
 
     # Or use CPU mode
-    chimeralm predict input.bam --gpus 0
+    chimeralm predict input.bam
     ```
 
 ### Measure Throughput
@@ -237,24 +220,6 @@ watch -n 1 nvidia-smi
 # Check GPU memory usage
 ```
 
-### Profile with PyTorch Profiler
-
-For advanced profiling, use PyTorch's built-in profiler:
-
-```python
-import torch.profiler as profiler
-
-# Add profiling to your prediction code
-with profiler.profile(
-    activities=[profiler.ProfilerActivity.CPU, profiler.ProfilerActivity.CUDA],
-    record_shapes=True,
-) as prof:
-    # Run prediction
-    ...
-
-print(prof.key_averages().table(sort_by="cuda_time_total"))
-```
-
 ## Best Practices
 
 ### For Maximum Speed
@@ -273,8 +238,8 @@ chimeralm predict input.bam --gpus 0 --workers 8 --batch-size 32
 ### For Limited GPU Memory
 
 ```bash
-# Small batch size, process in chunks
-chimeralm predict input.bam --gpus 1 --batch-size 8 --max-sample 10000
+# Small batch size
+chimeralm predict input.bam --gpus 1 --batch-size 8 
 ```
 
 ### For Reproducibility
@@ -327,9 +292,6 @@ chimeralm predict input.bam --gpus 1 --batch-size 24 --workers 0
 
     # 2. Use CPU mode
     chimeralm predict input.bam --gpus 0
-
-    # 3. Process in chunks
-    chimeralm predict input.bam --gpus 1 --max-sample 10000
     ```
 
 ### GPU Not Detected
@@ -358,7 +320,6 @@ Before running large-scale predictions:
 
 ## Next Steps
 
-- **Fine-tuning optimization**: See [Fine-Tuning Tutorial](fine-tuning.md) for training speed tips
 - **Pipeline integration**: See [Pipeline Integration](pipeline-integration.md) for scaling across multiple samples
 - **Hardware selection**: Consider cloud GPU instances (AWS, GCP, Azure) for large projects
 

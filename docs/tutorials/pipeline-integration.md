@@ -49,7 +49,7 @@ mkdir -p $OUTPUT_DIR
 
 # Step 1: Predict chimeric reads
 echo "Step 1/3: Predicting chimeric reads..."
-chimeralm predict $INPUT_BAM --gpus $GPUS --batch-size $BATCH_SIZE
+chimeralm predict $INPUT_BAM --gpus $GPUS --batch-size $BATCH_SIZE -o ${INPUT_BAM}.predictions
 
 # Step 2: Filter BAM
 echo "Step 2/3: Filtering BAM file..."
@@ -59,10 +59,10 @@ FILTERED_BAM="${INPUT_BAM%.bam}.filtered.sorted.bam"
 
 # Step 3: Generate QC report
 echo "Step 3/3: Generating QC report..."
-CHIMERIC=$(grep -c "1$" ${INPUT_BAM}.predictions/predictions.txt || echo "0")
-BIOLOGICAL=$(grep -c "0$" ${INPUT_BAM}.predictions/predictions.txt || echo "0")
-TOTAL=$((CHIMERIC + BIOLOGICAL))
-CHIMERA_RATE=$(echo "scale=2; $CHIMERIC * 100 / $TOTAL" | bc)
+CHIMERIC_ARTIFACT=$(grep -c "1$" ${INPUT_BAM}.predictions/predictions.txt || echo "0")
+BIOLOGICAL_READS=$(grep -c "0$" ${INPUT_BAM}.predictions/predictions.txt || echo "0")
+TOTAL_READS=$((CHIMERIC_ARTIFACT + BIOLOGICAL_READS))
+CHIMERA_ARTIFACT_RATE=$(echo "scale=2; $CHIMERIC_ARTIFACT * 100 / $TOTAL_READS" | bc)
 
 cat > ${OUTPUT_DIR}/qc_report.txt <<EOF
 ChimeraLM QC Report
@@ -71,10 +71,10 @@ Input BAM: $INPUT_BAM
 Output BAM: $FILTERED_BAM
 
 Read Statistics:
-  Total analyzed: $TOTAL
-  Biological: $BIOLOGICAL
-  Chimeric: $CHIMERIC
-  Chimera rate: ${CHIMERA_RATE}%
+  Total analyzed: $TOTAL_READS
+  Biological: $BIOLOGICAL_READS
+  Chimeric: $CHIMERIC_ARTIFACT
+  Chimera artifact rate: ${CHIMERA_ARTIFACT_RATE}%
 
 Filtering complete: $(date)
 EOF
@@ -139,21 +139,13 @@ log "Input: $INPUT_BAM ($(du -h $INPUT_BAM | cut -f1))"
 
 # Step 1: Predict
 log "Step 1/4: Running predictions..."
-if chimeralm predict $INPUT_BAM --gpus $GPUS --batch-size $BATCH_SIZE 2>&1 | tee -a pipeline.log; then
+if chimeralm predict $INPUT_BAM --gpus $GPUS --batch-size $BATCH_SIZE -o ${INPUT_BAM}.predictions 2>&1 | tee -a pipeline.log; then
     log "Predictions complete"
 else
     error_exit "Prediction failed"
 fi
 
-# Step 2: Validate predictions
-log "Step 2/4: Validating predictions..."
-PRED_FILE="${INPUT_BAM}.predictions/predictions.txt"
-[[ -f $PRED_FILE ]] || error_exit "Predictions file not found"
-PRED_COUNT=$(wc -l < $PRED_FILE)
-[[ $PRED_COUNT -gt 0 ]] || error_exit "No predictions generated"
-log "Found $PRED_COUNT predictions"
-
-# Step 3: Filter
+# Step 2: Filter
 log "Step 3/4: Filtering BAM..."
 if chimeralm filter $INPUT_BAM ${INPUT_BAM}.predictions/ 2>&1 | tee -a pipeline.log; then
     log "Filtering complete"
@@ -163,14 +155,6 @@ fi
 
 # ChimeraLM automatically creates .filtered.sorted.bam
 FILTERED_BAM="${INPUT_BAM%.bam}.filtered.sorted.bam"
-
-# Step 4: Verify output
-log "Step 4/4: Verifying output..."
-samtools quickcheck $FILTERED_BAM || error_exit "Output BAM is corrupted"
-ORIGINAL_COUNT=$(samtools view -c $INPUT_BAM)
-FILTERED_COUNT=$(samtools view -c $FILTERED_BAM)
-REMOVED_COUNT=$((ORIGINAL_COUNT - FILTERED_COUNT))
-log "Removed $REMOVED_COUNT reads (${ORIGINAL_COUNT} -> ${FILTERED_COUNT})"
 
 log "Pipeline complete! Output: $FILTERED_BAM"
 ```
@@ -199,11 +183,11 @@ process predict {
     path bam
 
     output:
-    tuple path(bam), path("${bam}.predictions/predictions.txt")
+    tuple path(bam), path("${bam}.predictions")
 
     script:
     """
-    chimeralm predict ${bam} --gpus ${params.gpus} --batch-size ${params.batch_size}
+    chimeralm predict ${bam} --gpus ${params.gpus} --batch-size ${params.batch_size} -o ${bam}.predictions
     """
 }
 
@@ -213,7 +197,7 @@ process filter {
     publishDir "${params.output_dir}/filtered_bams", mode: 'copy'
 
     input:
-    tuple path(bam), path(predictions)
+    tuple path(bam), path(predictions_dir)
 
     output:
     path "${bam.baseName}.filtered.sorted.bam"
@@ -221,35 +205,7 @@ process filter {
 
     script:
     """
-    chimeralm filter ${bam} \$(dirname ${predictions})
-    """
-}
-
-// Process: QC report
-process qc_report {
-    tag { bam.baseName }
-    publishDir "${params.output_dir}/qc", mode: 'copy'
-
-    input:
-    tuple path(bam), path(predictions)
-
-    output:
-    path "${bam.baseName}_qc.txt"
-
-    script:
-    """
-    CHIMERIC=\$(grep -c '1\$' ${predictions} || echo 0)
-    BIOLOGICAL=\$(grep -c '0\$' ${predictions} || echo 0)
-    TOTAL=\$((CHIMERIC + BIOLOGICAL))
-    RATE=\$(echo "scale=2; \$CHIMERIC * 100 / \$TOTAL" | bc)
-
-    cat > ${bam.baseName}_qc.txt <<EOF
-Sample: ${bam.baseName}
-Total reads analyzed: \$TOTAL
-Biological reads: \$BIOLOGICAL
-Chimeric reads: \$CHIMERIC
-Chimera rate: \${RATE}%
-EOF
+    chimeralm filter ${bam} ${predictions}
     """
 }
 
