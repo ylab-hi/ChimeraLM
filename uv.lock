@@ -497,10 +497,11 @@ wheels = [
 
 [[package]]
 name = "chimeralm"
-version = "1.0.3"
+version = "1.0.4"
 source = { editable = "." }
 dependencies = [
     { name = "datasets" },
+    { name = "einops" },
     { name = "evaluate" },
     { name = "gradio" },
     { name = "hf-xet" },
@@ -531,7 +532,6 @@ docs = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "einops" },
     { name = "fire" },
     { name = "hydra-colorlog" },
     { name = "hydra-optuna-sweeper" },
@@ -556,6 +556,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "datasets", specifier = ">=3.2.0" },
+    { name = "einops", specifier = ">=0.8.0" },
     { name = "evaluate", specifier = ">=0.4.3" },
     { name = "gradio", specifier = ">=4.0.0" },
     { name = "hf-xet", specifier = ">=1.1.10" },
@@ -583,7 +584,6 @@ provides-extras = ["docs"]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "einops", specifier = ">=0.8.0" },
     { name = "fire", specifier = ">=0.7.0" },
     { name = "hydra-colorlog", specifier = ">=1.2.0" },
     { name = "hydra-optuna-sweeper", specifier = ">=1.2.0" },

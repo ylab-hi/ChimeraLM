@@ -11,7 +11,7 @@ authors = [
 ]
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
-version = "1.0.3"
+version = "1.0.4"
 license = { file = "LICENSE" }
 keywords = ["deep learning", "bioinformatics", "rust"]
 classifiers = [
@@ -30,6 +30,7 @@ classifiers = [
   "Topic :: Scientific/Engineering",
 ]
 dependencies = [
+  "einops>=0.8.0",
   "datasets>=3.2.0",
   "rich>=13.9.4",
   "torch==2.5.1",
@@ -65,7 +66,6 @@ chimeralm = "chimeralm.__main__:app"
 
 [dependency-groups]
 dev = [
-  "einops>=0.8.0",
   "fire>=0.7.0",
   "hydra-colorlog>=1.2.0",
   "hydra-optuna-sweeper>=1.2.0",
