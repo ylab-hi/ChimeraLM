@@ -1,15 +1,15 @@
 # Filtering BAM Files
 
-Learn how to filter chimeric artifacts from BAM files using ChimeraLM predictions, producing clean datasets for downstream analysis.
+Learn how to filter chimera artifacts induced by whole genome amplification (WGA) from BAM files using ChimeraLM, producing clean datasets for downstream analysis.
 
 !!! info "Learning Objectives"
     By the end of this tutorial, you will be able to:
 
-    - Run predictions on BAM files to identify chimeric reads
-    - Filter BAM files to remove chimeric artifacts
+    - Run predictions on BAM files to identify chimera reads induced by WGA
+    - Filter BAM files to remove chimera artifacts induced by WGA
     - Verify filtering results and quality metrics
     - Integrate filtering into analysis pipelines
-    - Handle edge cases (empty predictions, all chimeric, etc.)
+    - Handle edge cases (empty predictions, all chimera induced by WGA, etc.)
 
     **Prerequisites**: ChimeraLM installed, SAMtools installed, basic command-line experience
 
@@ -33,7 +33,7 @@ ls -lh mk1c_test.bam*
 ```
 
 !!! info "About the Test Data"
-    The `mk1c_test.bam` file contains 285 reads subsampled from **PC3 cell line** (human prostate cancer) sequenced using **Nanopore MinION Mk1C** with whole genome amplification. 48 reads have SA tags (chimeric candidates), making it ideal for testing ChimeraLM filtering.
+    The `mk1c_test.bam` file contains 175 reads, in which 75 chimeric reads and 100 non-chimeric reads, subsampled from **PC3 cell line** (human prostate cancer) sequenced using **Nanopore MinION Mk1C** with whole genome amplification.
 
 !!! tip "Using Your Own Data"
     This tutorial uses `mk1c_test.bam` as an example. Replace it with your own BAM file path throughout the tutorial.
@@ -52,27 +52,26 @@ graph LR
     F --> G[Clean BAM]
 ```
 
-1. **Predict**: Classify reads as biological (0) or chimeric (1)
-2. **Filter**: Remove chimeric reads from BAM file
+1. **Predict**: Classify reads as biological (0) or chimeric artifact (1)
+2. **Filter**: Remove chimeric artifact reads from BAM file
 3. **Sort & Index**: Prepare filtered BAM for downstream tools
 
 ## Step 1: Run Predictions
 
-First, identify chimeric reads in your BAM file:
+First, identify chimera artifacts induced by WGA in your BAM file:
 
 ```bash
-# Predict chimeric reads
+# Predict chimera artifacts induced by WGA
 chimeralm predict mk1c_test.bam --gpus 1 --batch-size 24
 
 # Output directory: mk1c_test.bam.predictions/
-# Predictions file: mk1c_test.bam.predictions/predictions.txt
 ```
 
 ### Inspect Predictions
 
 ```bash
-# View first 10 predictions
-head mk1c_test.bam.predictions/predictions.txt
+# View first 10 predictions from first batch
+head mk1c_test.bam.predictions/0_0.txt
 
 # Output format (tab-separated):
 # read_name<TAB>label
@@ -80,42 +79,14 @@ head mk1c_test.bam.predictions/predictions.txt
 # b76512a7-5a74-405b-8ac3-adde6a7ea5e1	0
 ```
 
-### Check Chimera Rate
-
-```bash
-# Count chimeric reads (label 1)
-CHIMERIC=$(grep -c "1$" mk1c_test.bam.predictions/predictions.txt)
-
-# Count biological reads (label 0)
-BIOLOGICAL=$(grep -c "0$" mk1c_test.bam.predictions/predictions.txt)
-
-# Calculate chimera rate
-echo "Chimeric: $CHIMERIC"
-echo "Biological: $BIOLOGICAL"
-echo "Chimera rate: $(echo "scale=2; $CHIMERIC * 100 / ($CHIMERIC + $BIOLOGICAL)" | bc)%"
-```
-
-Expected output for test data:
-```text
-Chimeric: 36
-Biological: 12
-Chimera rate: 75.00%
-```
-
-!!! info "Typical Chimera Rates"
-    - **MDA (Multiple Displacement Amplification)**: 10-40%
-    - **PicoPLEX**: 5-20%
-    - **MALBAC**: 15-35%
-    - **Non-WGA data**: <1% (expect very few chimeric reads)
-
 ## Step 2: Filter BAM File
 
-Remove chimeric reads from your BAM file:
+Remove chimera artifacts from your BAM file:
 
 === "Basic Filtering"
 
     ```bash
-    # Filter out chimeric reads (label 1), keep biological (label 0)
+    # Filter out chimera artifacts induced by WGA (label 1), keep biological reads (label 0)
     chimeralm filter mk1c_test.bam mk1c_test.bam.predictions/
     ```
 
