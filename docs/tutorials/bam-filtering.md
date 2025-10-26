@@ -62,16 +62,20 @@ First, identify chimera artifacts induced by WGA in your BAM file:
 
 ```bash
 # Predict chimera artifacts induced by WGA
-chimeralm predict mk1c_test.bam --gpus 1 --batch-size 24
 
-# Output directory: mk1c_test.bam.predictions/
+chimeralm predict mk1c_test.bam
+
+# Or use GPU acceleration
+chimeralm predict mk1c_test.bam --gpus 1
+
+# Output directory: mk1c_test.predictions/
 ```
 
 ### Inspect Predictions
 
 ```bash
 # View first 10 predictions from first batch
-head mk1c_test.bam.predictions/0_0.txt
+head mk1c_test.predictions/0_0.txt
 
 # Output format (tab-separated):
 # read_name<TAB>label
@@ -87,29 +91,20 @@ Remove chimera artifacts from your BAM file:
 
     ```bash
     # Filter out chimera artifacts induced by WGA (label 1), keep biological reads (label 0)
-    chimeralm filter mk1c_test.bam mk1c_test.bam.predictions/
+    chimeralm filter mk1c_test.bam mk1c_test.predictions
     ```
 
     This automatically creates:
-    - `mk1c_test.sort.filtered.bam` - Unsorted filtered reads
-    - `mk1c_test.sort.filtered.sorted.bam` - **Final sorted output**
-    - `mk1c_test.sort.filtered.sorted.bam.bai` - BAM index
-
-=== "With Predictions Export"
-
-    ```bash
-    # Filter AND export consolidated predictions.txt
-    chimeralm filter mk1c_test.bam mk1c_test.bam.predictions/ --output-prediction
-    ```
-
-    Same BAM output, plus:
-    - `mk1c_test.bam.predictions/predictions.txt` - Consolidated predictions
+    - `mk1c_test.filtered.bam` - Unsorted filtered reads
+    - `mk1c_test.filtered.sorted.bam` - **Final sorted output**
+    - `mk1c_test.filtered.sorted.bam.bai` - BAM index
+    - `mk1c_test.predictions/predictions.txt` - Consolidated predictions.txt
 
 === "Your Own Data"
 
     ```bash
     # Replace with your BAM file
-    chimeralm filter your_data.bam your_data.bam.predictions/
+    chimeralm filter your_data.bam your_data.predictions
     ```
 
     Output: `your_data.filtered.sorted.bam`
@@ -118,11 +113,12 @@ Remove chimera artifacts from your BAM file:
 
 ```bash
 # Filter command output:
-INFO     [rank: 0] Filtering mk1c_test.bam by predictions from mk1c_test.bam.predictions
-INFO     [rank: 0] Loaded 48 predictions from mk1c_test.bam.predictions
-INFO     [rank: 0] Biological: 12 (25.0%), Chimera artifact: 36 (75.0%)
-INFO     [rank: 0] Sorting mk1c_test.filtered.bam
-INFO     [rank: 0] Indexing mk1c_test.filtered.sorted.bam
+INFO     [rank: 0] Filtering mk1c_test.bam by predictions from mk1c_test.predictions                                                                              pylogger.py:46
+INFO     [rank: 0] Writing all predictions to mk1c_test.predictions/predictions.txt                                                                               pylogger.py:46
+INFO     [rank: 0] Loaded 75 predictions from mk1c_test.predictions                                                                                               pylogger.py:46
+INFO     [rank: 0] Biological: 20 (26.7%), Chimera artifact: 55 (73.3%)                                                                                           pylogger.py:46
+INFO     [rank: 0] Sorting mk1c_test.filtered.bam                                                                                                                 pylogger.py:46
+INFO     [rank: 0] Indexing mk1c_test.filtered.sorted.bam                                                                                                         pylogger.py:46
 ```
 
 **Files created:**
@@ -130,61 +126,27 @@ INFO     [rank: 0] Indexing mk1c_test.filtered.sorted.bam
 - `mk1c_test.filtered.sorted.bam.bai` - Index file
 - `mk1c_test.filtered.bam` - Intermediate unsorted file (can be deleted)
 
-## Step 3: Verify Filtering Results
-
-### Check Read Counts
-
-```bash
-# Count reads in original BAM
-ORIGINAL=$(samtools view -c mk1c_test.bam)
-
-# Count reads in filtered BAM
-FILTERED=$(samtools view -c filtered.bam)
-
-# Count reads with SA tags in original (chimeric candidates)
-SA_TAGS=$(samtools view mk1c_test.bam | grep -c "SA:Z:")
-
-echo "Original reads: $ORIGINAL"
-echo "Filtered reads: $FILTERED"
-echo "Removed reads: $((ORIGINAL - FILTERED))"
-echo "Reads with SA tags: $SA_TAGS"
-```
-
-Expected output for test data:
-```text
-Original reads: 285
-Filtered reads: 206
-Removed reads: 79
-Reads with SA tags: 162
-```
-
-!!! note "Read Count Math"
-    - **Original reads**: Total reads including chimeric and non-chimeric
-    - **Reads with SA tags**: Chimeric candidates analyzed by ChimeraLM
-    - **Removed reads**: Chimeric reads (label 1) from SA-tagged reads
-    - **Filtered reads**: Original - Removed
-
 ### Verify BAM Integrity
 
 ```bash
 # Check BAM header
-samtools view -H filtered.bam | head
+samtools view -H mk1c_test.filtered.sorted.bam | head
 
 # Verify BAM is sorted
-samtools quickcheck filtered.bam && echo "BAM is valid"
+samtools quickcheck mk1c_test.filtered.sorted.bam && echo "BAM is valid"
 
 # Check if indexed
-ls filtered.bam.bai && echo "BAM is indexed"
+ls mk1c_test.filtered.sorted.bam.bai && echo "BAM is indexed"
 ```
 
 ### Compare Quality Metrics
 
 ```bash
 # Original BAM stats
-samtools stats input.bam > original_stats.txt
+samtools stats mk1c_test.bam > original_stats.txt
 
 # Filtered BAM stats
-samtools stats filtered.bam > filtered_stats.txt
+samtools stats mk1c_test.filtered.sorted.bam > filtered_stats.txt
 
 # Compare metrics
 grep "^SN" original_stats.txt > original_summary.txt
@@ -202,7 +164,7 @@ The filtered BAM is ready for any downstream tools:
 
 ```bash
 # Call variants on clean data
-bcftools mpileup -f reference.fa filtered.bam | \
+bcftools mpileup -f reference.fa mk1c_test.filtered.sorted.bam | \
     bcftools call -mv -Oz -o variants.vcf.gz
 ```
 
@@ -210,48 +172,16 @@ bcftools mpileup -f reference.fa filtered.bam | \
 
 ```bash
 # Detect SVs with cleaner signal
-sniffles -i filtered.bam -v svs.vcf
+sniffles -i mk1c_test.filtered.sorted.bam -v svs.vcf
 ```
 
 ### Genome Assembly
 
 ```bash
 # Extract reads for assembly
-samtools fasta filtered.bam > clean_reads.fasta
+samtools fasta mk1c_test.filtered.sorted.bam > clean_reads.fasta
 flye --nano-raw clean_reads.fasta --out-dir assembly/
 ```
-
-## Advanced Filtering
-
-### Filter by Prediction Threshold
-
-If you want more control, manually filter by confidence scores:
-
-```python
-# Custom filtering script (hypothetical - ChimeraLM outputs only labels)
-import pysam
-
-# Read predictions (assume you have confidence scores)
-predictions = {}
-with open("predictions.txt") as f:
-    for line in f:
-        read_name, label, score = line.strip().split("\t")
-        predictions[read_name] = float(score)
-
-# Filter by custom threshold
-threshold = 0.8
-with pysam.AlignmentFile("input.bam") as infile:
-    with pysam.AlignmentFile("custom_filtered.bam", "wb", template=infile) as outfile:
-        for read in infile:
-            if read.query_name in predictions:
-                if predictions[read.query_name] < threshold:  # Keep if score < threshold
-                    outfile.write(read)
-            else:
-                outfile.write(read)  # Keep reads not in predictions
-```
-
-!!! warning "Current Limitation"
-    ChimeraLM currently outputs only binary labels (0/1), not confidence scores. Threshold filtering is a future enhancement.
 
 ### Batch Filtering
 
@@ -261,7 +191,7 @@ Process multiple BAM files:
 # Filter multiple files
 for bam in *.bam; do
     echo "Processing $bam..."
-    chimeralm predict $bam --gpus 1
+    chimeralm predict $bam --gpus 1 -o ${bam}.predictions
     chimeralm filter $bam ${bam}.predictions/
     # Output: ${bam%.bam}.filtered.sorted.bam
 done
@@ -279,10 +209,10 @@ Use GNU parallel for faster processing:
 # brew install parallel  # macOS
 
 # Predict in parallel
-ls *.bam | parallel -j 4 'chimeralm predict {} --gpus 1'
+ls *.bam | parallel -j 4 'chimeralm predict {} --gpus 1 -o {}.predictions'
 
 # Filter in parallel (creates .filtered.sorted.bam for each)
-ls *.bam | parallel -j 8 'chimeralm filter {} {}.predictions/'
+ls *.bam | parallel -j 8 'chimeralm filter {} {}.predictions'
 ```
 
 ## Troubleshooting
@@ -373,7 +303,6 @@ ls *.bam | parallel -j 8 'chimeralm filter {} {}.predictions/'
 ### Before Filtering
 
 - [ ] Run predictions on test data first to verify model is working
-- [ ] Check chimera rate is reasonable (10-40% for WGA data)
 - [ ] Backup original BAM file
 - [ ] Ensure sufficient disk space (2x input BAM size)
 
