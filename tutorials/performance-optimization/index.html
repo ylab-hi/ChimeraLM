@@ -818,18 +818,18 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#process-in-chunks" class="md-nav__link">
+  <a href="#multi-gpu-prediction-advanced" class="md-nav__link">
     <span class="md-ellipsis">
-      Process in Chunks
+      Multi-GPU Prediction (Advanced)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#multi-gpu-prediction-advanced" class="md-nav__link">
+  <a href="#process-in-chunks" class="md-nav__link">
     <span class="md-ellipsis">
-      Multi-GPU Prediction (Advanced)
+      Process in Chunks
     </span>
   </a>
   
@@ -1501,18 +1501,17 @@
 <p>Maximize ChimeraLM's throughput and minimize prediction time with GPU acceleration, batch tuning, and parallelization strategies.</p>
 <div class="admonition info">
 <p class="admonition-title">Learning Objectives</p>
-</div>
 <p>By the end of this tutorial, you will be able to:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>- Choose optimal hardware (CPU, CUDA GPU, MPS) for your workload
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>- Tune batch size for maximum throughput without OOM errors
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>- Optimize data loading with worker processes
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>- Profile and benchmark ChimeraLM performance
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>- Scale to large datasets (millions of reads)
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>**Prerequisites**: ChimeraLM installed, basic command-line experience
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>**Time**: ~30 minutes
-</span></code></pre></div>
+<ul>
+<li>Choose optimal hardware (CPU, CUDA GPU, MPS) for your workload</li>
+<li>Tune batch size for maximum throughput without OOM errors</li>
+<li>Optimize data loading with worker processes</li>
+<li>Profile and benchmark ChimeraLM performance</li>
+<li>Scale to large datasets (millions of reads)</li>
+</ul>
+<p><strong>Prerequisites</strong>: ChimeraLM installed, basic command-line experience</p>
+<p><strong>Time</strong>: ~30 minutes</p>
+</div>
 <h2 id="performance-overview">Performance Overview<a class="headerlink" href="#performance-overview" title="Anchor link to this section">&para;</a></h2>
 <p>ChimeraLM's prediction speed depends on:</p>
 <ol>
@@ -1523,81 +1522,74 @@
 </ol>
 <div class="admonition tip">
 <p class="admonition-title">Key Takeaways</p>
+<ul>
+<li>GPU is 10-50x faster than CPU</li>
+<li>Batch size of 24-64 is optimal for modern GPUs</li>
+<li>Diminishing returns after batch size 64</li>
+</ul>
 </div>
-<p>- GPU is 10-50x faster than CPU
-- Batch size of 24-64 is optimal for modern GPUs
-- Diminishing returns after batch size 64</p>
 <h2 id="step-1-choose-your-hardware">Step 1: Choose Your Hardware<a class="headerlink" href="#step-1-choose-your-hardware" title="Anchor link to this section">&para;</a></h2>
 <h3 id="check-available-hardware">Check Available Hardware<a class="headerlink" href="#check-available-hardware" title="Anchor link to this section">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Check CUDA GPU availability</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import torch; print(f&#39;CUDA: {torch.cuda.is_available()}&#39;)&quot;</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Check MPS (Apple Silicon) availability</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import torch; print(f&#39;MPS: {torch.backends.mps.is_available()}&#39;)&quot;</span>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># Check GPU details (if CUDA available)</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>nvidia-smi
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Check CUDA GPU availability</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import torch; print(f&#39;CUDA: {torch.cuda.is_available()}&#39;)&quot;</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Check MPS (Apple Silicon) availability</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import torch; print(f&#39;MPS: {torch.backends.mps.is_available()}&#39;)&quot;</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># Check GPU details (if CUDA available)</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>nvidia-smi
 </span></code></pre></div>
 <h3 id="hardware-recommendations">Hardware Recommendations<a class="headerlink" href="#hardware-recommendations" title="Anchor link to this section">&para;</a></h3>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:1"><input checked="checked" id="hardware-recommendations-nvidia-gpu-recommended" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="hardware-recommendations-nvidia-gpu-recommended">NVIDIA GPU (Recommended)</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="hardware-recommendations-nvidia-gpu-recommended" name="__tabbed_1" type="radio" /><input id="hardware-recommendations-apple-silicon-m1m2m3" name="__tabbed_1" type="radio" /><input id="hardware-recommendations-cpu" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="hardware-recommendations-nvidia-gpu-recommended">NVIDIA GPU (Recommended)</label><label for="hardware-recommendations-apple-silicon-m1m2m3">Apple Silicon (M1/M2/M3)</label><label for="hardware-recommendations-cpu">CPU</label></div>
 <div class="tabbed-content">
-<div class="tabbed-block"></div>
-</div>
-</div>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>**Best for**: Large-scale prediction (&gt;100K reads)
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>```bash
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a># Use CUDA with optimal batch size
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>chimeralm predict input.bam --gpus 1 --batch-size 24
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>```
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>**GPU Requirements**:
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>- **Minimum**: 8GB VRAM (batch-size 12)
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>- **Recommended**: 16GB VRAM (batch-size 24-32)
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>- **Optimal**: 24GB+ VRAM (batch-size 48-64)
+<div class="tabbed-block">
+<p><strong>Best for</strong>: Large-scale prediction (&gt;100K reads)</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Use CUDA with optimal batch size</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">24</span>
 </span></code></pre></div>
-<div class="tabbed-set tabbed-alternate" data-tabs="2:1"><input checked="checked" id="hardware-recommendations-apple-silicon-m1m2m3" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="hardware-recommendations-apple-silicon-m1m2m3">Apple Silicon (M1/M2/M3)</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block"></div>
+<p><strong>GPU Requirements</strong>:</p>
+<ul>
+<li><strong>Minimum</strong>: 8GB VRAM (batch-size 12)</li>
+<li><strong>Recommended</strong>: 16GB VRAM (batch-size 24-32)</li>
+<li><strong>Optimal</strong>: 24GB+ VRAM (batch-size 48-64)</li>
+</ul>
 </div>
-</div>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>**Best for**: Mac users, moderate datasets (&lt;100K reads)
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>```bash
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a># MPS is auto-detected and enabled
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>chimeralm predict input.bam --gpus 1 --batch-size 12
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>```
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>!!! warning &quot;MPS Limitations&quot;
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>    - Single device only (no multi-GPU)
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>    - Slower than CUDA GPUs
-</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>    - Limited VRAM (8-96GB depending on model)
+<div class="tabbed-block">
+<p><strong>Best for</strong>: Mac users, moderate datasets (&lt;100K reads)</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># MPS is auto-detected and enabled</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">12</span>
 </span></code></pre></div>
-<div class="tabbed-set tabbed-alternate" data-tabs="3:1"><input checked="checked" id="hardware-recommendations-cpu" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="hardware-recommendations-cpu">CPU</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block"></div>
+<div class="admonition warning">
+<p class="admonition-title">MPS Limitations</p>
+<ul>
+<li>Single device only (no multi-GPU)</li>
+<li>Slower than CUDA GPUs</li>
+<li>Limited VRAM (8-96GB depending on model)</li>
+</ul>
 </div>
 </div>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>**Best for**: Small datasets (&lt;10K reads), no GPU available
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>```bash
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a># CPU mode with multiple workers
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>chimeralm predict input.bam --workers 8
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>```
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>!!! tip &quot;CPU Optimization&quot;
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    Set `--workers` to number of CPU cores for parallelism
+<div class="tabbed-block">
+<p><strong>Best for</strong>: Small datasets (&lt;10K reads), no GPU available</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># CPU mode with multiple workers</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--workers<span class="w"> </span><span class="m">8</span>
 </span></code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">CPU Optimization</p>
+<p>Set <code>--workers</code> to number of CPU cores for parallelism</p>
+</div>
+</div>
+</div>
+</div>
 <h2 id="step-2-optimize-batch-size">Step 2: Optimize Batch Size<a class="headerlink" href="#step-2-optimize-batch-size" title="Anchor link to this section">&para;</a></h2>
 <p>Batch size is the most important parameter for GPU performance.</p>
 <h3 id="finding-optimal-batch-size">Finding Optimal Batch Size<a class="headerlink" href="#finding-optimal-batch-size" title="Anchor link to this section">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Start with default (batch-size 12)</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">12</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># Increase until you get CUDA out of memory error</span>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">24</span>
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">32</span>
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">48</span><span class="w">  </span><span class="c1"># May OOM on smaller GPUs</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Start with default (batch-size 12)</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">12</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Increase until you get CUDA out of memory error</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">24</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">32</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">48</span><span class="w">  </span><span class="c1"># May OOM on smaller GPUs</span>
 </span></code></pre></div>
 <h3 id="batch-size-guidelines">Batch Size Guidelines<a class="headerlink" href="#batch-size-guidelines" title="Anchor link to this section">&para;</a></h3>
 <table>
@@ -1638,49 +1630,53 @@
 </table>
 <div class="admonition warning">
 <p class="admonition-title">Out of Memory Errors</p>
-</div>
 <p>If you get <code>RuntimeError: CUDA out of memory</code>:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>```bash
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a># Reduce batch size
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>chimeralm predict input.bam --gpus 1 --batch-size 12
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a># Or use CPU mode
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>chimeralm predict input.bam
-</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>```
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Reduce batch size</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">12</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># Or use CPU mode</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam
 </span></code></pre></div>
+</div>
 <h3 id="measure-throughput">Measure Throughput<a class="headerlink" href="#measure-throughput" title="Anchor link to this section">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Benchmark with different batch sizes</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nb">time</span><span class="w"> </span>chimeralm<span class="w"> </span>predict<span class="w"> </span>tests/data/mk1c_test.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">12</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="nb">time</span><span class="w"> </span>chimeralm<span class="w"> </span>predict<span class="w"> </span>tests/data/mk1c_test.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">24</span>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="nb">time</span><span class="w"> </span>chimeralm<span class="w"> </span>predict<span class="w"> </span>tests/data/mk1c_test.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">32</span>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="c1"># Compare total time</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Benchmark with different batch sizes</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nb">time</span><span class="w"> </span>chimeralm<span class="w"> </span>predict<span class="w"> </span>tests/data/mk1c_test.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">12</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="nb">time</span><span class="w"> </span>chimeralm<span class="w"> </span>predict<span class="w"> </span>tests/data/mk1c_test.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">24</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="nb">time</span><span class="w"> </span>chimeralm<span class="w"> </span>predict<span class="w"> </span>tests/data/mk1c_test.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">32</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="c1"># Compare total time</span>
 </span></code></pre></div>
 <h2 id="step-3-optimize-data-loading">Step 3: Optimize Data Loading<a class="headerlink" href="#step-3-optimize-data-loading" title="Anchor link to this section">&para;</a></h2>
 <h3 id="increase-worker-threads">Increase Worker Threads<a class="headerlink" href="#increase-worker-threads" title="Anchor link to this section">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># CPU mode: Use multiple workers for parallelism</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">0</span><span class="w"> </span>--workers<span class="w"> </span><span class="m">8</span>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1"># GPU mode: 2-4 workers to keep GPU fed</span>
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">24</span><span class="w"> </span>--workers<span class="w"> </span><span class="m">4</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># CPU mode: Use multiple workers for parallelism</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">0</span><span class="w"> </span>--workers<span class="w"> </span><span class="m">8</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># GPU mode: 2-4 workers to keep GPU fed</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">24</span><span class="w"> </span>--workers<span class="w"> </span><span class="m">4</span>
 </span></code></pre></div>
 <div class="admonition info">
 <p class="admonition-title">Worker Guidelines</p>
+<ul>
+<li><strong>CPU mode</strong>: Set workers = number of CPU cores</li>
+<li><strong>GPU mode</strong>: 2-4 workers (more doesn't help)</li>
+<li><strong>Default</strong>: 0 (main thread only)</li>
+</ul>
 </div>
-<p>- <strong>CPU mode</strong>: Set workers = number of CPU cores
-- <strong>GPU mode</strong>: 2-4 workers (more doesn't help)
-- <strong>Default</strong>: 0 (main thread only)</p>
 <h3 id="io-bottlenecks">I/O Bottlenecks<a class="headerlink" href="#io-bottlenecks" title="Anchor link to this section">&para;</a></h3>
 <p>For very large BAM files (&gt;10GB), I/O can become a bottleneck:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Check if I/O is the bottleneck</span>
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="c1"># Monitor GPU utilization with nvidia-smi</span>
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># If GPU utilization &lt; 80%, increase workers</span>
-</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>large_file.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--workers<span class="w"> </span><span class="m">4</span>
-</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>
-</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="c1"># If still low, data loading is the bottleneck (not much you can do)</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Check if I/O is the bottleneck</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="c1"># Monitor GPU utilization with nvidia-smi</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1"># If GPU utilization &lt; 80%, increase workers</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>large_file.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--workers<span class="w"> </span><span class="m">4</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="c1"># If still low, data loading is the bottleneck (not much you can do)</span>
 </span></code></pre></div>
 <h2 id="step-4-scale-to-large-datasets">Step 4: Scale to Large Datasets<a class="headerlink" href="#step-4-scale-to-large-datasets" title="Anchor link to this section">&para;</a></h2>
+<h3 id="multi-gpu-prediction-advanced">Multi-GPU Prediction (Advanced)<a class="headerlink" href="#multi-gpu-prediction-advanced" title="Anchor link to this section">&para;</a></h3>
+<p>Multi-GPU prediction is currently supported. You can process different files on multiple GPUs:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>file1.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">2</span>
+</span></code></pre></div>
 <h3 id="process-in-chunks">Process in Chunks<a class="headerlink" href="#process-in-chunks" title="Anchor link to this section">&para;</a></h3>
 <p>For very large datasets, process in chunks to avoid memory issues:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Process first 100K reads</span>
@@ -1693,113 +1689,94 @@
 </span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>chunk1.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">32</span>
 </span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>chunk2.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">32</span>
 </span></code></pre></div>
-<h3 id="multi-gpu-prediction-advanced">Multi-GPU Prediction (Advanced)<a class="headerlink" href="#multi-gpu-prediction-advanced" title="Anchor link to this section">&para;</a></h3>
-<div class="admonition warning">
-<p class="admonition-title">Not Yet Implemented</p>
-</div>
-<p>Multi-GPU prediction is not currently supported. For now, process different files on different GPUs manually:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>```bash
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a># Terminal 1
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>CUDA_VISIBLE_DEVICES=0 chimeralm predict file1.bam --gpus 1
-</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>
-</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a># Terminal 2
-</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>CUDA_VISIBLE_DEVICES=1 chimeralm predict file2.bam --gpus 1
-</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>```
-</span></code></pre></div>
 <h2 id="step-5-profile-and-benchmark">Step 5: Profile and Benchmark<a class="headerlink" href="#step-5-profile-and-benchmark" title="Anchor link to this section">&para;</a></h2>
 <h3 id="measure-end-to-end-time">Measure End-to-End Time<a class="headerlink" href="#measure-end-to-end-time" title="Anchor link to this section">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># Time the full pipeline</span>
-</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="nb">time</span><span class="w"> </span>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">24</span>
-</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
-</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="c1"># Output:</span>
-</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="c1"># real    0m29.123s</span>
-</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="c1"># user    0m45.678s</span>
-</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="c1"># sys     0m3.456s</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Time the full pipeline</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="nb">time</span><span class="w"> </span>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">24</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1"># Output:</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="c1"># real    0m29.123s</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="c1"># user    0m45.678s</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="c1"># sys     0m3.456s</span>
 </span></code></pre></div>
 <h3 id="monitor-gpu-utilization">Monitor GPU Utilization<a class="headerlink" href="#monitor-gpu-utilization" title="Anchor link to this section">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Run nvidia-smi in another terminal while predicting</span>
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>watch<span class="w"> </span>-n<span class="w"> </span><span class="m">1</span><span class="w"> </span>nvidia-smi
-</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
-</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c1"># Check GPU utilization (should be 90-100% during inference)</span>
-</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="c1"># Check GPU memory usage</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># Run nvidia-smi in another terminal while predicting</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>watch<span class="w"> </span>-n<span class="w"> </span><span class="m">1</span><span class="w"> </span>nvidia-smi
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="c1"># Check GPU utilization (should be 90-100% during inference)</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="c1"># Check GPU memory usage</span>
 </span></code></pre></div>
 <h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Anchor link to this section">&para;</a></h2>
 <h3 id="for-maximum-speed">For Maximum Speed<a class="headerlink" href="#for-maximum-speed" title="Anchor link to this section">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># NVIDIA GPU: Large batch, mixed precision</span>
-</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">48</span><span class="w"> </span>--workers<span class="w"> </span><span class="m">4</span>
-</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>
-</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="c1"># Apple Silicon: Moderate batch</span>
-</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">12</span><span class="w"> </span>--workers<span class="w"> </span><span class="m">2</span>
-</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>
-</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="c1"># CPU: Multiple workers</span>
-</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">0</span><span class="w"> </span>--workers<span class="w"> </span><span class="m">8</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">32</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># NVIDIA GPU: Large batch, mixed precision</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">48</span><span class="w"> </span>--workers<span class="w"> </span><span class="m">4</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c1"># Apple Silicon: Moderate batch</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">12</span><span class="w"> </span>--workers<span class="w"> </span><span class="m">2</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="c1"># CPU: Multiple workers</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">0</span><span class="w"> </span>--workers<span class="w"> </span><span class="m">8</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">32</span>
 </span></code></pre></div>
 <h3 id="for-limited-gpu-memory">For Limited GPU Memory<a class="headerlink" href="#for-limited-gpu-memory" title="Anchor link to this section">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># Small batch size</span>
-</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">8</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Small batch size</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">8</span>
 </span></code></pre></div>
 <h3 id="for-reproducibility">For Reproducibility<a class="headerlink" href="#for-reproducibility" title="Anchor link to this section">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># Fixed seed, single worker</span>
-</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">24</span><span class="w"> </span>--workers<span class="w"> </span><span class="m">0</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># Fixed seed, single worker</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">24</span><span class="w"> </span>--workers<span class="w"> </span><span class="m">0</span>
 </span></code></pre></div>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Anchor link to this section">&para;</a></h2>
 <h3 id="slow-predictions">Slow Predictions<a class="headerlink" href="#slow-predictions" title="Anchor link to this section">&para;</a></h3>
 <details class="question">
 <summary>Predictions are slower than expected</summary>
+<p><strong>Symptom</strong>: GPU mode is not much faster than CPU</p>
+<p><strong>Possible Causes</strong>:</p>
+<ol>
+<li>
+<p><strong>GPU not being used</strong>
+    <div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># Check GPU is detected</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import torch; print(torch.cuda.is_available())&quot;</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="c1"># Verify --gpus 1 flag is set</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Batch size too small</strong>
+    <div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># Increase batch size</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">32</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>I/O bottleneck</strong>
+    <div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># Increase workers</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--workers<span class="w"> </span><span class="m">4</span>
+</span></code></pre></div></p>
+</li>
+</ol>
 </details>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>**Symptom**: GPU mode is not much faster than CPU
-</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>
-</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>**Possible Causes**:
-</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>
-</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>1. **GPU not being used**
-</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>   ```bash
-</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>   # Check GPU is detected
-</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>   python -c &quot;import torch; print(torch.cuda.is_available())&quot;
-</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a>
-</span><span id="__span-17-10"><a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a>   # Verify --gpus 1 flag is set
-</span><span id="__span-17-11"><a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a>   chimeralm predict input.bam --gpus 1
-</span><span id="__span-17-12"><a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a>   ```
-</span><span id="__span-17-13"><a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a>
-</span><span id="__span-17-14"><a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a>2. **Batch size too small**
-</span><span id="__span-17-15"><a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a>   ```bash
-</span><span id="__span-17-16"><a id="__codelineno-17-16" name="__codelineno-17-16" href="#__codelineno-17-16"></a>   # Increase batch size
-</span><span id="__span-17-17"><a id="__codelineno-17-17" name="__codelineno-17-17" href="#__codelineno-17-17"></a>   chimeralm predict input.bam --gpus 1 --batch-size 32
-</span><span id="__span-17-18"><a id="__codelineno-17-18" name="__codelineno-17-18" href="#__codelineno-17-18"></a>   ```
-</span><span id="__span-17-19"><a id="__codelineno-17-19" name="__codelineno-17-19" href="#__codelineno-17-19"></a>
-</span><span id="__span-17-20"><a id="__codelineno-17-20" name="__codelineno-17-20" href="#__codelineno-17-20"></a>3. **I/O bottleneck**
-</span><span id="__span-17-21"><a id="__codelineno-17-21" name="__codelineno-17-21" href="#__codelineno-17-21"></a>   ```bash
-</span><span id="__span-17-22"><a id="__codelineno-17-22" name="__codelineno-17-22" href="#__codelineno-17-22"></a>   # Increase workers
-</span><span id="__span-17-23"><a id="__codelineno-17-23" name="__codelineno-17-23" href="#__codelineno-17-23"></a>   chimeralm predict input.bam --gpus 1 --workers 4
-</span><span id="__span-17-24"><a id="__codelineno-17-24" name="__codelineno-17-24" href="#__codelineno-17-24"></a>   ```
-</span></code></pre></div>
 <h3 id="out-of-memory">Out of Memory<a class="headerlink" href="#out-of-memory" title="Anchor link to this section">&para;</a></h3>
 <details class="question">
 <summary>CUDA out of memory error</summary>
-</details>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>**Solutions**:
-</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>
-</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>```bash
-</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a># 1. Reduce batch size
-</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>chimeralm predict input.bam --gpus 1 --batch-size 12
-</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>
-</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a># 2. Use CPU mode
-</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>chimeralm predict input.bam --gpus 0
-</span><span id="__span-18-9"><a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>```
+<p><strong>Solutions</strong>:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1"># 1. Reduce batch size</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">12</span>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="c1"># 2. Use CPU mode</span>
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>input.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">0</span>
 </span></code></pre></div>
+</details>
 <h3 id="gpu-not-detected">GPU Not Detected<a class="headerlink" href="#gpu-not-detected" title="Anchor link to this section">&para;</a></h3>
 <details class="question">
 <summary>GPU available but not being used</summary>
-</details>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>**Check CUDA installation**:
-</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>
-</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>```bash
-</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a># Verify CUDA is available to PyTorch
-</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>python -c &quot;import torch; print(f&#39;CUDA: {torch.cuda.is_available()}, Version: {torch.version.cuda}&#39;)&quot;
-</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>
-</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a># If False, reinstall PyTorch with CUDA
-</span><span id="__span-19-8"><a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cu121
-</span><span id="__span-19-9"><a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a>```
+<p><strong>Check CUDA installation</strong>:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># Verify CUDA is available to PyTorch</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import torch; print(f&#39;CUDA: {torch.cuda.is_available()}, Version: {torch.version.cuda}&#39;)&quot;</span>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="c1"># If False, reinstall PyTorch with CUDA</span>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="nv">torch</span><span class="o">==</span><span class="m">2</span>.5.1<span class="w"> </span>--index-url<span class="w"> </span>https://download.pytorch.org/whl/cu121
 </span></code></pre></div>
+</details>
 <h2 id="performance-checklist">Performance Checklist<a class="headerlink" href="#performance-checklist" title="Anchor link to this section">&para;</a></h2>
 <p>Before running large-scale predictions:</p>
 <ul class="task-list">
@@ -1826,8 +1803,8 @@
 </ul>
 <div class="admonition success">
 <p class="admonition-title">Performance Boost Achieved!</p>
-</div>
 <p>With proper optimization, you can achieve 10-50x speedup compared to default settings!</p>
+</div>
 
 
 

@@ -1312,12 +1312,13 @@
 <p>Get started with ChimeraLM in under 15 minutes! This tutorial will guide you through your first chimeric read prediction.</p>
 <div class="admonition info">
 <p class="admonition-title">What you'll learn</p>
+<ul>
+<li>How to run predictions on BAM files</li>
+<li>Understanding ChimeraLM output format</li>
+<li>Verifying your results</li>
+</ul>
+<p><strong>Time</strong>: ~15 minutes</p>
 </div>
-<p>- How to run predictions on BAM files
-- Understanding ChimeraLM output format
-- Verifying your results</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>**Time**: ~15 minutes
-</span></code></pre></div>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Anchor link to this section">&para;</a></h2>
 <ul>
 <li>ChimeraLM installed (<a href="../installation/">Installation Guide</a>)</li>
@@ -1326,83 +1327,73 @@
 </ul>
 <h2 id="step-1-get-sample-data">Step 1: Get Sample Data<a class="headerlink" href="#step-1-get-sample-data" title="Anchor link to this section">&para;</a></h2>
 <p>ChimeraLM includes test data in the repository. If you installed from source:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Sample data is already available</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>ls<span class="w"> </span>tests/data/mk1c_test.bam
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Sample data is already available</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>ls<span class="w"> </span>tests/data/mk1c_test.bam
 </span></code></pre></div>
 <p>If you installed via pip, download the sample data:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Download sample BAM file with index</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>wget<span class="w"> </span>https://github.com/ylab-hi/chimera/raw/main/tests/data/mk1c_test.bam
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>wget<span class="w"> </span>https://github.com/ylab-hi/chimera/raw/main/tests/data/mk1c_test.bam.bai
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1"># Or using curl</span>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>curl<span class="w"> </span>-L<span class="w"> </span>-o<span class="w"> </span>mk1c_test.bam<span class="w"> </span>https://github.com/ylab-hi/chimera/raw/main/tests/data/mk1c_test.bam
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>curl<span class="w"> </span>-L<span class="w"> </span>-o<span class="w"> </span>mk1c_test.bam.bai<span class="w"> </span>https://github.com/ylab-hi/chimera/raw/main/tests/data/mk1c_test.bam.bai
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="c1"># Verify files downloaded correctly</span>
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>ls<span class="w"> </span>-lh<span class="w"> </span>mk1c_test.bam*
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Download sample BAM file with index</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>wget<span class="w"> </span>https://github.com/ylab-hi/chimera/raw/main/tests/data/mk1c_test.bam
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>wget<span class="w"> </span>https://github.com/ylab-hi/chimera/raw/main/tests/data/mk1c_test.bam.bai
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1"># Or using curl</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>curl<span class="w"> </span>-L<span class="w"> </span>-o<span class="w"> </span>mk1c_test.bam<span class="w"> </span>https://github.com/ylab-hi/chimera/raw/main/tests/data/mk1c_test.bam
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>curl<span class="w"> </span>-L<span class="w"> </span>-o<span class="w"> </span>mk1c_test.bam.bai<span class="w"> </span>https://github.com/ylab-hi/chimera/raw/main/tests/data/mk1c_test.bam.bai
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="c1"># Verify files downloaded correctly</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>ls<span class="w"> </span>-lh<span class="w"> </span>mk1c_test.bam*
 </span></code></pre></div>
 <div class="admonition tip">
 <p class="admonition-title">About the Sample Data</p>
-</div>
 <p>The sample file <code>mk1c_test.bam</code> contains 175 reads, in which 75 chimeric reads and 100 non-chimeric reads, subsampled from PC3 cell line (human prostate cancer) sequenced using Nanopore MinION Mk1C with whole genome amplification.</p>
+</div>
 <h2 id="step-2-run-your-first-prediction">Step 2: Run Your First Prediction<a class="headerlink" href="#step-2-run-your-first-prediction" title="Anchor link to this section">&para;</a></h2>
 <p>Run ChimeraLM on the sample data:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:1"><input checked="checked" id="step-2-run-your-first-prediction-cpu-mode" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="step-2-run-your-first-prediction-cpu-mode">CPU Mode</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="step-2-run-your-first-prediction-cpu-mode" name="__tabbed_1" type="radio" /><input id="step-2-run-your-first-prediction-gpu-mode" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="step-2-run-your-first-prediction-cpu-mode">CPU Mode</label><label for="step-2-run-your-first-prediction-gpu-mode">GPU Mode</label></div>
 <div class="tabbed-content">
-<div class="tabbed-block"></div>
-</div>
-</div>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>```bash
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>chimeralm predict mk1c_test.bam --gpus 0
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>```
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>**Expected output**:
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>```text
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>INFO     [rank: 0] Loading model from Hugging Face
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>Seed set to 42
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>GPU available: True (mps), used: False
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>Generating train split: 75 examples [00:00, 1844.17 examples/s]
-</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>Predicting DataLoader 0: 100%|██████████| 4/4 [00:15&lt;00:00, 0.26it/s]
-</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>```
-</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>
-</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>Predictions saved to: `mk1c_test.predictions/`
+<div class="tabbed-block">
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>mk1c_test.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">0</span>
 </span></code></pre></div>
-<div class="tabbed-set tabbed-alternate" data-tabs="2:1"><input checked="checked" id="step-2-run-your-first-prediction-gpu-mode" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="step-2-run-your-first-prediction-gpu-mode">GPU Mode</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block"></div>
+<p><strong>Expected output</strong>:
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>INFO     [rank: 0] Loading model from Hugging Face
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>Seed set to 42
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>GPU available: True (mps), used: False
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>Generating train split: 75 examples [00:00, 1844.17 examples/s]
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>Predicting DataLoader 0: 100%|██████████| 4/4 [00:15&lt;00:00, 0.26it/s]
+</span></code></pre></div></p>
+<p>Predictions saved to: <code>mk1c_test.predictions/</code></p>
 </div>
-</div>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>```bash
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>chimeralm predict mk1c_test.bam --gpus 1 --batch-size 24
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>```
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>**Expected output**:
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>```text
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>INFO     [rank: 0] Loading model from Hugging Face
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>Seed set to 42
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>GPU available: True (mps), used: True
-</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>Predicting DataLoader 0: 100%|██████████| 2/2 [00:03&lt;00:00, 0.66it/s]
-</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>```
-</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>
-</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>Predictions saved to: `mk1c_test.predictions/`
+<div class="tabbed-block">
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>chimeralm<span class="w"> </span>predict<span class="w"> </span>mk1c_test.bam<span class="w"> </span>--gpus<span class="w"> </span><span class="m">1</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">24</span>
 </span></code></pre></div>
+<p><strong>Expected output</strong>:
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>INFO     [rank: 0] Loading model from Hugging Face
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>Seed set to 42
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>GPU available: True (mps), used: True
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>Predicting DataLoader 0: 100%|██████████| 2/2 [00:03&lt;00:00, 0.66it/s]
+</span></code></pre></div></p>
+<p>Predictions saved to: <code>mk1c_test.predictions/</code></p>
+</div>
+</div>
+</div>
 <div class="admonition tip">
 <p class="admonition-title">GPU vs CPU Performance</p>
+<ul>
+<li><strong>CPU</strong>: ~15 seconds for 48 SA-tagged reads (batch-size 12)</li>
+<li><strong>GPU</strong>: ~3 seconds for 48 SA-tagged reads (batch-size 24, 5x faster!)</li>
+</ul>
 </div>
-<p>- <strong>CPU</strong>: ~15 seconds for 48 SA-tagged reads (batch-size 12)
-- <strong>GPU</strong>: ~3 seconds for 48 SA-tagged reads (batch-size 24, 5x faster!)</p>
 <h2 id="step-3-understand-the-output">Step 3: Understand the Output<a class="headerlink" href="#step-3-understand-the-output" title="Anchor link to this section">&para;</a></h2>
 <p>ChimeraLM creates a predictions file with one line per read:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># View predictions from first batch</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>head<span class="w"> </span>-10<span class="w"> </span>mk1c_test.predictions/0_0.txt
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># View predictions from first batch</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>head<span class="w"> </span>-10<span class="w"> </span>mk1c_test.predictions/0_0.txt
 </span></code></pre></div>
 <p><strong>Output format</strong> (tab-separated):</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>read_name&lt;TAB&gt;label
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>e5f89040-2898-41d9-9ee4-3022168216f0    1
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>b76512a7-5a74-405b-8ac3-adde6a7ea5e1    0
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>5b830fb3-6bb7-42a4-ad18-142b9474ed7d    1
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>edab7cd5-831c-4f51-8ada-c9b4620307c1    0
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>...
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>read_name&lt;TAB&gt;label
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>e5f89040-2898-41d9-9ee4-3022168216f0    1
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>b76512a7-5a74-405b-8ac3-adde6a7ea5e1    0
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>5b830fb3-6bb7-42a4-ad18-142b9474ed7d    1
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>edab7cd5-831c-4f51-8ada-c9b4620307c1    0
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>...
 </span></code></pre></div>
 <p><strong>Labels</strong>:</p>
 <ul>
@@ -1411,11 +1402,11 @@
 </ul>
 <h2 id="step-4-interpret-results">Step 4: Interpret Results<a class="headerlink" href="#step-4-interpret-results" title="Anchor link to this section">&para;</a></h2>
 <p>Count how many reads are chimeric:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Count chimeric reads (label 1)</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>cat<span class="w"> </span>mk1c_test.predictions/*.txt<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;1</span>$<span class="s2">&quot;</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># Count biological reads (label 0)</span>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>cat<span class="w"> </span>mk1c_test.predictions/*.txt<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;0</span>$<span class="s2">&quot;</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Count chimeric reads (label 1)</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>cat<span class="w"> </span>mk1c_test.predictions/*.txt<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;1</span>$<span class="s2">&quot;</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1"># Count biological reads (label 0)</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>cat<span class="w"> </span>mk1c_test.predictions/*.txt<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;0</span>$<span class="s2">&quot;</span>
 </span></code></pre></div>
 <p>Expected results for test data:</p>
 <ul>
@@ -1438,13 +1429,13 @@
 </ul>
 <div class="admonition success">
 <p class="admonition-title">Congratulations!</p>
-</div>
 <p>You've successfully run your first ChimeraLM prediction! <img alt="🎉" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f389.svg" title=":tada:" /></p>
+</div>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Anchor link to this section">&para;</a></h2>
 <p>Now that you've completed the basics:</p>
 <h3 id="for-analysis">For Analysis<a class="headerlink" href="#for-analysis" title="Anchor link to this section">&para;</a></h3>
 <p><strong>Filter your BAM file</strong> to remove chimeric reads:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>chimeralm<span class="w"> </span>filter<span class="w"> </span>mk1c_test.bam<span class="w"> </span>mk1c_test.predictions
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>chimeralm<span class="w"> </span>filter<span class="w"> </span>mk1c_test.bam<span class="w"> </span>mk1c_test.predictions
 </span></code></pre></div>
 <p>This automatically creates:</p>
 <ul>
@@ -1468,9 +1459,11 @@
 <p>Encountered an issue? Check our <a href="../troubleshooting/">Troubleshooting Guide</a> for common problems and solutions.</p>
 <div class="admonition question">
 <p class="admonition-title">Need Help?</p>
+<ul>
+<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33s1.71.11 2.5.33c1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2"/></svg></span> <a href="https://github.com/ylab-hi/chimera/issues">Open an issue</a></li>
+<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 3c5.5 0 10 3.58 10 8s-4.5 8-10 8c-1.24 0-2.43-.18-3.53-.5C5.55 21 2 21 2 21c2.33-2.33 2.7-3.9 2.75-4.5C3.05 15.07 2 13.13 2 11c0-4.42 4.5-8 10-8"/></svg></span> <a href="https://github.com/ylab-hi/chimera/discussions">GitHub Discussions</a></li>
+</ul>
 </div>
-<p>- <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33s1.71.11 2.5.33c1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2"/></svg></span> <a href="https://github.com/ylab-hi/chimera/issues">Open an issue</a>
-- <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 3c5.5 0 10 3.58 10 8s-4.5 8-10 8c-1.24 0-2.43-.18-3.53-.5C5.55 21 2 21 2 21c2.33-2.33 2.7-3.9 2.75-4.5C3.05 15.07 2 13.13 2 11c0-4.42 4.5-8 10-8"/></svg></span> <a href="https://github.com/ylab-hi/chimera/discussions">GitHub Discussions</a></p>
 
 
 

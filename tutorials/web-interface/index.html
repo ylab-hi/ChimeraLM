@@ -1014,35 +1014,8 @@
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#technical-details" class="md-nav__link">
-    <span class="md-ellipsis">
-      Technical Details
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Technical Details">
+    <nav class="md-nav" aria-label="Comparison: Web Interface vs CLI">
       <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#gradio-interface" class="md-nav__link">
-    <span class="md-ellipsis">
-      Gradio Interface
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#model-architecture" class="md-nav__link">
-    <span class="md-ellipsis">
-      Model Architecture
-    </span>
-  </a>
-  
-</li>
         
           <li class="md-nav__item">
   <a href="#confidence-calculation" class="md-nav__link">
@@ -1579,18 +1552,17 @@
 <p>Learn how to use ChimeraLM's interactive web interface for analyzing individual DNA sequences and visualizing predictions in real-time.</p>
 <div class="admonition info">
 <p class="admonition-title">Learning Objectives</p>
-</div>
 <p>By the end of this tutorial, you will be able to:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>- Launch the ChimeraLM web interface
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>- Input DNA sequences for analysis
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>- Interpret prediction results and confidence scores
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>- Understand the visual probability distribution
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>- Use example sequences for testing
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>**Prerequisites**: ChimeraLM installed, web browser
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>**Time**: ~10 minutes
-</span></code></pre></div>
+<ul>
+<li>Launch the ChimeraLM web interface</li>
+<li>Input DNA sequences for analysis</li>
+<li>Interpret prediction results and confidence scores</li>
+<li>Understand the visual probability distribution</li>
+<li>Use example sequences for testing</li>
+</ul>
+<p><strong>Prerequisites</strong>: ChimeraLM installed, web browser</p>
+<p><strong>Time</strong>: ~10 minutes</p>
+</div>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Anchor link to this section">&para;</a></h2>
 <p>The ChimeraLM web interface provides a user-friendly Gradio-based interface for:</p>
 <ul>
@@ -1602,20 +1574,20 @@
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Use Case</p>
-</div>
 <p>The web interface is ideal for <strong>exploring individual sequences</strong>. For analyzing BAM files with thousands of reads, use the <a href="../../reference/cli/">CLI commands</a> instead.</p>
+</div>
 <h2 id="step-1-launch-the-web-interface">Step 1: Launch the Web Interface<a class="headerlink" href="#step-1-launch-the-web-interface" title="Anchor link to this section">&para;</a></h2>
 <p>Start the web interface with a single command:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>chimeralm<span class="w"> </span>web
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>chimeralm<span class="w"> </span>web
 </span></code></pre></div>
 <p><strong>Expected output:</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Running on local URL:  http://127.0.0.1:7860
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Running on local URL:  http://127.0.0.1:7860
 </span></code></pre></div>
 <p>The interface will automatically open in your default browser. If it doesn't, manually navigate to the URL shown (typically <code>http://127.0.0.1:7860</code>).</p>
 <div class="admonition tip">
 <p class="admonition-title">First Launch</p>
-</div>
 <p>The first time you run the web interface, ChimeraLM will download the pretrained model from Hugging Face (<code>yangliz5/chimeralm</code>). This may take a few minutes depending on your internet connection.</p>
+</div>
 <h2 id="step-2-understanding-the-interface">Step 2: Understanding the Interface<a class="headerlink" href="#step-2-understanding-the-interface" title="Anchor link to this section">&para;</a></h2>
 <p>The web interface has three main sections:</p>
 <h3 id="header-section">Header Section<a class="headerlink" href="#header-section" title="Anchor link to this section">&para;</a></h3>
@@ -1646,7 +1618,7 @@
 <h3 id="input-a-sequence">Input a Sequence<a class="headerlink" href="#input-a-sequence" title="Anchor link to this section">&para;</a></h3>
 <p><strong>Method 1: Type or Paste</strong></p>
 <p>Click in the text area and paste your DNA sequence:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT
 </span></code></pre></div>
 <p><strong>Method 2: Use Examples</strong></p>
 <p>Click one of the example sequences below the input box:</p>
@@ -1666,25 +1638,26 @@
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Valid Characters</p>
+<p>Only standard DNA nucleotides are accepted:</p>
+<ul>
+<li><strong>A</strong> (Adenine)</li>
+<li><strong>C</strong> (Cytosine)</li>
+<li><strong>G</strong> (Guanine)</li>
+<li><strong>T</strong> (Thymine)</li>
+<li><strong>N</strong> (Any nucleotide / unknown)</li>
+</ul>
+<p>Both uppercase and lowercase are accepted and will be converted to uppercase.</p>
 </div>
-<p>Only standard DNA nucleotides are accepted:
-- <strong>A</strong> (Adenine)
-- <strong>C</strong> (Cytosine)
-- <strong>G</strong> (Guanine)
-- <strong>T</strong> (Thymine)
-- <strong>N</strong> (Any nucleotide / unknown)</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Both uppercase and lowercase are accepted and will be converted to uppercase.
-</span></code></pre></div>
 <h2 id="step-4-interpret-results">Step 4: Interpret Results<a class="headerlink" href="#step-4-interpret-results" title="Anchor link to this section">&para;</a></h2>
 <h3 id="prediction-output">Prediction Output<a class="headerlink" href="#prediction-output" title="Anchor link to this section">&para;</a></h3>
 <p>The results section displays:</p>
 <p><strong>Prediction Example:</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>**Prediction:** Biological
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>**Confidence:** 0.892
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>**Confidence Breakdown:**
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>- Biological: 0.892
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>- Chimeric Artifact: 0.108
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>**Prediction:** Biological
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>**Confidence:** 0.892
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>**Confidence Breakdown:**
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>- Biological: 0.892
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>- Chimeric Artifact: 0.108
 </span></code></pre></div>
 <p><strong>Understanding the Output:</strong></p>
 <ul>
@@ -1733,18 +1706,18 @@
 </ul>
 <h3 id="example-interpretations">Example Interpretations<a class="headerlink" href="#example-interpretations" title="Anchor link to this section">&para;</a></h3>
 <p><strong>Case 1: High Confidence Biological</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Prediction: Biological
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>Confidence: 0.956
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Prediction: Biological
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>Confidence: 0.956
 </span></code></pre></div>
 <p>→ The sequence is very likely genuine (95.6% probability)</p>
 <p><strong>Case 2: High Confidence Chimeric</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Prediction: Chimeric Artifact
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>Confidence: 0.873
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Prediction: Chimeric Artifact
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>Confidence: 0.873
 </span></code></pre></div>
 <p>→ The sequence is likely a WGA artifact (87.3% probability)</p>
 <p><strong>Case 3: Low Confidence</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>Prediction: Biological
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>Confidence: 0.624
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Prediction: Biological
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>Confidence: 0.624
 </span></code></pre></div>
 <p>→ The model is uncertain; consider additional validation</p>
 <h2 id="step-5-test-with-different-sequences">Step 5: Test with Different Sequences<a class="headerlink" href="#step-5-test-with-different-sequences" title="Anchor link to this section">&para;</a></h2>
@@ -1766,26 +1739,26 @@
 </ul>
 <h3 id="example-sequences-to-try">Example Sequences to Try<a class="headerlink" href="#example-sequences-to-try" title="Anchor link to this section">&para;</a></h3>
 <p><strong>Biological-like pattern:</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>ATGCATGCATGCATGCATGCATGCATGC
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>ATGCATGCATGCATGCATGCATGCATGC
 </span></code></pre></div>
 <p><strong>Random pattern:</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>ACGTTAGCCTAAGCCTTAAGCCTAAGCC
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>ACGTTAGCCTAAGCCTTAAGCCTAAGCC
 </span></code></pre></div>
 <p><strong>Repetitive pattern:</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>AAAAAACCCCCCGGGGGGTTTTTTAAAA
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>AAAAAACCCCCCGGGGGGTTTTTTAAAA
 </span></code></pre></div>
 <div class="admonition tip">
 <p class="admonition-title">Testing Your Own Sequences</p>
-</div>
 <p>Extract sequences from your BAM files using samtools:
-<code>bash     samtools view your_file.bam | head -1 | cut -f10</code>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>samtools<span class="w"> </span>view<span class="w"> </span>your_file.bam<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1<span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-f10
+</span></code></pre></div>
 Then paste the sequence into the web interface.</p>
+</div>
 <h2 id="advanced-features">Advanced Features<a class="headerlink" href="#advanced-features" title="Anchor link to this section">&para;</a></h2>
 <h3 id="model-information">Model Information<a class="headerlink" href="#model-information" title="Anchor link to this section">&para;</a></h3>
 <p>The web interface uses:</p>
 <ul>
 <li><strong>Model</strong>: <code>yangliz5/chimeralm</code> (Hugging Face Hub)</li>
-<li><strong>Architecture</strong>: HyenaDNA-based binary classifier</li>
 <li><strong>Max Sequence Length</strong>: 32,768 nucleotides</li>
 <li><strong>Tokenizer</strong>: Character-level (A, C, G, T, N)</li>
 </ul>
@@ -1796,86 +1769,101 @@ Then paste the sequence into the web interface.</p>
 <li><strong>CPU</strong> if no GPU → Slower but works everywhere</li>
 </ul>
 <p>Check the terminal output when launching to see which device is used:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>Model loaded successfully on cuda
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>Model loaded successfully on cuda
 </span></code></pre></div>
 <p>or</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>Model loaded successfully on cpu
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>Model loaded successfully on cpu
 </span></code></pre></div>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Anchor link to this section">&para;</a></h2>
 <h3 id="invalid-character-error">Invalid Character Error<a class="headerlink" href="#invalid-character-error" title="Anchor link to this section">&para;</a></h3>
 <details class="question">
 <summary>Error: Invalid characters in sequence</summary>
+<p><strong>Problem</strong>: Sequence contains non-ACGTN characters</p>
+<p><strong>Solution</strong>:</p>
+<ul>
+<li>Remove spaces, numbers, or special characters</li>
+<li>Only use: A, C, G, T, N</li>
+<li>Check for accidental letters (like O vs 0)</li>
+</ul>
+<p><strong>Example Fix:</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>❌ ACG TAG CTG  (spaces not allowed)
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>✅ ACGTAGCTG
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>❌ ACGT123ACGT  (numbers not allowed)
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>✅ ACGTNNACGT   (use N for unknowns)
+</span></code></pre></div></p>
 </details>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>**Problem**: Sequence contains non-ACGTN characters
-</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>
-</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>**Solution**:
-</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>- Remove spaces, numbers, or special characters
-</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>- Only use: A, C, G, T, N
-</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>- Check for accidental letters (like O vs 0)
-</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>
-</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>**Example Fix:**
-</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>```
-</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>❌ ACG TAG CTG  (spaces not allowed)
-</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>✅ ACGTAGCTG
-</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>
-</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>❌ ACGT123ACGT  (numbers not allowed)
-</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>✅ ACGTNNACGT   (use N for unknowns)
-</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>```
-</span></code></pre></div>
 <h3 id="model-loading-fails">Model Loading Fails<a class="headerlink" href="#model-loading-fails" title="Anchor link to this section">&para;</a></h3>
 <details class="question">
 <summary>Error: Failed to load model</summary>
+<p><strong>Possible causes:</strong></p>
+<ol>
+<li>
+<p><strong>No internet connection</strong> (first time only)</p>
+<ul>
+<li>ChimeraLM needs to download the model</li>
+<li>Check your internet connection</li>
+</ul>
+</li>
+<li>
+<p><strong>Insufficient memory</strong></p>
+<ul>
+<li>Model requires ~2GB RAM</li>
+<li>Close other applications</li>
+</ul>
+</li>
+<li>
+<p><strong>GPU out of memory</strong></p>
+<ul>
+<li>Model will fall back to CPU automatically</li>
+<li>Check terminal for device messages</li>
+</ul>
+</li>
+</ol>
 </details>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>**Possible causes:**
-</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>
-</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>1. **No internet connection** (first time only)
-</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>   - ChimeraLM needs to download the model
-</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>   - Check your internet connection
-</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>
-</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>2. **Insufficient memory**
-</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>   - Model requires ~2GB RAM
-</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>   - Close other applications
-</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>
-</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>3. **GPU out of memory**
-</span><span id="__span-15-12"><a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>   - Model will fall back to CPU automatically
-</span><span id="__span-15-13"><a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a>   - Check terminal for device messages
-</span></code></pre></div>
 <h3 id="empty-or-no-results">Empty or No Results<a class="headerlink" href="#empty-or-no-results" title="Anchor link to this section">&para;</a></h3>
 <details class="question">
 <summary>Results don't appear after clicking Analyze</summary>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li>
+<p><strong>Check sequence length</strong></p>
+<ul>
+<li>Minimum: ~10 nucleotides</li>
+<li>Maximum: 32,768 nucleotides</li>
+</ul>
+</li>
+<li>
+<p><strong>Refresh the page</strong></p>
+<ul>
+<li>Click browser refresh</li>
+<li>Re-enter sequence and try again</li>
+</ul>
+</li>
+<li>
+<p><strong>Check terminal for errors</strong></p>
+<ul>
+<li>Look at the terminal where you launched <code>chimeralm web</code></li>
+<li>Error messages will appear there</li>
+</ul>
+</li>
+</ol>
 </details>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>**Solutions:**
-</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
-</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>1. **Check sequence length**
-</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>   - Minimum: ~10 nucleotides
-</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>   - Maximum: 32,768 nucleotides
-</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>
-</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>2. **Refresh the page**
-</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>   - Click browser refresh
-</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>   - Re-enter sequence and try again
-</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>
-</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>3. **Check terminal for errors**
-</span><span id="__span-16-12"><a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>   - Look at the terminal where you launched `chimeralm web`
-</span><span id="__span-16-13"><a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>   - Error messages will appear there
-</span></code></pre></div>
 <h3 id="port-already-in-use">Port Already in Use<a class="headerlink" href="#port-already-in-use" title="Anchor link to this section">&para;</a></h3>
 <details class="question">
 <summary>Error: Address already in use</summary>
+<p><strong>Problem</strong>: Port 7860 is already in use</p>
+<p><strong>Solution</strong>:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Find what&#39;s using the port</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>lsof<span class="w"> </span>-i<span class="w"> </span>:7860
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="c1"># Kill the process</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="nb">kill</span><span class="w"> </span>&lt;PID&gt;
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="c1"># Or just try again (Gradio will auto-select another port)</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>chimeralm<span class="w"> </span>web
+</span></code></pre></div></p>
 </details>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>**Problem**: Port 7860 is already in use
-</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>
-</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>**Solution**:
-</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>```bash
-</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a># Find what&#39;s using the port
-</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>lsof -i :7860
-</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>
-</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a># Kill the process
-</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a>kill &lt;PID&gt;
-</span><span id="__span-17-10"><a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a>
-</span><span id="__span-17-11"><a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a># Or just try again (Gradio will auto-select another port)
-</span><span id="__span-17-12"><a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a>chimeralm web
-</span><span id="__span-17-13"><a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a>```
-</span></code></pre></div>
 <h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Anchor link to this section">&para;</a></h2>
 <h3 id="when-to-use-the-web-interface">When to Use the Web Interface<a class="headerlink" href="#when-to-use-the-web-interface" title="Anchor link to this section">&para;</a></h3>
 <p>✅ <strong>Good use cases:</strong></p>
@@ -1966,30 +1954,12 @@ Then paste the sequence into the web interface.</p>
 </tr>
 </tbody>
 </table>
-<h2 id="technical-details">Technical Details<a class="headerlink" href="#technical-details" title="Anchor link to this section">&para;</a></h2>
-<h3 id="gradio-interface">Gradio Interface<a class="headerlink" href="#gradio-interface" title="Anchor link to this section">&para;</a></h3>
-<p>ChimeraLM uses <a href="https://www.gradio.app/">Gradio</a> for the web interface:</p>
-<ul>
-<li><strong>Framework</strong>: Python-based web UI framework</li>
-<li><strong>Styling</strong>: Custom CSS with gradient backgrounds</li>
-<li><strong>Charts</strong>: Plotly for interactive visualization</li>
-<li><strong>Theme</strong>: Modern with purple gradient accents</li>
-</ul>
-<h3 id="model-architecture">Model Architecture<a class="headerlink" href="#model-architecture" title="Anchor link to this section">&para;</a></h3>
-<p>The web interface uses the same model as the CLI:</p>
-<ul>
-<li><strong>Backbone</strong>: HyenaDNA-small-32k</li>
-<li><strong>Head</strong>: Binary sequence classifier</li>
-<li><strong>Training</strong>: Whole genome amplification artifact detection</li>
-<li><strong>Input</strong>: Tokenized DNA sequences</li>
-<li><strong>Output</strong>: Binary logits → Softmax probabilities</li>
-</ul>
 <h3 id="confidence-calculation">Confidence Calculation<a class="headerlink" href="#confidence-calculation" title="Anchor link to this section">&para;</a></h3>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># Simplified version of what happens</span>
-</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="n">logits</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>                    <span class="c1"># Raw model output</span>
-</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="n">probabilities</span> <span class="o">=</span> <span class="n">softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span>             <span class="c1"># Convert to probabilities</span>
-</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="n">predicted_class</span> <span class="o">=</span> <span class="n">argmax</span><span class="p">(</span><span class="n">probabilities</span><span class="p">)</span>     <span class="c1"># Get predicted class (0 or 1)</span>
-</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="n">confidence</span> <span class="o">=</span> <span class="n">probabilities</span><span class="p">[</span><span class="n">predicted_class</span><span class="p">]</span> <span class="c1"># Confidence of prediction</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># Simplified version of what happens</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="n">logits</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>                    <span class="c1"># Raw model output</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="n">probabilities</span> <span class="o">=</span> <span class="n">softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span>             <span class="c1"># Convert to probabilities</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="n">predicted_class</span> <span class="o">=</span> <span class="n">argmax</span><span class="p">(</span><span class="n">probabilities</span><span class="p">)</span>     <span class="c1"># Get predicted class (0 or 1)</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="n">confidence</span> <span class="o">=</span> <span class="n">probabilities</span><span class="p">[</span><span class="n">predicted_class</span><span class="p">]</span> <span class="c1"># Confidence of prediction</span>
 </span></code></pre></div>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Anchor link to this section">&para;</a></h2>
 <ul>
@@ -2009,14 +1979,14 @@ Then paste the sequence into the web interface.</p>
 </ul>
 <div class="admonition success">
 <p class="admonition-title">Ready to Explore!</p>
-</div>
 <p>The web interface makes ChimeraLM accessible for quick sequence analysis and exploration. For production workflows with large BAM files, use the CLI commands.</p>
+</div>
 <h2 id="additional-resources">Additional Resources<a class="headerlink" href="#additional-resources" title="Anchor link to this section">&para;</a></h2>
 <ul>
 <li><a href="../../reference/cli/">CLI Commands Reference</a> - Full command documentation</li>
 <li><a href="../bam-filtering/">Filtering BAM Files</a> - Process large datasets</li>
 <li><a href="../../reference/models/">Models API</a> - Use ChimeraLM programmatically</li>
-<li><a href="https://github.com/ylab-hi/chimera">GitHub Repository</a> - Source code and issues</li>
+<li><a href="https://github.com/ylab-hi/ChimeraLM">GitHub Repository</a> - Source code and issues</li>
 </ul>
 
 
