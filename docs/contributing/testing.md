@@ -68,7 +68,7 @@ open htmlcov/index.html
 ```
 tests/
 ├── data/                    # Test data files
-│   └── mk1c_test.sort.bam  # Sample BAM file
+│   └── mk1c_test.bam  # Sample BAM file
 ├── test_models.py          # Model tests
 ├── test_data.py            # Data loading tests
 ├── test_cli.py             # CLI tests
@@ -208,7 +208,7 @@ def test_end_to_end_prediction():
 
     # Load data
     data_module = BamDataModule(
-        train_data_path="tests/data/mk1c_test.sort.bam",
+        train_data_path="tests/data/mk1c_test.bam",
         batch_size=8
     )
     data_module.setup("predict")

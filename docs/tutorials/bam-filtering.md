@@ -21,22 +21,22 @@ If you haven't already, download the sample BAM file with its index:
 
 ```bash
 # Download sample BAM file with index
-wget https://github.com/ylab-hi/chimera/raw/main/tests/data/mk1c_test.sort.bam
-wget https://github.com/ylab-hi/chimera/raw/main/tests/data/mk1c_test.sort.bam.bai
+wget https://github.com/ylab-hi/chimera/raw/main/tests/data/mk1c_test.bam
+wget https://github.com/ylab-hi/chimera/raw/main/tests/data/mk1c_test.bam.bai
 
 # Or using curl
-curl -L -o mk1c_test.sort.bam https://github.com/ylab-hi/chimera/raw/main/tests/data/mk1c_test.sort.bam
-curl -L -o mk1c_test.sort.bam.bai https://github.com/ylab-hi/chimera/raw/main/tests/data/mk1c_test.sort.bam.bai
+curl -L -o mk1c_test.bam https://github.com/ylab-hi/chimera/raw/main/tests/data/mk1c_test.bam
+curl -L -o mk1c_test.bam.bai https://github.com/ylab-hi/chimera/raw/main/tests/data/mk1c_test.bam.bai
 
 # Verify files
-ls -lh mk1c_test.sort.bam*
+ls -lh mk1c_test.bam*
 ```
 
 !!! info "About the Test Data"
-    The `mk1c_test.sort.bam` file contains 1000 reads subsampled from **PC3 cell line** (human prostate cancer) sequenced using **Nanopore MinION Mk1C** with whole genome amplification. All reads have SA tags (chimeric candidates), making it ideal for testing ChimeraLM filtering.
+    The `mk1c_test.bam` file contains 285 reads subsampled from **PC3 cell line** (human prostate cancer) sequenced using **Nanopore MinION Mk1C** with whole genome amplification. 48 reads have SA tags (chimeric candidates), making it ideal for testing ChimeraLM filtering.
 
 !!! tip "Using Your Own Data"
-    This tutorial uses `mk1c_test.sort.bam` as an example. Replace it with your own BAM file path throughout the tutorial.
+    This tutorial uses `mk1c_test.bam` as an example. Replace it with your own BAM file path throughout the tutorial.
 
 ## Workflow Overview
 
@@ -62,32 +62,32 @@ First, identify chimeric reads in your BAM file:
 
 ```bash
 # Predict chimeric reads
-chimeralm predict mk1c_test.sort.bam --gpus 1 --batch-size 24
+chimeralm predict mk1c_test.bam --gpus 1 --batch-size 24
 
-# Output directory: mk1c_test.sort.bam.predictions/
-# Predictions file: mk1c_test.sort.bam.predictions/predictions.txt
+# Output directory: mk1c_test.bam.predictions/
+# Predictions file: mk1c_test.bam.predictions/predictions.txt
 ```
 
 ### Inspect Predictions
 
 ```bash
 # View first 10 predictions
-head mk1c_test.sort.bam.predictions/predictions.txt
+head mk1c_test.bam.predictions/predictions.txt
 
 # Output format (tab-separated):
 # read_name<TAB>label
-# m54329U_200919_012139/4194729/ccs	0
-# m54329U_200919_012139/4194826/ccs	1
+# e5f89040-2898-41d9-9ee4-3022168216f0	1
+# b76512a7-5a74-405b-8ac3-adde6a7ea5e1	0
 ```
 
 ### Check Chimera Rate
 
 ```bash
 # Count chimeric reads (label 1)
-CHIMERIC=$(grep -c "1$" mk1c_test.sort.bam.predictions/predictions.txt)
+CHIMERIC=$(grep -c "1$" mk1c_test.bam.predictions/predictions.txt)
 
 # Count biological reads (label 0)
-BIOLOGICAL=$(grep -c "0$" mk1c_test.sort.bam.predictions/predictions.txt)
+BIOLOGICAL=$(grep -c "0$" mk1c_test.bam.predictions/predictions.txt)
 
 # Calculate chimera rate
 echo "Chimeric: $CHIMERIC"
@@ -95,11 +95,11 @@ echo "Biological: $BIOLOGICAL"
 echo "Chimera rate: $(echo "scale=2; $CHIMERIC * 100 / ($CHIMERIC + $BIOLOGICAL)" | bc)%"
 ```
 
-Expected output for WGA data:
+Expected output for test data:
 ```text
-Chimeric: 2341
-Biological: 7659
-Chimera rate: 23.41%
+Chimeric: 36
+Biological: 12
+Chimera rate: 75.00%
 ```
 
 !!! info "Typical Chimera Rates"
@@ -116,7 +116,7 @@ Remove chimeric reads from your BAM file:
 
     ```bash
     # Filter out chimeric reads (label 1), keep biological (label 0)
-    chimeralm filter mk1c_test.sort.bam mk1c_test.sort.bam.predictions/
+    chimeralm filter mk1c_test.bam mk1c_test.bam.predictions/
     ```
 
     This automatically creates:
@@ -128,11 +128,11 @@ Remove chimeric reads from your BAM file:
 
     ```bash
     # Filter AND export consolidated predictions.txt
-    chimeralm filter mk1c_test.sort.bam mk1c_test.sort.bam.predictions/ --output-prediction
+    chimeralm filter mk1c_test.bam mk1c_test.bam.predictions/ --output-prediction
     ```
 
     Same BAM output, plus:
-    - `mk1c_test.sort.bam.predictions/predictions.txt` - Consolidated predictions
+    - `mk1c_test.bam.predictions/predictions.txt` - Consolidated predictions
 
 === "Your Own Data"
 
@@ -147,17 +147,17 @@ Remove chimeric reads from your BAM file:
 
 ```bash
 # Filter command output:
-INFO - Filtering mk1c_test.sort.bam by predictions from mk1c_test.sort.bam.predictions/
-INFO - Loaded 1000 predictions from mk1c_test.sort.bam.predictions/
-INFO - Biological: 766 (76.6%), Chimera artifact: 234 (23.4%)
-INFO - Sorting mk1c_test.sort.filtered.bam
-INFO - Indexing mk1c_test.sort.filtered.sorted.bam
+INFO     [rank: 0] Filtering mk1c_test.bam by predictions from mk1c_test.bam.predictions
+INFO     [rank: 0] Loaded 48 predictions from mk1c_test.bam.predictions
+INFO     [rank: 0] Biological: 12 (25.0%), Chimera artifact: 36 (75.0%)
+INFO     [rank: 0] Sorting mk1c_test.filtered.bam
+INFO     [rank: 0] Indexing mk1c_test.filtered.sorted.bam
 ```
 
 **Files created:**
-- `mk1c_test.sort.filtered.sorted.bam` - Final sorted output (use this!)
-- `mk1c_test.sort.filtered.sorted.bam.bai` - Index file
-- `mk1c_test.sort.filtered.bam` - Intermediate unsorted file (can be deleted)
+- `mk1c_test.filtered.sorted.bam` - Final sorted output (use this!)
+- `mk1c_test.filtered.sorted.bam.bai` - Index file
+- `mk1c_test.filtered.bam` - Intermediate unsorted file (can be deleted)
 
 ## Step 3: Verify Filtering Results
 
@@ -165,13 +165,13 @@ INFO - Indexing mk1c_test.sort.filtered.sorted.bam
 
 ```bash
 # Count reads in original BAM
-ORIGINAL=$(samtools view -c mk1c_test.sort.bam)
+ORIGINAL=$(samtools view -c mk1c_test.bam)
 
 # Count reads in filtered BAM
 FILTERED=$(samtools view -c filtered.bam)
 
 # Count reads with SA tags in original (chimeric candidates)
-SA_TAGS=$(samtools view mk1c_test.sort.bam | grep -c "SA:Z:")
+SA_TAGS=$(samtools view mk1c_test.bam | grep -c "SA:Z:")
 
 echo "Original reads: $ORIGINAL"
 echo "Filtered reads: $FILTERED"
@@ -181,10 +181,10 @@ echo "Reads with SA tags: $SA_TAGS"
 
 Expected output for test data:
 ```text
-Original reads: 1000
-Filtered reads: 766
-Removed reads: 234
-Reads with SA tags: 1000
+Original reads: 285
+Filtered reads: 206
+Removed reads: 79
+Reads with SA tags: 162
 ```
 
 !!! note "Read Count Math"
@@ -352,7 +352,7 @@ ls *.bam | parallel -j 8 'chimeralm filter {} {}.predictions/'
 
     # 3. Try with test data to verify model works
     # Download test data first (see "Get Sample Data" section above)
-    chimeralm predict mk1c_test.sort.bam --gpus 1
+    chimeralm predict mk1c_test.bam --gpus 1
 
     # 4. If test data works but yours doesn't, check data quality
     # 5. If still all chimeric, contact support with your data

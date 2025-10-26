@@ -48,7 +48,7 @@ chimeralm web
 - Prediction table with several rows visible
 - Download buttons
 
-**Example data**: Use `mk1c_test.sort.bam` (1000 reads, ~23% chimera rate)
+**Example data**: Use `mk1c_test.bam` (1000 reads, ~23% chimera rate)
 
 ### 5. web-chart.png
 **Location**: Close-up of the pie chart
@@ -143,7 +143,7 @@ For demo purposes with realistic data:
 
 ```bash
 # Use test data
-chimeralm predict tests/data/mk1c_test.sort.bam --gpus 1
+chimeralm predict tests/data/mk1c_test.bam --gpus 1
 
 # Or create synthetic demo data
 # (If the web interface needs to show multiple analyses)
@@ -152,6 +152,6 @@ chimeralm predict tests/data/mk1c_test.sort.bam --gpus 1
 ## Notes
 
 - All screenshots should show successful operations (no errors)
-- Use the test data (`mk1c_test.sort.bam`) for consistency
+- Use the test data (`mk1c_test.bam`) for consistency
 - Keep file names simple and descriptive
 - Update this guide if screenshot requirements change

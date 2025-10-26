@@ -273,6 +273,6 @@ If your issue isn't covered here:
 
 !!! tip "Before Opening an Issue"
     - Update to the latest version
-    - Try with sample data (`tests/data/mk1c_test.sort.bam`)
+    - Try with sample data (`tests/data/mk1c_test.bam`)
     - Include full error traceback
     - Describe what you expected vs. what happened

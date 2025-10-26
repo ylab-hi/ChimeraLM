@@ -6,7 +6,7 @@ This directory contains example screenshots for the ChimeraLM documentation.
 
 ### 1. prediction_output.png
 - **Description**: Example prediction output showing read_name and label columns
-- **Content**: Terminal output with predictions from `tests/data/mk1c_test.sort.bam`
+- **Content**: Terminal output with predictions from `tests/data/mk1c_test.bam`
 - **Use case**: Quick Start tutorial
 
 ### 2. training_metrics.png

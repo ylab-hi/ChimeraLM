@@ -144,9 +144,9 @@ chimeralm predict input.bam --gpus 1 --batch-size 48  # May OOM on smaller GPUs
 
 ```bash
 # Benchmark with different batch sizes
-time chimeralm predict tests/data/mk1c_test.sort.bam --gpus 1 --batch-size 12
-time chimeralm predict tests/data/mk1c_test.sort.bam --gpus 1 --batch-size 24
-time chimeralm predict tests/data/mk1c_test.sort.bam --gpus 1 --batch-size 32
+time chimeralm predict tests/data/mk1c_test.bam --gpus 1 --batch-size 12
+time chimeralm predict tests/data/mk1c_test.bam --gpus 1 --batch-size 24
+time chimeralm predict tests/data/mk1c_test.bam --gpus 1 --batch-size 32
 
 # Compare total time
 ```
