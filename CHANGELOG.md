@@ -3,6 +3,7 @@
 ### ⚙️ Miscellaneous Tasks
 
 - Update README and GitHub Actions workflow for improved clarity and consistency in publishing process
+
 ## [1.0.0] - 2025-10-06
 
 ### 🚀 Features
@@ -218,9 +219,9 @@
 - Enhance GitHub Actions workflow for package release by adding build and publish steps for TestPyPI and PyPI, with improved branch and tag handling
 - Update .gitignore to remove uv.lock and add new uv.lock file for dependency management
 - Remove Python 3.12 from GitHub Actions workflow matrix for package release
-- Restrict Python version to <3.12 in pyproject.toml for compatibility
+- Restrict Python version to \<3.12 in pyproject.toml for compatibility
 - Remove Maturin configuration from pyproject.toml as part of the transition to Hatchling
 - Update GitHub Actions workflow to streamline TestPyPI publishing by consolidating token usage in the publish command
 - Update GitHub Actions workflow to use latest version of uv for improved publishing functionality
 - Update GitHub Actions workflow to use uv@v6 for enhanced publishing capabilities
-- Bump version to 1.0.0 and update Python version requirement to >=3.10,<3.12 in pyproject.toml
+- Bump version to 1.0.0 and update Python version requirement to >=3.10,\<3.12 in pyproject.toml

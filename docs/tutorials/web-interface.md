@@ -3,17 +3,19 @@
 Learn how to use ChimeraLM's interactive web interface for analyzing individual DNA sequences and visualizing predictions in real-time.
 
 !!! info "Learning Objectives"
-    By the end of this tutorial, you will be able to:
+By the end of this tutorial, you will be able to:
 
-    - Launch the ChimeraLM web interface
-    - Input DNA sequences for analysis
-    - Interpret prediction results and confidence scores
-    - Understand the visual probability distribution
-    - Use example sequences for testing
+```
+- Launch the ChimeraLM web interface
+- Input DNA sequences for analysis
+- Interpret prediction results and confidence scores
+- Understand the visual probability distribution
+- Use example sequences for testing
 
-    **Prerequisites**: ChimeraLM installed, web browser
+**Prerequisites**: ChimeraLM installed, web browser
 
-    **Time**: ~10 minutes
+**Time**: ~10 minutes
+```
 
 ## Overview
 
@@ -26,7 +28,7 @@ The ChimeraLM web interface provides a user-friendly Gradio-based interface for:
 - **Example Sequences**: Pre-loaded examples to get started quickly
 
 !!! note "Use Case"
-    The web interface is ideal for **exploring individual sequences**. For analyzing BAM files with thousands of reads, use the [CLI commands](../reference/cli.md) instead.
+The web interface is ideal for **exploring individual sequences**. For analyzing BAM files with thousands of reads, use the [CLI commands](../reference/cli.md) instead.
 
 ## Step 1: Launch the Web Interface
 
@@ -37,6 +39,7 @@ chimeralm web
 ```
 
 **Expected output:**
+
 ```text
 Running on local URL:  http://127.0.0.1:7860
 ```
@@ -44,7 +47,7 @@ Running on local URL:  http://127.0.0.1:7860
 The interface will automatically open in your default browser. If it doesn't, manually navigate to the URL shown (typically `http://127.0.0.1:7860`).
 
 !!! tip "First Launch"
-    The first time you run the web interface, ChimeraLM will download the pretrained model from Hugging Face (`yangliz5/chimeralm`). This may take a few minutes depending on your internet connection.
+The first time you run the web interface, ChimeraLM will download the pretrained model from Hugging Face (`yangliz5/chimeralm`). This may take a few minutes depending on your internet connection.
 
 ## Step 2: Understanding the Interface
 
@@ -53,6 +56,7 @@ The web interface has three main sections:
 ### Header Section
 
 The top banner displays:
+
 - **ChimeraLM logo** (DNA helix icon 🧬)
 - **Title and description**
 - **Purpose**: "Advanced Chimeric Read Detection using Deep Learning"
@@ -101,20 +105,23 @@ Click one of the example sequences below the input box:
 Click the **"🔬 Analyze Sequence"** button to start analysis.
 
 **Processing:**
+
 - Validation of nucleotides
 - Tokenization of sequence
 - Model inference
 - Results display (~1-2 seconds)
 
 !!! note "Valid Characters"
-    Only standard DNA nucleotides are accepted:
-    - **A** (Adenine)
-    - **C** (Cytosine)
-    - **G** (Guanine)
-    - **T** (Thymine)
-    - **N** (Any nucleotide / unknown)
+Only standard DNA nucleotides are accepted:
+\- **A** (Adenine)
+\- **C** (Cytosine)
+\- **G** (Guanine)
+\- **T** (Thymine)
+\- **N** (Any nucleotide / unknown)
 
-    Both uppercase and lowercase are accepted and will be converted to uppercase.
+```
+Both uppercase and lowercase are accepted and will be converted to uppercase.
+```
 
 ## Step 4: Interpret Results
 
@@ -123,6 +130,7 @@ Click the **"🔬 Analyze Sequence"** button to start analysis.
 The results section displays:
 
 **Prediction Example:**
+
 ```
 **Prediction:** Biological
 **Confidence:** 0.892
@@ -135,15 +143,18 @@ The results section displays:
 **Understanding the Output:**
 
 - **Prediction**: The model's classification
+
   - **Biological**: Real genomic sequence (label 0)
   - **Chimeric Artifact**: Artificial sequence from WGA (label 1)
 
 - **Confidence**: Probability score (0.0 to 1.0)
+
   - **High confidence**: > 0.8 (strong prediction)
   - **Medium confidence**: 0.6 - 0.8 (moderate prediction)
   - **Low confidence**: < 0.6 (uncertain prediction)
 
 - **Confidence Breakdown**: Shows probabilities for both classes
+
   - Always sums to 1.0 (100%)
   - Helps understand model certainty
 
@@ -159,6 +170,7 @@ The bar chart shows:
   - **Gray bar**: Non-predicted class
 
 **Chart Features:**
+
 - **Hover**: Shows exact probability values
 - **Interactive**: Pan and zoom
 - **Values displayed**: Probabilities shown on bars
@@ -166,24 +178,30 @@ The bar chart shows:
 ### Example Interpretations
 
 **Case 1: High Confidence Biological**
+
 ```
 Prediction: Biological
 Confidence: 0.956
 ```
+
 → The sequence is very likely genuine (95.6% probability)
 
 **Case 2: High Confidence Chimeric**
+
 ```
 Prediction: Chimeric Artifact
 Confidence: 0.873
 ```
+
 → The sequence is likely a WGA artifact (87.3% probability)
 
 **Case 3: Low Confidence**
+
 ```
 Prediction: Biological
 Confidence: 0.624
 ```
+
 → The model is uncertain; consider additional validation
 
 ## Step 5: Test with Different Sequences
@@ -191,40 +209,44 @@ Confidence: 0.624
 ### Sequence Length Guidelines
 
 **Short Sequences (< 100 bp):**
+
 - May have lower confidence
 - Limited context for model
 
 **Medium Sequences (100 - 1000 bp):**
+
 - Good balance of speed and accuracy
 - Recommended for testing
 
 **Long Sequences (1000 - 32,768 bp):**
+
 - Highest accuracy
 - May take a few seconds longer
 
 ### Example Sequences to Try
 
 **Biological-like pattern:**
+
 ```
 ATGCATGCATGCATGCATGCATGCATGC
 ```
 
 **Random pattern:**
+
 ```
 ACGTTAGCCTAAGCCTTAAGCCTAAGCC
 ```
 
 **Repetitive pattern:**
+
 ```
 AAAAAACCCCCCGGGGGGTTTTTTAAAA
 ```
 
 !!! tip "Testing Your Own Sequences"
-    Extract sequences from your BAM files using samtools:
-    ```bash
-    samtools view your_file.bam | head -1 | cut -f10
-    ```
-    Then paste the sequence into the web interface.
+Extract sequences from your BAM files using samtools:
+`bash     samtools view your_file.bam | head -1 | cut -f10     `
+Then paste the sequence into the web interface.
 
 ## Advanced Features
 
@@ -245,10 +267,13 @@ The model automatically uses:
 - **CPU** if no GPU → Slower but works everywhere
 
 Check the terminal output when launching to see which device is used:
+
 ```
 Model loaded successfully on cuda
 ```
+
 or
+
 ```
 Model loaded successfully on cpu
 ```
@@ -259,81 +284,90 @@ Model loaded successfully on cpu
 
 ??? question "Error: Invalid characters in sequence"
 
-    **Problem**: Sequence contains non-ACGTN characters
+````
+**Problem**: Sequence contains non-ACGTN characters
 
-    **Solution**:
-    - Remove spaces, numbers, or special characters
-    - Only use: A, C, G, T, N
-    - Check for accidental letters (like O vs 0)
+**Solution**:
+- Remove spaces, numbers, or special characters
+- Only use: A, C, G, T, N
+- Check for accidental letters (like O vs 0)
 
-    **Example Fix:**
-    ```
-    ❌ ACG TAG CTG  (spaces not allowed)
-    ✅ ACGTAGCTG
+**Example Fix:**
+```
+❌ ACG TAG CTG  (spaces not allowed)
+✅ ACGTAGCTG
 
-    ❌ ACGT123ACGT  (numbers not allowed)
-    ✅ ACGTNNACGT   (use N for unknowns)
-    ```
+❌ ACGT123ACGT  (numbers not allowed)
+✅ ACGTNNACGT   (use N for unknowns)
+```
+````
 
 ### Model Loading Fails
 
 ??? question "Error: Failed to load model"
 
-    **Possible causes:**
+```
+**Possible causes:**
 
-    1. **No internet connection** (first time only)
-       - ChimeraLM needs to download the model
-       - Check your internet connection
+1. **No internet connection** (first time only)
+   - ChimeraLM needs to download the model
+   - Check your internet connection
 
-    2. **Insufficient memory**
-       - Model requires ~2GB RAM
-       - Close other applications
+2. **Insufficient memory**
+   - Model requires ~2GB RAM
+   - Close other applications
 
-    3. **GPU out of memory**
-       - Model will fall back to CPU automatically
-       - Check terminal for device messages
+3. **GPU out of memory**
+   - Model will fall back to CPU automatically
+   - Check terminal for device messages
+```
 
 ### Empty or No Results
 
 ??? question "Results don't appear after clicking Analyze"
 
-    **Solutions:**
+```
+**Solutions:**
 
-    1. **Check sequence length**
-       - Minimum: ~10 nucleotides
-       - Maximum: 32,768 nucleotides
+1. **Check sequence length**
+   - Minimum: ~10 nucleotides
+   - Maximum: 32,768 nucleotides
 
-    2. **Refresh the page**
-       - Click browser refresh
-       - Re-enter sequence and try again
+2. **Refresh the page**
+   - Click browser refresh
+   - Re-enter sequence and try again
 
-    3. **Check terminal for errors**
-       - Look at the terminal where you launched `chimeralm web`
-       - Error messages will appear there
+3. **Check terminal for errors**
+   - Look at the terminal where you launched `chimeralm web`
+   - Error messages will appear there
+```
 
 ### Port Already in Use
 
 ??? question "Error: Address already in use"
 
-    **Problem**: Port 7860 is already in use
+````
+**Problem**: Port 7860 is already in use
 
-    **Solution**:
-    ```bash
-    # Find what's using the port
-    lsof -i :7860
+**Solution**:
+```bash
+# Find what's using the port
+lsof -i :7860
 
-    # Kill the process
-    kill <PID>
+# Kill the process
+kill <PID>
 
-    # Or just try again (Gradio will auto-select another port)
-    chimeralm web
-    ```
+# Or just try again (Gradio will auto-select another port)
+chimeralm web
+```
+````
 
 ## Best Practices
 
 ### When to Use the Web Interface
 
 ✅ **Good use cases:**
+
 - Exploring individual sequences
 - Quick testing and validation
 - Teaching and demonstrations
@@ -341,6 +375,7 @@ Model loaded successfully on cpu
 - Checking specific reads of interest
 
 ❌ **Not ideal for:**
+
 - Processing thousands of sequences
 - Batch analysis of BAM files
 - Automated pipelines
@@ -359,29 +394,32 @@ Model loaded successfully on cpu
 ### Interpreting Confidence
 
 **High Confidence (> 0.8):**
+
 - Trust the prediction
 - Model is certain about classification
 
 **Medium Confidence (0.6 - 0.8):**
+
 - Prediction is likely correct
 - Consider additional validation
 
 **Low Confidence (< 0.6):**
+
 - Model is uncertain
 - Manual review recommended
 - May need longer sequence or better quality
 
 ## Comparison: Web Interface vs CLI
 
-| Feature | Web Interface | CLI (`predict`) |
-|---------|--------------|-----------------|
-| **Input** | Single DNA sequence | BAM files |
-| **Speed** | ~1-2 seconds per sequence | Batch processing |
-| **Scale** | 1 sequence at a time | Thousands of reads |
-| **Visualization** | Interactive charts | Text file output |
-| **Ease of Use** | ⭐⭐⭐⭐⭐ Very Easy | ⭐⭐⭐ Moderate |
-| **Automation** | ❌ Manual only | ✅ Scriptable |
-| **Best For** | Exploration, testing | Production, pipelines |
+| Feature           | Web Interface             | CLI (`predict`)       |
+| ----------------- | ------------------------- | --------------------- |
+| **Input**         | Single DNA sequence       | BAM files             |
+| **Speed**         | ~1-2 seconds per sequence | Batch processing      |
+| **Scale**         | 1 sequence at a time      | Thousands of reads    |
+| **Visualization** | Interactive charts        | Text file output      |
+| **Ease of Use**   | ⭐⭐⭐⭐⭐ Very Easy      | ⭐⭐⭐ Moderate       |
+| **Automation**    | ❌ Manual only            | ✅ Scriptable         |
+| **Best For**      | Exploration, testing      | Production, pipelines |
 
 ## Technical Details
 
@@ -432,7 +470,7 @@ You've learned how to:
 - ✅ Troubleshoot common issues
 
 !!! success "Ready to Explore!"
-    The web interface makes ChimeraLM accessible for quick sequence analysis and exploration. For production workflows with large BAM files, use the CLI commands.
+The web interface makes ChimeraLM accessible for quick sequence analysis and exploration. For production workflows with large BAM files, use the CLI commands.
 
 ## Additional Resources
 

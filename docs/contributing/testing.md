@@ -261,6 +261,7 @@ chimeralm/data/bam.py     92%   67
 ### Improving Coverage
 
 Focus on:
+
 1. **Critical paths**: Model loading, prediction, training
 2. **Error handling**: Exception cases
 3. **Edge cases**: Empty inputs, max values, etc.

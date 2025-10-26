@@ -3,11 +3,13 @@
 Get started with ChimeraLM in under 15 minutes! This tutorial will guide you through your first chimeric read prediction.
 
 !!! info "What you'll learn"
-    - How to run predictions on BAM files
-    - Understanding ChimeraLM output format
-    - Verifying your results
+\- How to run predictions on BAM files
+\- Understanding ChimeraLM output format
+\- Verifying your results
 
-    **Time**: ~15 minutes
+```
+**Time**: ~15 minutes
+```
 
 ## Prerequisites
 
@@ -40,7 +42,7 @@ ls -lh mk1c_test.bam*
 ```
 
 !!! tip "About the Sample Data"
-    The sample file `mk1c_test.bam` contains 175 reads, in which 75 chimeric reads and 100 non-chimeric reads, subsampled from PC3 cell line (human prostate cancer) sequenced using Nanopore MinION Mk1C with whole genome amplification.
+The sample file `mk1c_test.bam` contains 175 reads, in which 75 chimeric reads and 100 non-chimeric reads, subsampled from PC3 cell line (human prostate cancer) sequenced using Nanopore MinION Mk1C with whole genome amplification.
 
 ## Step 2: Run Your First Prediction
 
@@ -48,40 +50,44 @@ Run ChimeraLM on the sample data:
 
 === "CPU Mode"
 
-    ```bash
-    chimeralm predict mk1c_test.bam --gpus 0
-    ```
+````
+```bash
+chimeralm predict mk1c_test.bam --gpus 0
+```
 
-    **Expected output**:
-    ```text
-    INFO     [rank: 0] Loading model from Hugging Face
-    Seed set to 42
-    GPU available: True (mps), used: False
-    Generating train split: 75 examples [00:00, 1844.17 examples/s]
-    Predicting DataLoader 0: 100%|██████████| 4/4 [00:15<00:00, 0.26it/s]
-    ```
+**Expected output**:
+```text
+INFO     [rank: 0] Loading model from Hugging Face
+Seed set to 42
+GPU available: True (mps), used: False
+Generating train split: 75 examples [00:00, 1844.17 examples/s]
+Predicting DataLoader 0: 100%|██████████| 4/4 [00:15<00:00, 0.26it/s]
+```
 
-    Predictions saved to: `mk1c_test.predictions/`
+Predictions saved to: `mk1c_test.predictions/`
+````
 
 === "GPU Mode"
 
-    ```bash
-    chimeralm predict mk1c_test.bam --gpus 1 --batch-size 24
-    ```
+````
+```bash
+chimeralm predict mk1c_test.bam --gpus 1 --batch-size 24
+```
 
-    **Expected output**:
-    ```text
-    INFO     [rank: 0] Loading model from Hugging Face
-    Seed set to 42
-    GPU available: True (mps), used: True
-    Predicting DataLoader 0: 100%|██████████| 2/2 [00:03<00:00, 0.66it/s]
-    ```
+**Expected output**:
+```text
+INFO     [rank: 0] Loading model from Hugging Face
+Seed set to 42
+GPU available: True (mps), used: True
+Predicting DataLoader 0: 100%|██████████| 2/2 [00:03<00:00, 0.66it/s]
+```
 
-    Predictions saved to: `mk1c_test.predictions/`
+Predictions saved to: `mk1c_test.predictions/`
+````
 
 !!! tip "GPU vs CPU Performance"
-    - **CPU**: ~15 seconds for 48 SA-tagged reads (batch-size 12)
-    - **GPU**: ~3 seconds for 48 SA-tagged reads (batch-size 24, 5x faster!)
+\- **CPU**: ~15 seconds for 48 SA-tagged reads (batch-size 12)
+\- **GPU**: ~3 seconds for 48 SA-tagged reads (batch-size 24, 5x faster!)
 
 ## Step 3: Understand the Output
 
@@ -93,6 +99,7 @@ head -10 mk1c_test.predictions/0_0.txt
 ```
 
 **Output format** (tab-separated):
+
 ```text
 read_name<TAB>label
 e5f89040-2898-41d9-9ee4-3022168216f0	1
@@ -103,6 +110,7 @@ edab7cd5-831c-4f51-8ada-c9b4620307c1	0
 ```
 
 **Labels**:
+
 - **0**: Biological read (keep for analysis)
 - **1**: Chimeric artifact (remove from analysis)
 
@@ -119,13 +127,15 @@ cat mk1c_test.predictions/*.txt | grep -c "0$"
 ```
 
 Expected results for test data:
+
 - **Chimeric artifacts**: 55 (73.3%)
 - **Biological reads**: 20 (26.7%)
 
 Typical chimera rates for WGA data:
+
 - **MDA (Multiple Displacement Amplification)**: 10-40%
 - **PicoPLEX**: 5-20%
-- **Non-WGA data**: <1%
+- **Non-WGA data**: \<1%
 
 ## Checkpoint: Verify Your Prediction Worked
 
@@ -137,7 +147,7 @@ Typical chimera rates for WGA data:
 - [ ] Number of predictions matches input reads
 
 !!! success "Congratulations!"
-    You've successfully run your first ChimeraLM prediction! :tada:
+You've successfully run your first ChimeraLM prediction! :tada:
 
 ## Next Steps
 
@@ -152,6 +162,7 @@ chimeralm filter mk1c_test.bam mk1c_test.predictions
 ```
 
 This automatically creates:
+
 - `mk1c_test.filtered.bam` - Unsorted filtered reads
 - `mk1c_test.filtered.sorted.bam` - **Final sorted output** (use this!)
 - `mk1c_test.filtered.sorted.bam.bai` - BAM index
@@ -174,5 +185,5 @@ For comprehensive filtering guidance including verification, troubleshooting, an
 Encountered an issue? Check our [Troubleshooting Guide](troubleshooting.md) for common problems and solutions.
 
 !!! question "Need Help?"
-    - :material-github: [Open an issue](https://github.com/ylab-hi/chimera/issues)
-    - :material-chat: [GitHub Discussions](https://github.com/ylab-hi/chimera/discussions)
+\- :material-github: [Open an issue](https://github.com/ylab-hi/chimera/issues)
+\- :material-chat: [GitHub Discussions](https://github.com/ylab-hi/chimera/discussions)

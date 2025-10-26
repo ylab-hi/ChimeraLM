@@ -11,7 +11,7 @@ A deep learning-powered tool to identify artificial chimeric reads arising from 
 
 </div>
 
----
+______________________________________________________________________
 
 ## :material-star: Key Features
 
@@ -49,7 +49,7 @@ Includes filtering, sorting, and indexing of BAM files
 
 </div>
 
----
+______________________________________________________________________
 
 ## Quick Start
 
@@ -68,7 +68,7 @@ chimeralm predict your_data.bam --gpus 1 --batch-size 24
 
 Ready to dive in? Check out our [Quick Start Guide](getting-started/quick-start.md).
 
----
+______________________________________________________________________
 
 ## What is ChimeraLM?
 
@@ -78,7 +78,7 @@ ChimeraLM is a genomic language model that detects chimeric artifacts introduced
 
 ChimeraLM uses the HyenaDNA backbone architecture to learn patterns that distinguish biological reads (label 0) from chimeric artifacts (label 1), helping researchers clean their sequencing data before downstream analysis.
 
----
+______________________________________________________________________
 
 ## Citation
 
@@ -93,7 +93,7 @@ If you use ChimeraLM in your research, please cite:
 }
 ```
 
----
+______________________________________________________________________
 
 ## License
 

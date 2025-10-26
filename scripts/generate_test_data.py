@@ -41,12 +41,12 @@ def generate_test_data(
         number_of_chimera_artifacts: Number of chimeric artifact read names to include
         factor: Multiplier for non-chimeric reads (default: 2x chimera artifacts)
         seed: Random seed for reproducibility (optional)
-    
+
     The output BAM will contain:
     - N chimeric artifact read names (from chimera_artifacts_file)
     - N/factor chimeric non-artifact read names (chimeric but not in chimera_artifacts_file)
     - N*factor non-chimeric read names
-    
+
     Important: Sampling is done by read name (query_name), not by individual alignments.
     If a read has multiple alignments (primary, secondary, supplementary), ALL alignments
     for that read name are kept together in the output.
@@ -55,27 +55,27 @@ def generate_test_data(
     if not input_bam.exists():
         print(f"Error: Input BAM file not found: {input_bam}", file=sys.stderr)
         raise SystemExit(1)
-    
+
     if not chimera_artifacts_file.exists():
         print(f"Error: Chimera artifacts file not found: {chimera_artifacts_file}", file=sys.stderr)
         raise SystemExit(1)
-    
+
     if number_of_chimera_artifacts <= 0:
         print(f"Error: number_of_chimera_artifacts must be positive, got {number_of_chimera_artifacts}", file=sys.stderr)
         raise SystemExit(1)
-    
+
     if factor <= 0:
         print(f"Error: factor must be positive, got {factor}", file=sys.stderr)
         raise SystemExit(1)
-    
+
     # Set random seed for reproducibility
     if seed is not None:
         random.seed(seed)
-    
+
     # Load chimera artifacts
     try:
         chimera_artifacts = set(
-            line.strip() for line in chimera_artifacts_file.read_text().splitlines() 
+            line.strip() for line in chimera_artifacts_file.read_text().splitlines()
             if line.strip()  # Skip empty lines
         )
         print(f"Loaded {len(chimera_artifacts)} chimera artifact read names")
@@ -109,7 +109,7 @@ def generate_test_data(
                 query_name = read.query_name
                 if query_name is None:
                     continue
-                
+
                 # Group all alignments (primary, secondary, supplementary) by read name
                 if is_chimeric(read):
                     if query_name in chimera_artifacts:
@@ -136,11 +136,11 @@ def generate_test_data(
     if len(chimeric_artifact_reads) < number_chimera_artifact_reads:
         print(f"Warning: Not enough chimeric artifact reads. Requested {number_chimera_artifact_reads}, found {len(chimeric_artifact_reads)}", file=sys.stderr)
         number_chimera_artifact_reads = len(chimeric_artifact_reads)
-    
+
     if len(chimeric_non_artifact_reads) < number_chimeric_reads_not_in_chimera_artifacts:
         print(f"Warning: Not enough chimeric non-artifact reads. Requested {number_chimeric_reads_not_in_chimera_artifacts}, found {len(chimeric_non_artifact_reads)}", file=sys.stderr)
         number_chimeric_reads_not_in_chimera_artifacts = len(chimeric_non_artifact_reads)
-    
+
     if len(non_chimeric_reads) < number_non_chimeric_reads:
         print(f"Warning: Not enough non-chimeric reads. Requested {number_non_chimeric_reads}, found {len(non_chimeric_reads)}", file=sys.stderr)
         number_non_chimeric_reads = len(non_chimeric_reads)
@@ -181,17 +181,17 @@ def generate_test_data(
     except Exception as e:
         print(f"Error writing output BAM file: {e}", file=sys.stderr)
         raise SystemExit(1)
-    
+
     # Sort and index the output BAM file using pysam
     print(f"Sorting and indexing BAM file...")
     try:
         sorted_bam = output_bam.with_suffix(".sorted.bam")
         pysam.sort("-o", sorted_bam.as_posix(), output_bam.as_posix())
         pysam.index(sorted_bam.as_posix())
-        
+
         # Move sorted BAM to replace original
         os.replace(sorted_bam.as_posix(), output_bam.as_posix())
-        
+
         # Move the index file as well
         sorted_index = Path(str(sorted_bam) + ".bai")
         output_index = Path(str(output_bam) + ".bai")

@@ -9,7 +9,7 @@ ChimeraLM's model architecture consists of:
 - **Factory class**: `ChimeraLM` for loading pretrained models
 - **Base module**: `ClassificationLit` for PyTorch Lightning integration
 
----
+______________________________________________________________________
 
 ## ChimeraLM Factory
 
@@ -104,7 +104,7 @@ model = ChimeraLM.new(
 )
 ```
 
----
+______________________________________________________________________
 
 ### Training Loop
 
@@ -188,10 +188,12 @@ Test step for one batch.
 The module logs the following metrics:
 
 **Training:**
+
 - `train/loss`: Cross-entropy loss
 - `train/acc`: Accuracy
 
 **Validation:**
+
 - `val/loss`: Validation loss
 - `val/acc`: Validation accuracy
 - `val/precision`: Precision score
@@ -199,18 +201,18 @@ The module logs the following metrics:
 - `val/f1`: F1 score
 
 **Test:**
+
 - `test/loss`: Test loss
 - `test/acc`: Test accuracy
 - `test/precision`: Precision score
 - `test/recall`: Recall score
 - `test/f1`: F1 score
 
----
+______________________________________________________________________
 
 ## Callbacks
 
 ### PredictionWriter
-
 
 Custom Lightning callback for writing predictions to disk.
 
@@ -231,7 +233,7 @@ trainer = L.Trainer(callbacks=[writer])
 trainer.predict(model, datamodule=data_module)
 ```
 
----
+______________________________________________________________________
 
 ## Complete Example: Inference
 
@@ -259,6 +261,7 @@ for i, pred in enumerate(predictions):
 ```
 
 **Output:**
+
 ```text
 Sequence 0: Biological
 Sequence 1: Chimeric
@@ -266,7 +269,7 @@ Sequence 2: Biological
 Sequence 3: Biological
 ```
 
----
+______________________________________________________________________
 
 ## See Also
 

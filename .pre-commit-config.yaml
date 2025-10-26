@@ -33,16 +33,12 @@ repos:
 
   # md formatting
   - repo: https://github.com/executablebooks/mdformat
-    rev: 0.7.22
+    rev: 1.0.0
     hooks:
       - id: mdformat
         args: ["--number"]
         additional_dependencies:
           - mdformat-gfm
-          - mdformat-tables
-          - mdformat_frontmatter
-          # - mdformat-toc
-          # - mdformat-black
 
   # word spelling linter
   - repo: https://github.com/codespell-project/codespell
@@ -54,7 +50,7 @@ repos:
           # - --ignore-words-list=abc,def
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: "v0.13.3"
+    rev: v0.14.2
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix, --unsafe-fixes]

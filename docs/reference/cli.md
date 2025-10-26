@@ -27,6 +27,7 @@ chimeralm --version
 ```
 
 **Output:**
+
 ```text
 ChimeraLM v0.1.0
 ```
@@ -39,7 +40,7 @@ Display help information for all commands.
 chimeralm --help
 ```
 
----
+______________________________________________________________________
 
 ## `predict` Command
 
@@ -58,11 +59,13 @@ chimeralm predict [OPTIONS] DATA_PATH
 **Type:** Path (required)
 
 Path to input BAM file. File must:
+
 - Be a valid BAM/SAM file
 - Contain reads with SA tags (supplementary alignment tags)
 - Be readable by pysam
 
 **Example:**
+
 ```bash
 chimeralm predict input.bam
 chimeralm predict /path/to/data/sample.bam
@@ -82,6 +85,7 @@ Number of GPUs to use for inference.
 - `>1`: Multiple GPUs (if supported)
 
 **Examples:**
+
 ```bash
 # CPU mode (default)
 chimeralm predict input.bam
@@ -99,6 +103,7 @@ chimeralm predict input.bam -g 1
 Output directory for predictions.
 
 **Examples:**
+
 ```bash
 # Default output location
 chimeralm predict input.bam
@@ -118,12 +123,14 @@ chimeralm predict input.bam -o predictions/
 Number of reads to process in each batch. Larger batches improve GPU utilization but require more memory.
 
 **Recommendations:**
+
 - CPU: 12-32
 - GPU (8GB): 12-16
 - GPU (16GB): 24-32
 - GPU (24GB+): 48-64
 
 **Examples:**
+
 ```bash
 # Default batch size
 chimeralm predict input.bam
@@ -144,11 +151,13 @@ chimeralm predict input.bam -g 1 -b 48
 Number of worker processes for data loading.
 
 **Recommendations:**
+
 - CPU mode: 4-8 workers
 - GPU mode: 2-4 workers
 - Default: 0 (single-threaded)
 
 **Examples:**
+
 ```bash
 # Single-threaded (default)
 chimeralm predict input.bam
@@ -168,6 +177,7 @@ chimeralm predict input.bam -g 1 -w 4
 Make predictions non-deterministic. By default, predictions are deterministic for reproducibility.
 
 **Examples:**
+
 ```bash
 # Deterministic predictions (default)
 chimeralm predict input.bam
@@ -185,6 +195,7 @@ chimeralm predict input.bam -r
 Enable verbose logging for debugging.
 
 **Examples:**
+
 ```bash
 # Normal logging
 chimeralm predict input.bam
@@ -203,6 +214,7 @@ read_name<TAB>label
 ```
 
 **Example:**
+
 ```text
 m54329U_200919_012139/4194729/ccs	0
 m54329U_200919_012139/4194826/ccs	1
@@ -210,6 +222,7 @@ m54329U_200919_012139/4194958/ccs	0
 ```
 
 **Labels:**
+
 - `0`: Biological read (keep for analysis)
 - `1`: Chimeric artifact (remove from analysis)
 
@@ -225,11 +238,12 @@ chimeralm predict input.bam \
 ```
 
 **Short form:**
+
 ```bash
 chimeralm predict input.bam -g 1 -b 24 -w 4 -o predictions/ -v
 ```
 
----
+______________________________________________________________________
 
 ## `filter` Command
 
@@ -256,6 +270,7 @@ Path to input BAM file (same as used for prediction).
 Path to predictions directory or predictions file.
 
 **Examples:**
+
 ```bash
 # Using predictions directory
 chimeralm filter input.bam input.bam.predictions/
@@ -267,12 +282,14 @@ chimeralm filter input.bam input.bam.predictions/predictions.txt
 ### Options
 
 !!! info "Output Files Created"
-    The filter command always creates:
-    - `{BAM_PATH}.filtered.bam` - Filtered reads (unsorted)
-    - `{BAM_PATH}.filtered.sorted.bam` - Sorted filtered BAM
-    - `{BAM_PATH}.filtered.sorted.bam.bai` - BAM index
+The filter command always creates:
+\- `{BAM_PATH}.filtered.bam` - Filtered reads (unsorted)
+\- `{BAM_PATH}.filtered.sorted.bam` - Sorted filtered BAM
+\- `{BAM_PATH}.filtered.sorted.bam.bai` - BAM index
 
-    Example: `input.bam` → `input.filtered.sorted.bam`
+```
+Example: `input.bam` → `input.filtered.sorted.bam`
+```
 
 #### `--verbose`, `-v`
 
@@ -282,6 +299,7 @@ chimeralm filter input.bam input.bam.predictions/predictions.txt
 Enable verbose logging.
 
 **Examples:**
+
 ```bash
 # Normal logging
 chimeralm filter input.bam predictions/ -p
@@ -293,12 +311,14 @@ chimeralm filter input.bam predictions/ -p -v
 ### Output
 
 **Always created:**
+
 - `{BAM_PATH}.filtered.bam` - Unsorted filtered BAM
 - `{BAM_PATH}.filtered.sorted.bam` - Sorted filtered BAM (final output)
 - `{BAM_PATH}.filtered.sorted.bam.bai` - BAM index
 - Console output with summary statistics
 
 **With `--output-prediction` flag:**
+
 - Additionally creates: `predictions.txt` in the predictions directory
 - Consolidates all .txt files into a single predictions file
 
@@ -315,7 +335,7 @@ chimeralm filter input.bam input.predictions
 samtools view -c input.filtered.sorted.bam
 ```
 
----
+______________________________________________________________________
 
 ## `web` Command
 
@@ -339,11 +359,13 @@ chimeralm web
 ```
 
 **Expected behavior:**
+
 - Starts a local web server
 - Opens browser to the ChimeraLM web interface
 - Provides interactive tools for prediction and visualization
 
 **Typical output:**
+
 ```text
 Starting ChimeraLM web interface...
 Server running at: http://localhost:8000
@@ -361,9 +383,9 @@ The web interface typically provides:
 - **Export results**: Download predictions and filtered BAM files
 
 !!! tip "Web Interface Access"
-    If the browser doesn't open automatically, manually navigate to `http://localhost:8000` (or the URL shown in the terminal).
+If the browser doesn't open automatically, manually navigate to `http://localhost:8000` (or the URL shown in the terminal).
 
----
+______________________________________________________________________
 
 ## Environment Variables
 
@@ -382,7 +404,7 @@ CUDA_VISIBLE_DEVICES=1 chimeralm predict input.bam -g 1
 CUDA_VISIBLE_DEVICES=0,1 chimeralm predict input.bam -g 2
 ```
 
----
+______________________________________________________________________
 
 ## Shell Completion
 
@@ -398,7 +420,7 @@ chimeralm --show-completion
 
 Supports: Bash, Zsh, Fish, PowerShell
 
----
+______________________________________________________________________
 
 ## See Also
 

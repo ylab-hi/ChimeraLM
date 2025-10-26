@@ -253,11 +253,13 @@ def determine_accelerator_and_devices(gpus: int):
 @app.command()
 def predict(
     data_path: Path = typer.Argument(..., help="Path to the dataset", exists=True),
-    output_path: Path|None = typer.Option(None, "--output", "-o", help="Output path for predictions"),
+    output_path: Path | None = typer.Option(None, "--output", "-o", help="Output path for predictions"),
     gpus: int = typer.Option(0, "--gpus", "-g", help="Number of GPUs to use"),
     batch_size: int = typer.Option(12, "--batch-size", "-b", help="Batch size"),
     num_workers: int = typer.Option(0, "--workers", "-w", help="Number of workers"),
-    ckpt_path: Path | None = typer.Option(None, "--ckpt", "-c", hidden=True, help="Path to the checkpoint file", exists=True),
+    ckpt_path: Path | None = typer.Option(
+        None, "--ckpt", "-c", hidden=True, help="Path to the checkpoint file", exists=True
+    ),
     *,
     random: bool = typer.Option(False, "--random", "-r", help="Make the prediction not deterministic"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
@@ -308,7 +310,6 @@ def predict(
     else:
         log.info("Loading model from Hugging Face")
         model = chimeralm.models.ChimeraLM.from_pretrained("yangliz5/chimeralm")
-
 
     accelerator, devices = determine_accelerator_and_devices(gpus)
     trainer = lightning.pytorch.trainer.Trainer(

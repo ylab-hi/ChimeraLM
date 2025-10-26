@@ -29,33 +29,33 @@ theme:
   language: en
   features:
     # Navigation
-    - navigation.tabs          # Top-level sections as tabs
-    - navigation.tabs.sticky   # Sticky navigation tabs
-    - navigation.sections      # Expandable sections
-    - navigation.expand        # Expand all sections by default
-    - navigation.path          # Show breadcrumb path
-    - navigation.indexes       # Allow index pages for sections
-    - navigation.instant       # SPA-like instant loading
-    - navigation.instant.progress  # Show progress bar for instant loading
-    - navigation.tracking      # Update URL on scroll
-    - navigation.top           # Back-to-top button
-    - navigation.footer        # Footer with prev/next navigation
-    - toc.follow               # TOC follows scroll
-    - toc.integrate            # Integrate TOC into navigation
+    - navigation.tabs # Top-level sections as tabs
+    - navigation.tabs.sticky # Sticky navigation tabs
+    - navigation.sections # Expandable sections
+    - navigation.expand # Expand all sections by default
+    - navigation.path # Show breadcrumb path
+    - navigation.indexes # Allow index pages for sections
+    - navigation.instant # SPA-like instant loading
+    - navigation.instant.progress # Show progress bar for instant loading
+    - navigation.tracking # Update URL on scroll
+    - navigation.top # Back-to-top button
+    - navigation.footer # Footer with prev/next navigation
+    - toc.follow # TOC follows scroll
+    - toc.integrate # Integrate TOC into navigation
 
     # Search
-    - search.highlight         # Highlight search terms
-    - search.suggest           # Search suggestions
-    - search.share             # Share search results
+    - search.highlight # Highlight search terms
+    - search.suggest # Search suggestions
+    - search.share # Share search results
 
     # Content
-    - content.code.copy        # Copy button on code blocks
-    - content.code.select      # Select code blocks
-    - content.code.annotate    # Code annotations
-    - content.tabs.link        # Linked content tabs
-    - content.tooltips         # Improved tooltips
-    - content.action.edit      # Edit button on pages
-    - content.action.view      # View source button
+    - content.code.copy # Copy button on code blocks
+    - content.code.select # Select code blocks
+    - content.code.annotate # Code annotations
+    - content.tabs.link # Linked content tabs
+    - content.tooltips # Improved tooltips
+    - content.action.edit # Edit button on pages
+    - content.action.view # View source button
   icon:
     repo: fontawesome/brands/github
   logo: assets/logo.svg
@@ -86,7 +86,7 @@ extra:
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/chimeralm/
       name: ChimeraLM on PyPI
-  generator: false  # Remove "Made with Material for MkDocs"
+  generator: false # Remove "Made with Material for MkDocs"
 
   # Analytics (uncomment when ready)
   # analytics:
@@ -125,7 +125,7 @@ nav:
 # Plugins configuration
 plugins:
   - search:
-      separator: '[\s\-\.]+'  # Support genomics terms like "BAM", "WGA"
+      separator: '[\s\-\.]+' # Support genomics terms like "BAM", "WGA"
   # - social:  # Requires mkdocs-material[imaging] - optional enhancement
   #     cards: true
   #     cards_layout_options:
@@ -155,9 +155,10 @@ markdown_extensions:
       custom_fences:
         - name: mermaid
           class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
+          format:
+            !!python/name:pymdownx.superfences.fence_code_format # Tabbed content
 
-  # Tabbed content
+
   - pymdownx.tabbed:
       alternate_style: true
       combine_header_slug: true
@@ -168,9 +169,10 @@ markdown_extensions:
   # Icons and emojis
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
-      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      emoji_generator:
+        !!python/name:material.extensions.emoji.to_svg # Admonitions with collapsible support
 
-  # Admonitions with collapsible support
+
   - admonition
   - pymdownx.details
 
