@@ -252,12 +252,14 @@ def determine_accelerator_and_devices(gpus: int):
 
 @app.command()
 def predict(
-    data_path: Path = typer.Argument(..., help="Path to the dataset"),
-    gpus: int = typer.Option(0, "--gpus", "-g", help="Number of GPUs to use"),
+    data_path: Path = typer.Argument(..., help="Path to the dataset", exists=True),
     output_path: Path | None = typer.Option(None, "--output", "-o", help="Output path for predictions"),
+    gpus: int = typer.Option(0, "--gpus", "-g", help="Number of GPUs to use"),
     batch_size: int = typer.Option(12, "--batch-size", "-b", help="Batch size"),
     num_workers: int = typer.Option(0, "--workers", "-w", help="Number of workers"),
-    ckpt_path: Path | None = typer.Option(None, "--ckpt", "-c", hidden=True, help="Path to the checkpoint file"),
+    ckpt_path: Path | None = typer.Option(
+        None, "--ckpt", "-c", hidden=True, help="Path to the checkpoint file", exists=True
+    ),
     *,
     random: bool = typer.Option(False, "--random", "-r", help="Make the prediction not deterministic"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
@@ -268,6 +270,11 @@ def predict(
 
     if not random:
         lightning.seed_everything(42, workers=True)
+
+    if output_path is None:
+        output_path = data_path.with_suffix(".predictions")
+    if not output_path.exists():
+        output_path.mkdir(parents=True, exist_ok=True)
 
     tokenizer = chimeralm.data.tokenizer.load_tokenizer_from_hyena_model("hyenadna-small-32k-seqlen")
     datamodule: lightning.LightningDataModule = chimeralm.data.bam.BamDataModule(
@@ -304,11 +311,6 @@ def predict(
         log.info("Loading model from Hugging Face")
         model = chimeralm.models.ChimeraLM.from_pretrained("yangliz5/chimeralm")
 
-    if output_path is None:
-        output_path = data_path.with_suffix(".predictions")
-    if not output_path.exists():
-        output_path.mkdir(parents=True, exist_ok=True)
-
     accelerator, devices = determine_accelerator_and_devices(gpus)
     trainer = lightning.pytorch.trainer.Trainer(
         accelerator=accelerator,
@@ -321,21 +323,19 @@ def predict(
     ctx._force_start_method("spawn")
     trainer.predict(model=model, dataloaders=datamodule, return_predictions=False, ckpt_path=ckpt_path)
     log.info(f"Predictions saved to {output_path}")
-    log.info(f"Filtering {data_path} by predictions from {output_path}")
 
 
 @app.command()
 def filter(
-    bam_path: Path = typer.Argument(..., help="Path to the BAM file"),
-    predictions_path: Path = typer.Argument(..., help="Path to the predictions file"),
+    bam_path: Path = typer.Argument(..., help="Path to the BAM file", exists=True),
+    predictions_path: Path = typer.Argument(..., help="Path to the predictions file", exists=True),
     *,
-    output_prediction: bool = typer.Option(False, "--output-prediction", "-p", help="write summary of the predictions"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
 ):
     """Filter the BAM file by predictions."""
     set_logging_level(logging.DEBUG if verbose else logging.INFO)
     log.info(f"Filtering {bam_path} by predictions from {predictions_path}")
-    filter_bam_by_predcition(bam_path, predictions_path, index=True, output_prediction=output_prediction)
+    filter_bam_by_predcition(bam_path, predictions_path, index=True, output_prediction=True)
 
 
 @app.command()

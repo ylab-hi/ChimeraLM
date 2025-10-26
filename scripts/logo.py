@@ -13,7 +13,7 @@ app = Typer()
 
 @app.command()
 def image_to_terminal(
-    image_path: Path, 
+    image_path: Path,
     max_width: int = None,
     white_threshold: int = 240
 ):
@@ -23,20 +23,20 @@ def image_to_terminal(
     """
     img = Image.open(image_path)
     img = img.convert("RGB")
-    
+
     if max_width and img.width > max_width:
         aspect_ratio = img.height / img.width
         new_height = int(max_width * aspect_ratio)
         img = img.resize((max_width, new_height))
-    
+
     width, height = img.size
-    
+
     for y in range(0, height, 2):  # Process 2 rows at a time
         for x in range(width):
             # Top pixel
             r1, g1, b1 = img.getpixel((x, y))
             top_is_white = r1 > white_threshold and g1 > white_threshold and b1 > white_threshold
-            
+
             # Bottom pixel (if exists)
             if y + 1 < height:
                 r2, g2, b2 = img.getpixel((x, y + 1))
@@ -44,7 +44,7 @@ def image_to_terminal(
             else:
                 bottom_is_white = True
                 r2, g2, b2 = 255, 255, 255
-            
+
             # Choose character and colors
             if top_is_white and bottom_is_white:
                 print(" ", end="")

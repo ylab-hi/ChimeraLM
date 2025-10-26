@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="128" height="128" shape-rendering="crispEdges">
+  <style>
+    rect { shape-rendering: crispEdges; }
+  </style>
+
+  <!-- Transparent background (removed white background) -->
+
+  <!-- Purple color palette inspired by the original logo -->
+  <defs>
+    <style>
+      .dark { fill: #6b2c91; }
+      .medium { fill: #8b4cb8; }
+      .light { fill: #a66dd1; }
+      .accent { fill: #c99de8; }
+    </style>
+  </defs>
+
+  <!-- Chimera head (lion/dragon hybrid) - pixel art style -->
+
+  <!-- Ears/Horns -->
+  <rect x="8" y="6" width="2" height="2" class="medium"/>
+  <rect x="22" y="6" width="2" height="2" class="medium"/>
+  <rect x="7" y="8" width="2" height="2" class="dark"/>
+  <rect x="23" y="8" width="2" height="2" class="dark"/>
+
+  <!-- Head outline top -->
+  <rect x="10" y="8" width="2" height="2" class="dark"/>
+  <rect x="12" y="7" width="2" height="2" class="dark"/>
+  <rect x="14" y="6" width="4" height="2" class="dark"/>
+  <rect x="18" y="7" width="2" height="2" class="dark"/>
+  <rect x="20" y="8" width="2" height="2" class="dark"/>
+
+  <!-- Head sides -->
+  <rect x="9" y="10" width="2" height="8" class="dark"/>
+  <rect x="21" y="10" width="2" height="8" class="dark"/>
+
+  <!-- Face fill -->
+  <rect x="11" y="10" width="10" height="2" class="medium"/>
+  <rect x="11" y="12" width="10" height="2" class="light"/>
+  <rect x="11" y="14" width="10" height="2" class="medium"/>
+  <rect x="11" y="16" width="10" height="2" class="light"/>
+
+  <!-- Eyes -->
+  <rect x="12" y="11" width="2" height="2" class="dark"/>
+  <rect x="18" y="11" width="2" height="2" class="dark"/>
+
+  <!-- Nose/Snout -->
+  <rect x="15" y="15" width="2" height="2" class="dark"/>
+  <rect x="14" y="17" width="4" height="1" class="dark"/>
+
+  <!-- Mouth/jaw -->
+  <rect x="11" y="18" width="2" height="2" class="medium"/>
+  <rect x="13" y="18" width="6" height="2" class="light"/>
+  <rect x="19" y="18" width="2" height="2" class="medium"/>
+  <rect x="12" y="20" width="8" height="2" class="dark"/>
+
+  <!-- DNA helix strands (left side) -->
+  <rect x="4" y="14" width="2" height="2" class="accent"/>
+  <rect x="3" y="16" width="2" height="2" class="medium"/>
+  <rect x="4" y="18" width="2" height="2" class="accent"/>
+  <rect x="3" y="20" width="2" height="2" class="medium"/>
+  <rect x="4" y="22" width="2" height="2" class="accent"/>
+
+  <!-- DNA helix strands (right side) -->
+  <rect x="26" y="14" width="2" height="2" class="accent"/>
+  <rect x="27" y="16" width="2" height="2" class="medium"/>
+  <rect x="26" y="18" width="2" height="2" class="accent"/>
+  <rect x="27" y="20" width="2" height="2" class="medium"/>
+  <rect x="26" y="22" width="2" height="2" class="accent"/>
+
+  <!-- Tail/bottom accent -->
+  <rect x="14" y="22" width="4" height="2" class="medium"/>
+  <rect x="13" y="24" width="2" height="2" class="light"/>
+  <rect x="17" y="24" width="2" height="2" class="light"/>
+  <rect x="15" y="26" width="2" height="2" class="accent"/>
+</svg>
