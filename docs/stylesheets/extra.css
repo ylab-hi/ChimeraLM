@@ -276,17 +276,7 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.md-nav__item--nested > .md-nav__link::before {
-  content: '✨';
-  margin-right: 0.4rem;
-  font-size: 0.85em;
-  animation: sparkle 2s ease-in-out infinite;
-}
-
-@keyframes sparkle {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.7; transform: scale(1.1); }
-}
+/* Removed sparkle emoji and animation */
 
 .md-nav__item--nested > .md-nav__link:hover {
   transform: translateX(3px);
@@ -305,7 +295,7 @@
 /* Tutorial items - Compact Modern Cards */
 .md-nav__item .md-nav__item .md-nav__link {
   position: relative;
-  padding: 0.3rem 0.5rem 0.3rem 1.8rem;
+  padding: 0.3rem 0.5rem 0.3rem 0.6rem;
   margin: 0.15rem 0.3rem;
   font-weight: 600;
   font-size: 0.85em;
@@ -323,36 +313,17 @@
   border-left-color: #a66dd1;
 }
 
-/* Compact icon with gradient */
-.md-nav__item .md-nav__item .md-nav__link::before {
-  content: '▸';
-  position: absolute;
-  left: 0.6rem;
-  background: linear-gradient(135deg, #8b4cb8, #c99de8);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-size: 0.9em;
-  font-weight: bold;
-  transition: all 0.2s ease;
-}
+/* Removed arrow icon */
 
 /* Hover effect - Compact and smooth */
 .md-nav__item .md-nav__item .md-nav__link:hover {
   background: linear-gradient(135deg, rgba(139, 76, 184, 0.1), rgba(166, 109, 209, 0.05));
   border-left-width: 3px;
-  padding-left: 2rem;
   transform: translateX(3px);
   box-shadow: 0 1px 6px rgba(139, 76, 184, 0.12);
 }
 
-.md-nav__item .md-nav__item .md-nav__link:hover::before {
-  transform: translateX(2px);
-  background: linear-gradient(135deg, #6b2c91, #a66dd1);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
+/* Removed hover effect for arrow */
 
 [data-md-color-scheme="slate"] .md-nav__item .md-nav__item .md-nav__link:hover {
   background: linear-gradient(135deg, rgba(166, 109, 209, 0.18), rgba(201, 157, 232, 0.08));
@@ -365,16 +336,11 @@
   color: #ffffff;
   background: linear-gradient(135deg, #8b4cb8, #a66dd1);
   border-left: 3px solid #6b2c91;
-  padding: 0.3rem 0.5rem 0.3rem 1.8rem;
+  padding: 0.3rem 0.5rem 0.3rem 0.6rem;
   box-shadow: 0 2px 8px rgba(139, 76, 184, 0.25);
 }
 
-.md-nav__item .md-nav__item .md-nav__link--active::before {
-  color: #ffffff;
-  background: none;
-  -webkit-text-fill-color: #ffffff;
-  transform: translateX(2px);
-}
+/* Removed active state arrow styling */
 
 [data-md-color-scheme="slate"] .md-nav__item .md-nav__item .md-nav__link--active {
   background: linear-gradient(135deg, #a66dd1, #c99de8);

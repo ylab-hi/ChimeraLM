@@ -555,10 +555,11 @@ Before deploying to production:
 - [ ] Version control your pipeline code
 - [ ] Test pipeline failure scenarios
 
+
 ## Next Steps
 
-- **Performance tuning**: See [Performance Optimization](performance-optimization.md)
-- **Fine-tuning integration**: See [Fine-Tuning Tutorial](fine-tuning.md)
+- **Batch Processing**: Use [CLI commands](../reference/cli.md#predict-command) for multiple sequences
+- **API Access**: Use [Models API](../reference/models.md) for custom workflows
 
 ## Summary
 

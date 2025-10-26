@@ -255,4 +255,4 @@ uv run pytest tests/ -k "not gpu"
 
 - [Testing Guide](testing.md)
 - [Adding Features](adding-features.md)
-- [Code of Conduct](https://github.com/ylab-hi/ChimeraLM/blob/main/CODE_OF_CONDUCT.md)
+- [Code of Conduct](code_of_conduct.md)

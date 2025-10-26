@@ -416,9 +416,8 @@ confidence = probabilities[predicted_class] # Confidence of prediction
 
 ## Next Steps
 
-- **Batch Processing**: Use [CLI commands](../reference/cli.md#predict-command) for multiple sequences
-- **BAM Filtering**: See [Filtering BAM Files](bam-filtering.md) tutorial
 - **Integration**: Learn about [Pipeline Integration](pipeline-integration.md)
+- **Batch Processing**: Use [CLI commands](../reference/cli.md#predict-command) for multiple sequences
 - **API Access**: Use [Models API](../reference/models.md) for custom workflows
 
 ## Summary

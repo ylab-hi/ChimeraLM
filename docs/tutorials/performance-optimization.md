@@ -320,8 +320,8 @@ Before running large-scale predictions:
 
 ## Next Steps
 
+- **Web Interface**: See [Web Interface](web-interface.md) for interactive filtering
 - **Pipeline integration**: See [Pipeline Integration](pipeline-integration.md) for scaling across multiple samples
-- **Hardware selection**: Consider cloud GPU instances (AWS, GCP, Azure) for large projects
 
 ## Summary
 

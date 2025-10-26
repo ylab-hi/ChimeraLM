@@ -55,7 +55,7 @@ This Code of Conduct also applies when an individual is officially representing 
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the project maintainers responsible for enforcement at:
 
-**Email**: [Create a GitHub issue](https://github.com/ylab-hi/chimera/issues) or contact the maintainers directly
+**Email**: [Create a GitHub issue](https://github.com/ylab-hi/ChimeraLM/issues) or contact the maintainers directly
 
 All complaints will be reviewed and investigated promptly and fairly. All project maintainers are obligated to respect the privacy and security of the reporter of any incident.
 
