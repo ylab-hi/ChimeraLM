@@ -129,7 +129,7 @@ Typical chimera rates for WGA data:
 
 - **MDA (Multiple Displacement Amplification)**: 10-40%
 - **PicoPLEX**: 5-20%
-- **Non-WGA data**: \<1%
+- **Non-WGA data**: <1%
 
 ## Checkpoint: Verify Your Prediction Worked
 
@@ -179,5 +179,5 @@ For comprehensive filtering guidance including verification, troubleshooting, an
 Encountered an issue? Check our [Troubleshooting Guide](troubleshooting.md) for common problems and solutions.
 
 !!! question "Need Help?"
-    - :material-github: [Open an issue](https://github.com/ylab-hi/chimera/issues)
-    - :material-chat: [GitHub Discussions](https://github.com/ylab-hi/chimera/discussions)
+    - :material-github: [Open an issue](https://github.com/ylab-hi/ChimeraLM/issues)
+    - :material-chat: [GitHub Discussions](https://github.com/ylab-hi/ChimeraLM/discussions)

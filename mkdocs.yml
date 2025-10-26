@@ -1,7 +1,7 @@
 site_name: ChimeraLM Documentation
-site_url: https://ylab-hi.github.io/chimera/
-repo_url: https://github.com/ylab-hi/chimera
-repo_name: ylab-hi/chimera
+site_url: https://ylab-hi.github.io/ChimeraLM/
+repo_url: https://github.com/ylab-hi/ChimeraLM
+repo_name: ylab-hi/ChimeraLM
 
 # Theme configuration with Material for MkDocs
 theme:
