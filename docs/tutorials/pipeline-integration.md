@@ -47,33 +47,34 @@ echo "Output: $OUTPUT_DIR"
 # Create output directory
 mkdir -p $OUTPUT_DIR
 
-# Step 1: Predict chimeric reads
-echo "Step 1/3: Predicting chimeric reads..."
-chimeralm predict $INPUT_BAM --gpus $GPUS --batch-size $BATCH_SIZE -o ${INPUT_BAM}.predictions
+# Step 1: Predict chimera artifacts induced by WGA
+echo "Step 1/3: Predicting chimera artifacts induced by WGA..."
+BASENAME=$(basename $INPUT_BAM .bam)
+chimeralm predict $INPUT_BAM --gpus $GPUS --batch-size $BATCH_SIZE -o ${BASENAME}.predictions
 
 # Step 2: Filter BAM
 echo "Step 2/3: Filtering BAM file..."
-# Filter creates .filtered.sorted.bam automatically
-chimeralm filter $INPUT_BAM ${INPUT_BAM}.predictions/
+# Filter creates .filtered.sorted.bam automatically and writes predictions.txt
+chimeralm filter $INPUT_BAM ${BASENAME}.predictions
 FILTERED_BAM="${INPUT_BAM%.bam}.filtered.sorted.bam"
 
 # Step 3: Generate QC report
 echo "Step 3/3: Generating QC report..."
-CHIMERIC_ARTIFACT=$(grep -c "1$" ${INPUT_BAM}.predictions/predictions.txt || echo "0")
-BIOLOGICAL_READS=$(grep -c "0$" ${INPUT_BAM}.predictions/predictions.txt || echo "0")
+CHIMERIC_ARTIFACT=$(grep -c "1$" ${BASENAME}.predictions/predictions.txt || echo "0")
+BIOLOGICAL_READS=$(grep -c "0$" ${BASENAME}.predictions/predictions.txt || echo "0")
 TOTAL_READS=$((CHIMERIC_ARTIFACT + BIOLOGICAL_READS))
 CHIMERA_ARTIFACT_RATE=$(echo "scale=2; $CHIMERIC_ARTIFACT * 100 / $TOTAL_READS" | bc)
 
 cat > ${OUTPUT_DIR}/qc_report.txt <<EOF
-ChimeraLM QC Report
-===================
+ChimeraLM WGA Artifact QC Report
+=================================
 Input BAM: $INPUT_BAM
 Output BAM: $FILTERED_BAM
 
 Read Statistics:
   Total analyzed: $TOTAL_READS
-  Biological: $BIOLOGICAL_READS
-  Chimeric: $CHIMERIC_ARTIFACT
+  Biological reads: $BIOLOGICAL_READS
+  Chimera artifacts (WGA): $CHIMERIC_ARTIFACT
   Chimera artifact rate: ${CHIMERA_ARTIFACT_RATE}%
 
 Filtering complete: $(date)
@@ -134,20 +135,22 @@ REQUIRED_SPACE=$((INPUT_SIZE * 2))
 AVAILABLE_SPACE=$(df --output=avail -B 1 $(dirname $OUTPUT_DIR) | tail -1)
 [[ $AVAILABLE_SPACE -gt $REQUIRED_SPACE ]] || error_exit "Insufficient disk space"
 
-log "Starting ChimeraLM pipeline"
+log "Starting ChimeraLM WGA artifact filtering pipeline"
 log "Input: $INPUT_BAM ($(du -h $INPUT_BAM | cut -f1))"
 
-# Step 1: Predict
-log "Step 1/4: Running predictions..."
-if chimeralm predict $INPUT_BAM --gpus $GPUS --batch-size $BATCH_SIZE -o ${INPUT_BAM}.predictions 2>&1 | tee -a pipeline.log; then
+BASENAME=$(basename $INPUT_BAM .bam)
+
+# Step 1: Predict chimera artifacts induced by WGA
+log "Step 1/3: Running predictions..."
+if chimeralm predict $INPUT_BAM --gpus $GPUS --batch-size $BATCH_SIZE -o ${BASENAME}.predictions 2>&1 | tee -a pipeline.log; then
     log "Predictions complete"
 else
     error_exit "Prediction failed"
 fi
 
-# Step 2: Filter
-log "Step 3/4: Filtering BAM..."
-if chimeralm filter $INPUT_BAM ${INPUT_BAM}.predictions/ 2>&1 | tee -a pipeline.log; then
+# Step 2: Filter BAM
+log "Step 2/3: Filtering BAM..."
+if chimeralm filter $INPUT_BAM ${BASENAME}.predictions 2>&1 | tee -a pipeline.log; then
     log "Filtering complete"
 else
     error_exit "Filtering failed"
@@ -155,6 +158,14 @@ fi
 
 # ChimeraLM automatically creates .filtered.sorted.bam
 FILTERED_BAM="${INPUT_BAM%.bam}.filtered.sorted.bam"
+
+# Step 3: Verify output
+log "Step 3/3: Verifying output..."
+samtools quickcheck $FILTERED_BAM || error_exit "Output BAM is corrupted"
+ORIGINAL_COUNT=$(samtools view -c $INPUT_BAM)
+FILTERED_COUNT=$(samtools view -c $FILTERED_BAM)
+REMOVED_COUNT=$((ORIGINAL_COUNT - FILTERED_COUNT))
+log "Removed $REMOVED_COUNT reads (${ORIGINAL_COUNT} -> ${FILTERED_COUNT})"
 
 log "Pipeline complete! Output: $FILTERED_BAM"
 ```
@@ -174,7 +185,7 @@ params.output_dir = "results/"
 params.gpus = 1
 params.batch_size = 24
 
-// Process: Predict chimeric reads
+// Process: Predict chimera artifacts induced by WGA
 process predict {
     tag { bam.baseName }
     publishDir "${params.output_dir}/predictions", mode: 'copy'
@@ -183,15 +194,15 @@ process predict {
     path bam
 
     output:
-    tuple path(bam), path("${bam}.predictions")
+    tuple path(bam), path("${bam.baseName}.predictions")
 
     script:
     """
-    chimeralm predict ${bam} --gpus ${params.gpus} --batch-size ${params.batch_size} -o ${bam}.predictions
+    chimeralm predict ${bam} --gpus ${params.gpus} --batch-size ${params.batch_size} -o ${bam.baseName}.predictions
     """
 }
 
-// Process: Filter BAM
+// Process: Filter BAM to remove WGA artifacts
 process filter {
     tag { bam.baseName }
     publishDir "${params.output_dir}/filtered_bams", mode: 'copy'
@@ -205,7 +216,7 @@ process filter {
 
     script:
     """
-    chimeralm filter ${bam} ${predictions}
+    chimeralm filter ${bam} ${predictions_dir}
     """
 }
 
@@ -305,10 +316,11 @@ rule predict:
         chimeralm predict {input.bam} \
             --gpus {params.gpus} \
             --batch-size {params.batch_size} \
+            -o {wildcards.sample}.predictions \
             2>&1 | tee {log}
 
         # Move predictions to output directory
-        mv {input.bam}.predictions/ results/predictions/{wildcards.sample}.predictions/
+        mv {wildcards.sample}.predictions results/predictions/
         """
 
 rule filter:
@@ -347,8 +359,8 @@ rule qc_report:
 Sample: {wildcards.sample}
 Total reads analyzed: $TOTAL
 Biological reads: $BIOLOGICAL
-Chimeric reads: $CHIMERIC
-Chimera rate: ${{RATE}}%
+Chimera artifacts (WGA): $CHIMERIC
+Chimera artifact rate: ${{RATE}}%
 EOF
         """
 
@@ -449,11 +461,13 @@ task Predict {
     }
 
     command <<<
-        chimeralm predict ~{bam} --gpus ~{gpus} --batch-size ~{batch_size}
+        BASENAME=$(basename ~{bam} .bam)
+        chimeralm predict ~{bam} --gpus ~{gpus} --batch-size ~{batch_size} -o ${BASENAME}.predictions
     >>>
 
     output {
-        File predictions = "~{bam}.predictions/predictions.txt"
+        Directory predictions_dir = "$(basename ~{bam} .bam).predictions"
+        File predictions = "$(basename ~{bam} .bam).predictions/predictions.txt"
         File qc_report = "qc_report.txt"
     }
 

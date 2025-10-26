@@ -266,25 +266,6 @@ chimeralm filter input.bam input.bam.predictions/predictions.txt
 
 ### Options
 
-#### `--output-prediction`, `-p`
-
-**Type:** Boolean flag
-**Default:** `False`
-
-Write a consolidated predictions.txt file to the predictions directory. This merges all .txt files in the folder into a single file.
-
-**Note:** The filtered BAM file is **always created** regardless of this flag. This flag only controls whether to write the consolidated predictions.txt.
-
-**Examples:**
-```bash
-# Filter BAM (creates filtered.bam automatically)
-chimeralm filter input.bam predictions/
-
-# Filter BAM AND write consolidated predictions.txt
-chimeralm filter input.bam predictions/ --output-prediction
-chimeralm filter input.bam predictions/ -p
-```
-
 !!! info "Output Files Created"
     The filter command always creates:
     - `{BAM_PATH}.filtered.bam` - Filtered reads (unsorted)
@@ -328,7 +309,7 @@ chimeralm filter input.bam predictions/ -p -v
 chimeralm predict input.bam -g 1
 
 # Step 2: Filter (creates sorted BAM automatically)
-chimeralm filter input.bam input.bam.predictions/
+chimeralm filter input.bam input.predictions
 
 # Step 3: Verify output
 samtools view -c input.filtered.sorted.bam
@@ -384,17 +365,6 @@ The web interface typically provides:
 
 ---
 
-## Exit Codes
-
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | General error (file not found, invalid input, etc.) |
-| 2 | CUDA out of memory (reduce `--batch-size`) |
-| 130 | User interrupt (Ctrl+C) |
-
----
-
 ## Environment Variables
 
 ### `CUDA_VISIBLE_DEVICES`
@@ -410,59 +380,6 @@ CUDA_VISIBLE_DEVICES=1 chimeralm predict input.bam -g 1
 
 # Use multiple GPUs
 CUDA_VISIBLE_DEVICES=0,1 chimeralm predict input.bam -g 2
-```
-
----
-
-## Common Workflows
-
-### Basic Prediction and Filtering
-
-```bash
-# 1. Predict
-chimeralm predict input.bam -g 1 -b 24
-
-# 2. Filter (automatically creates sorted BAM)
-chimeralm filter input.bam input.bam.predictions/
-
-# 3. Verify
-samtools view -c input.filtered.sorted.bam
-```
-
-### Batch Processing
-
-```bash
-# Process multiple files
-for bam in data/*.bam; do
-    echo "Processing $bam..."
-    chimeralm predict $bam -g 1 -b 24
-    chimeralm filter $bam ${bam}.predictions/
-    # Output: ${bam%.bam}.filtered.sorted.bam
-done
-```
-
-### Using Web Interface
-
-```bash
-# Launch web interface for interactive analysis
-chimeralm web
-
-# Access at http://localhost:8000
-# Upload BAM files through the web UI
-```
-
-### High-Performance Prediction
-
-```bash
-# Maximize GPU utilization
-chimeralm predict input.bam \
-    --gpus 1 \
-    --batch-size 64 \
-    --workers 4 \
-    --output predictions/
-
-# Then filter (creates sorted BAM)
-chimeralm filter input.bam predictions/
 ```
 
 ---

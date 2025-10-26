@@ -40,7 +40,7 @@ ls -lh mk1c_test.bam*
 ```
 
 !!! tip "About the Sample Data"
-    The sample file `mk1c_test.bam` contains 285 reads subsampled from PC3 cell line (human prostate cancer) sequenced using Nanopore MinION Mk1C with whole genome amplification. 48 reads have SA tags (chimeric candidates), making it ideal for testing ChimeraLM.
+    The sample file `mk1c_test.bam` contains 175 reads, in which 75 chimeric reads and 100 non-chimeric reads, subsampled from PC3 cell line (human prostate cancer) sequenced using Nanopore MinION Mk1C with whole genome amplification.
 
 ## Step 2: Run Your First Prediction
 
@@ -61,7 +61,7 @@ Run ChimeraLM on the sample data:
     Predicting DataLoader 0: 100%|██████████| 4/4 [00:15<00:00, 0.26it/s]
     ```
 
-    Predictions saved to: `mk1c_test.bam.predictions/`
+    Predictions saved to: `mk1c_test.predictions/`
 
 === "GPU Mode"
 
@@ -77,7 +77,7 @@ Run ChimeraLM on the sample data:
     Predicting DataLoader 0: 100%|██████████| 2/2 [00:03<00:00, 0.66it/s]
     ```
 
-    Predictions saved to: `mk1c_test.bam.predictions/`
+    Predictions saved to: `mk1c_test.predictions/`
 
 !!! tip "GPU vs CPU Performance"
     - **CPU**: ~15 seconds for 48 SA-tagged reads (batch-size 12)
@@ -88,8 +88,8 @@ Run ChimeraLM on the sample data:
 ChimeraLM creates a predictions file with one line per read:
 
 ```bash
-# View predictions
-head -10 mk1c_test.bam.predictions/predictions.txt
+# View predictions from first batch
+head -10 mk1c_test.predictions/0_0.txt
 ```
 
 **Output format** (tab-separated):
@@ -112,15 +112,20 @@ Count how many reads are chimeric:
 
 ```bash
 # Count chimeric reads (label 1)
-grep -c "1$" mk1c_test.bam.predictions/predictions.txt
+cat mk1c_test.predictions/*.txt | grep -c "1$"
 
 # Count biological reads (label 0)
-grep -c "0$" mk1c_test.bam.predictions/predictions.txt
+cat mk1c_test.predictions/*.txt | grep -c "0$"
 ```
 
-Typical results for WGA data:
-- **10-30%** chimeric artifacts (label 1)
-- **70-90%** biological reads (label 0)
+Expected results for test data:
+- **Chimeric artifacts**: 55 (73.3%)
+- **Biological reads**: 20 (26.7%)
+
+Typical chimera rates for WGA data:
+- **MDA (Multiple Displacement Amplification)**: 10-40%
+- **PicoPLEX**: 5-20%
+- **Non-WGA data**: <1%
 
 ## Checkpoint: Verify Your Prediction Worked
 
@@ -143,12 +148,14 @@ Now that you've completed the basics:
 **Filter your BAM file** to remove chimeric reads:
 
 ```bash
-chimeralm filter mk1c_test.bam mk1c_test.bam.predictions/
+chimeralm filter mk1c_test.bam mk1c_test.predictions
 ```
 
-This creates:
-- `mk1c_test.filtered.bam` - Filtered reads (unsorted)
-- `mk1c_test.filtered.sorted.bam` - Sorted and indexed final output
+This automatically creates:
+- `mk1c_test.filtered.bam` - Unsorted filtered reads
+- `mk1c_test.filtered.sorted.bam` - **Final sorted output** (use this!)
+- `mk1c_test.filtered.sorted.bam.bai` - BAM index
+- `mk1c_test.predictions/predictions.txt` - Consolidated predictions
 
 For comprehensive filtering guidance including verification, troubleshooting, and batch processing, see the [Filtering BAM Files Tutorial](../tutorials/bam-filtering.md).
 

@@ -345,9 +345,9 @@ fi
 
 ## Next Steps
 
-- **Pipeline integration**: See [Pipeline Integration](pipeline-integration.md) for Nextflow/Snakemake workflows
 - **Performance optimization**: See [Performance Optimization](performance-optimization.md) for faster filtering
-- **Quality control**: See [Architecture > Data Pipeline](../architecture/data-pipeline.md) for filtering internals
+- **Web Interface**: See [Web Interface](web-interface.md) for interactive filtering
+- **Pipeline integration**: See [Pipeline Integration](pipeline-integration.md) for Nextflow/Snakemake workflows
 
 ## Summary
 

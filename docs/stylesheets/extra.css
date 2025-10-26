@@ -6,16 +6,45 @@
 
 /* Hero section styling with custom gradient text */
 .md-typeset h1 {
-  font-weight: 700;
-  background: linear-gradient(135deg, #6b2c91, #a66dd1);
+  font-weight: 800;
+  font-size: 2.5em;
+  background: linear-gradient(135deg, #6b2c91, #a66dd1, #c99de8);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5em;
+  position: relative;
+  padding-bottom: 0.3em;
+}
+
+/* Animated underline for h1 */
+.md-typeset h1::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100px;
+  height: 4px;
+  background: linear-gradient(90deg, #8b4cb8, #c99de8);
+  border-radius: 2px;
+  animation: slideIn 0.6s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+  to {
+    width: 100px;
+    opacity: 1;
+  }
 }
 
 /* Dark mode h1 */
 [data-md-color-scheme="slate"] .md-typeset h1 {
-  background: linear-gradient(135deg, #a66dd1, #c99de8);
+  background: linear-gradient(135deg, #a66dd1, #c99de8, #e5d4f0);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -28,16 +57,36 @@
 }
 
 /* Smooth heading animations with purple accent */
-.md-typeset h2,
+.md-typeset h2 {
+  position: relative;
+  padding-bottom: 0.4em;
+  padding-left: 0.5em;
+  margin-top: 1.5em;
+  font-weight: 700;
+  font-size: 1.8em;
+  color: #6b2c91;
+  border-left: 4px solid #8b4cb8;
+}
+
 .md-typeset h3 {
   position: relative;
   padding-bottom: 0.3em;
-  color: #6b2c91;
+  padding-left: 0.3em;
+  margin-top: 1.2em;
+  font-weight: 600;
+  font-size: 1.3em;
+  color: #7d3fa3;
+  border-left: 3px solid #a66dd1;
 }
 
-[data-md-color-scheme="slate"] .md-typeset h2,
+[data-md-color-scheme="slate"] .md-typeset h2 {
+  color: #c99de8;
+  border-left-color: #a66dd1;
+}
+
 [data-md-color-scheme="slate"] .md-typeset h3 {
-  color: #a66dd1;
+  color: #d4b5e8;
+  border-left-color: #c99de8;
 }
 
 .md-typeset h2::after {
@@ -45,10 +94,23 @@
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 60px;
+  width: 80px;
   height: 3px;
   background: linear-gradient(90deg, #8b4cb8, #c99de8);
   border-radius: 2px;
+  animation: slideIn 0.5s ease-out;
+}
+
+.md-typeset h3::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 50px;
+  height: 2px;
+  background: linear-gradient(90deg, #a66dd1, #d4b5e8);
+  border-radius: 1px;
+  animation: slideIn 0.4s ease-out;
 }
 
 /* ============================================
@@ -190,6 +252,99 @@
 .md-search__input {
   border-radius: 0.5rem;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* ============================================
+   Left Sidebar TOC Enhancement - Tutorial Highlighting
+   ============================================ */
+
+/* Highlight Tutorials section in navigation - Clean style */
+.md-nav__item--nested > .md-nav__link {
+  font-weight: 700;
+  position: relative;
+  color: #6b2c91;
+}
+
+[data-md-color-scheme="slate"] .md-nav__item--nested > .md-nav__link {
+  color: #c99de8;
+}
+
+/* Tutorial items under Tutorials section - Clean & Elegant */
+.md-nav__item .md-nav__item .md-nav__link {
+  position: relative;
+  padding-left: 1.8rem;
+  font-weight: 600;
+  font-size: 0.9em;
+  color: #7d3fa3;
+  transition: all 0.2s ease;
+}
+
+[data-md-color-scheme="slate"] .md-nav__item .md-nav__item .md-nav__link {
+  color: #b89dd1;
+}
+
+/* Simple bullet indicator for tutorial items */
+.md-nav__item .md-nav__item .md-nav__link::before {
+  content: '•';
+  position: absolute;
+  left: 0.8rem;
+  color: #a66dd1;
+  font-size: 1.2em;
+  font-weight: bold;
+  transition: color 0.2s ease;
+}
+
+/* Hover effect - Subtle and clean */
+.md-nav__item .md-nav__item .md-nav__link:hover {
+  color: #6b2c91;
+  padding-left: 2rem;
+}
+
+.md-nav__item .md-nav__item .md-nav__link:hover::before {
+  color: #8b4cb8;
+}
+
+[data-md-color-scheme="slate"] .md-nav__item .md-nav__item .md-nav__link:hover {
+  color: #c99de8;
+}
+
+[data-md-color-scheme="slate"] .md-nav__item .md-nav__item .md-nav__link:hover::before {
+  color: #a66dd1;
+}
+
+/* Active tutorial item - Clear but minimal */
+.md-nav__item .md-nav__item .md-nav__link--active {
+  font-weight: 700;
+  color: #6b2c91;
+  border-left: 3px solid #a66dd1;
+  padding-left: 1.8rem;
+}
+
+.md-nav__item .md-nav__item .md-nav__link--active::before {
+  color: #8b4cb8;
+}
+
+[data-md-color-scheme="slate"] .md-nav__item .md-nav__item .md-nav__link--active {
+  color: #d4b5e8;
+  border-left-color: #a66dd1;
+}
+
+[data-md-color-scheme="slate"] .md-nav__item .md-nav__item .md-nav__link--active::before {
+  color: #c99de8;
+}
+
+/* Make Tutorials parent expandable/collapsible look better */
+.md-nav__item--nested .md-nav__toggle:checked ~ .md-nav {
+  max-height: none;
+}
+
+/* Icon for expandable sections */
+.md-nav__item--nested > .md-nav__link::after {
+  color: #8b4cb8;
+}
+
+[data-md-color-scheme="slate"] .md-nav__item--nested > .md-nav__link::after {
+  color: #a66dd1;
 }
 
 /* Table styling */
