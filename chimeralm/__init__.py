@@ -2,6 +2,6 @@
 
 from . import data, models, ui, utils
 
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 
 __all__ = ["data", "models", "ui", "utils"]
