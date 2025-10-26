@@ -559,7 +559,6 @@ Before deploying to production:
 
 - **Performance tuning**: See [Performance Optimization](performance-optimization.md)
 - **Fine-tuning integration**: See [Fine-Tuning Tutorial](fine-tuning.md)
-- **CI/CD**: Integrate ChimeraLM filtering into GitHub Actions or GitLab CI
 
 ## Summary
 

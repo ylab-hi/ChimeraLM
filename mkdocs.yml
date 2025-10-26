@@ -113,17 +113,11 @@ nav:
       - CLI Commands: reference/cli.md
       - API Reference:
           - Models API: reference/models.md
-          - Data API: reference/data.md
-          # - Utils API: reference/utils.md
-      # - Architecture:
-          # - Overview: architecture/overview.md
-          # - Model Design: architecture/model-design.md
-          # - Data Pipeline: architecture/data-pipeline.md
-          # - Training Process: architecture/training.md
   - Contributing:
       - Development Setup: contributing/development-setup.md
       - Testing: contributing/testing.md
       - Adding Features: contributing/adding-features.md
+      - Code of Conduct: contributing/code_of_conduct.md
   - About:
       - Citation: about/citation.md
       - License: about/license.md

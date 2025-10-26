@@ -168,7 +168,6 @@ For comprehensive filtering guidance including verification, troubleshooting, an
 ### For Development
 
 - **Use as a library**: See [API Reference](../reference/models.md)
-- **Understand the architecture**: See [Architecture Overview](../architecture/overview.md)
 
 ## Troubleshooting
 
