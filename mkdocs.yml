@@ -2,6 +2,10 @@ site_name: ChimeraLM Documentation
 site_url: https://ylab-hi.github.io/ChimeraLM/
 repo_url: https://github.com/ylab-hi/ChimeraLM
 repo_name: ylab-hi/ChimeraLM
+site_description: Documentation for the ChimeraLM project
+site_author: Yangyang Li
+copyright: Copyright &copy; 2025 Yangyang Li
+
 
 # Theme configuration with Material for MkDocs
 theme:
@@ -81,11 +85,14 @@ extra_javascript:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/ylab-hi/chimera
+      link: https://github.com/ylab-hi/ChimeraLM
       name: ChimeraLM on GitHub
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/chimeralm/
       name: ChimeraLM on PyPI
+    - icon: fontawesome/solid/envelope
+      link: mailto:yangyang.li@northwestern.edu
+      name: Email me
   generator: false # Remove "Made with Material for MkDocs"
 
   # Analytics (uncomment when ready)
@@ -126,11 +133,25 @@ nav:
 plugins:
   - search:
       separator: '[\s\-\.]+' # Support genomics terms like "BAM", "WGA"
-  # - social:  # Requires mkdocs-material[imaging] - optional enhancement
-  #     cards: true
-  #     cards_layout_options:
-  #       background_color: "#3f51b5"  # Indigo
-  #       color: "#ffffff"
+  - minify:
+      minify_html: true
+      minify_js: true
+      minify_css: true
+      htmlmin_opts:
+        remove_comments: true
+      cache_safe: true
+  - git-committers:
+      repository: ylab-hi/ChimeraLM
+      branch: main
+  - social:  # Requires mkdocs-material[imaging] - optional enhancement
+      cards: true
+      cards_layout_options:
+        background_color: "#3f51b5"  # Indigo
+        color: "#ffffff"
+  - git-revision-date-localized:
+      type: date
+      enable_creation_date: true
+      fallback_to_build_date: true
   - mkdocstrings:
       handlers:
         python:
