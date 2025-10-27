@@ -1,457 +1,86 @@
-/* Custom CSS for ChimeraLM Documentation - Modern & Fancy Edition */
-
-
 /* ============================================
-   Typography & Headers
+   ChimeraLM Documentation - Modern & Elegant Design
    ============================================ */
 
-
-/* Hero section styling with custom gradient text */
-
-.md-typeset h1 {
-    font-weight: 800;
-    font-size: 2.5em;
-    background: linear-gradient(135deg, #6b2c91, #a66dd1, #c99de8);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: -0.02em;
-    margin-bottom: 0.5em;
-    position: relative;
-    padding-bottom: 0.3em;
-}
-
-
-/* Animated underline for h1 */
-
-.md-typeset h1::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100px;
-    height: 4px;
-    background: linear-gradient(90deg, #8b4cb8, #c99de8);
-    border-radius: 2px;
-    animation: slideIn 0.6s ease-out;
-}
-
-@keyframes slideIn {
-    from {
-        width: 0;
-        opacity: 0;
-    }
-    to {
-        width: 100px;
-        opacity: 1;
-    }
-}
-
-
-/* Dark mode h1 */
-
-[data-md-color-scheme="slate"] .md-typeset h1 {
-    background: linear-gradient(135deg, #a66dd1, #c99de8, #e5d4f0);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-
-/* Homepage hero styling with modern gradient */
-
-.md-typeset .hero {
-    text-align: center;
-    padding: 2rem 0;
-}
-
-
-/* Smooth heading animations with purple accent */
-
-.md-typeset h2 {
-    position: relative;
-    padding-bottom: 0.4em;
-    padding-left: 0.5em;
-    margin-top: 1.5em;
-    font-weight: 700;
-    font-size: 1.8em;
-    color: #6b2c91;
-    border-left: 4px solid #8b4cb8;
-}
-
-.md-typeset h3 {
-    position: relative;
-    padding-bottom: 0.3em;
-    padding-left: 0.3em;
-    margin-top: 1.2em;
-    font-weight: 600;
-    font-size: 1.3em;
-    color: #7d3fa3;
-    border-left: 3px solid #a66dd1;
-}
-
-[data-md-color-scheme="slate"] .md-typeset h2 {
-    color: #c99de8;
-    border-left-color: #a66dd1;
-}
-
-[data-md-color-scheme="slate"] .md-typeset h3 {
-    color: #d4b5e8;
-    border-left-color: #c99de8;
-}
-
-.md-typeset h2::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 80px;
-    height: 3px;
-    background: linear-gradient(90deg, #8b4cb8, #c99de8);
-    border-radius: 2px;
-    animation: slideIn 0.5s ease-out;
-}
-
-.md-typeset h3::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 50px;
-    height: 2px;
-    background: linear-gradient(90deg, #a66dd1, #d4b5e8);
-    border-radius: 1px;
-    animation: slideIn 0.4s ease-out;
-}
-
-
 /* ============================================
-   Code Block Styling - Clean & Elegant
+   CSS Custom Properties - Design System
    ============================================ */
 
+:root {
+    /* Purple palette */
+    --chimera-purple-50: #f3e5f5;
+    --chimera-purple-100: #e1bee7;
+    --chimera-purple-200: #ce93d8;
+    --chimera-purple-300: #ba68c8;
+    --chimera-purple-400: #ab47bc;
+    --chimera-purple-500: #9c27b0;
+    --chimera-purple-600: #8e24aa;
+    --chimera-purple-700: #7b1fa2;
+    --chimera-purple-800: #6a1b9a;
+    --chimera-purple-900: #4a148c;
 
-/* Clean, compact code blocks */
+    /* Gradients */
+    --chimera-gradient-primary: linear-gradient(135deg, #6a1b9a 0%, #9c27b0 50%, #ba68c8 100%);
+    --chimera-gradient-accent: linear-gradient(135deg, #ab47bc 0%, #ce93d8 100%);
+    --chimera-gradient-subtle: linear-gradient(135deg, rgba(156, 39, 176, 0.1) 0%, rgba(186, 104, 200, 0.05) 100%);
 
-.md-typeset .highlight pre {
-    border-radius: 0.5rem;
-    padding: 1rem 1.2rem;
-    margin: 1.2rem 0;
-    font-size: 0.9em;
-    line-height: 1.5;
+    /* Shadows */
+    --chimera-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --chimera-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --chimera-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+    --chimera-shadow-xl: 0 12px 40px rgba(0, 0, 0, 0.16);
+    --chimera-shadow-purple: 0 4px 16px rgba(156, 39, 176, 0.25);
+
+    /* Spacing */
+    --chimera-space-xs: 0.25rem;
+    --chimera-space-sm: 0.5rem;
+    --chimera-space-md: 1rem;
+    --chimera-space-lg: 1.5rem;
+    --chimera-space-xl: 2rem;
+    --chimera-space-2xl: 3rem;
+
+    /* Border radius */
+    --chimera-radius-sm: 0.375rem;
+    --chimera-radius-md: 0.5rem;
+    --chimera-radius-lg: 0.75rem;
+    --chimera-radius-xl: 1rem;
+
+    /* Transitions */
+    --chimera-transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --chimera-transition-base: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --chimera-transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-
-/* Code block container with subtle shadow */
-
-.md-typeset .highlight {
-    margin: 1.2rem 0;
-    border-radius: 0.5rem;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    border: 1px solid var(--md-code-bg-color);
+/* Dark mode adjustments */
+[data-md-color-scheme="slate"] {
+    --chimera-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+    --chimera-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+    --chimera-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+    --chimera-shadow-xl: 0 12px 40px rgba(0, 0, 0, 0.5);
+    --chimera-shadow-purple: 0 4px 16px rgba(186, 104, 200, 0.3);
 }
-
-[data-md-color-scheme="slate"] .md-typeset .highlight {
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-
-
-/* Inline code - clean and readable */
-
-.md-typeset code {
-    padding: 0.2em 0.4em;
-    font-size: 0.88em;
-    border-radius: 0.3rem;
-}
-
-
-/* Reduce code block wrapper padding */
-
-.md-typeset pre>code {
-    padding: 0;
-}
-
-
-/* Compact tabbed code blocks */
-
-.md-typeset .tabbed-set>input:checked+label+.tabbed-content .highlight {
-    margin-top: 0.5rem;
-}
-
-
-/* Spacing around code blocks in lists */
-
-.md-typeset li .highlight {
-    margin: 0.8rem 0;
-}
-
-
-/* Admonitions with code */
-
-.md-typeset .admonition .highlight:last-child {
-    margin-bottom: 0.8rem;
-}
-
-
-/* Admonition styling */
-
-.admonition {
-    border-radius: 0.5rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-
-/* Feature grid styling for homepage */
-
-.feature-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin: 2rem 0;
-}
-
-.feature-item {
-    padding: 1rem;
-    border-radius: 0.5rem;
-    background: var(--md-code-bg-color);
-}
-
-
-/* Button enhancements */
-
-.md-button {
-    border-radius: 0.5rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    transition: all 0.3s ease;
-    font-weight: 500;
-}
-
-.md-button:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    transform: translateY(-2px);
-}
-
-.md-button--primary {
-    background: linear-gradient(135deg, var(--md-primary-fg-color), var(--md-accent-fg-color));
-}
-
-
-/* Card styling for feature items */
-
-.feature-item {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.feature-item:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-}
-
-
-/* Code block shadows are now handled above with purple theme */
-
-
-/* Admonition enhancements with gradient accents */
-
-.admonition {
-    border-left: 4px solid;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-    transition: box-shadow 0.3s ease;
-}
-
-.admonition:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
-}
-
-.admonition.tip {
-    border-left-color: var(--md-accent-fg-color);
-}
-
-.admonition.warning {
-    border-left-color: #ff9800;
-}
-
-.admonition.question {
-    border-left-color: #2196f3;
-}
-
-.admonition.info {
-    border-left-color: var(--md-primary-fg-color);
-}
-
-
-/* Navigation tabs enhancement */
-
-.md-tabs {
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
-}
-
-
-/* Search box enhancement */
-
-.md-search__input {
-    border-radius: 0.5rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
 
 /* ============================================
-   Left Sidebar TOC Enhancement - Tutorial Highlighting
+   Global Enhancements
    ============================================ */
-
-
-/* Highlight Tutorials section - Compact & Modern */
-
-.md-nav__item--nested>.md-nav__link {
-    font-weight: 800;
-    font-size: 0.9em;
-    position: relative;
-    padding: 0.35rem 0.6rem;
-    margin: 0.15rem 0;
-    background: linear-gradient(135deg, rgba(107, 44, 145, 0.08), rgba(166, 109, 209, 0.03));
-    border-radius: 6px;
-    border-left: 3px solid transparent;
-    background-image: linear-gradient(white, white), linear-gradient(135deg, #8b4cb8, #c99de8);
-    background-origin: padding-box, border-box;
-    background-clip: padding-box, border-box;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-
-/* Removed sparkle emoji and animation */
-
-.md-nav__item--nested>.md-nav__link:hover {
-    transform: translateX(3px);
-    box-shadow: 0 2px 8px rgba(139, 76, 184, 0.15);
-}
-
-[data-md-color-scheme="slate"] .md-nav__item--nested>.md-nav__link {
-    background: linear-gradient(135deg, rgba(166, 109, 209, 0.12), rgba(201, 157, 232, 0.06));
-    background-image: linear-gradient(#1e1e1e, #1e1e1e), linear-gradient(135deg, #a66dd1, #e5d4f0);
-    background-origin: padding-box, border-box;
-    background-clip: padding-box, border-box;
-}
-
-
-/* Tutorial items - Compact Modern Cards */
-
-.md-nav__item .md-nav__item .md-nav__link {
-    position: relative;
-    padding: 0.3rem 0.5rem 0.3rem 0.6rem;
-    margin: 0.15rem 0.3rem;
-    font-weight: 600;
-    font-size: 0.85em;
-    color: #6b2c91;
-    background: rgba(255, 255, 255, 0.4);
-    border-radius: 4px;
-    border-left: 2px solid #a66dd1;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: blur(8px);
-}
-
-[data-md-color-scheme="slate"] .md-nav__item .md-nav__item .md-nav__link {
-    color: #c99de8;
-    background: rgba(30, 30, 30, 0.3);
-    border-left-color: #a66dd1;
-}
-
-
-/* Removed arrow icon */
-
-
-/* Hover effect - Compact and smooth */
-
-.md-nav__item .md-nav__item .md-nav__link:hover {
-    background: linear-gradient(135deg, rgba(139, 76, 184, 0.1), rgba(166, 109, 209, 0.05));
-    border-left-width: 3px;
-    transform: translateX(3px);
-    box-shadow: 0 1px 6px rgba(139, 76, 184, 0.12);
-}
-
-
-/* Removed hover effect for arrow */
-
-[data-md-color-scheme="slate"] .md-nav__item .md-nav__item .md-nav__link:hover {
-    background: linear-gradient(135deg, rgba(166, 109, 209, 0.18), rgba(201, 157, 232, 0.08));
-    box-shadow: 0 1px 6px rgba(166, 109, 209, 0.2);
-}
-
-
-/* Active tutorial item - Compact and vibrant */
-
-.md-nav__item .md-nav__item .md-nav__link--active {
-    font-weight: 700;
-    color: #ffffff;
-    background: linear-gradient(135deg, #8b4cb8, #a66dd1);
-    border-left: 3px solid #6b2c91;
-    padding: 0.3rem 0.5rem 0.3rem 0.6rem;
-    box-shadow: 0 2px 8px rgba(139, 76, 184, 0.25);
-}
-
-
-/* Removed active state arrow styling */
-
-[data-md-color-scheme="slate"] .md-nav__item .md-nav__item .md-nav__link--active {
-    background: linear-gradient(135deg, #a66dd1, #c99de8);
-    border-left-color: #8b4cb8;
-    box-shadow: 0 2px 8px rgba(166, 109, 209, 0.3);
-}
-
-
-/* Make Tutorials parent expandable/collapsible look better */
-
-.md-nav__item--nested .md-nav__toggle:checked~.md-nav {
-    max-height: none;
-}
-
-
-/* Icon for expandable sections */
-
-.md-nav__item--nested>.md-nav__link::after {
-    color: #8b4cb8;
-}
-
-[data-md-color-scheme="slate"] .md-nav__item--nested>.md-nav__link::after {
-    color: #a66dd1;
-}
-
-
-/* Table styling */
-
-.md-typeset table:not([class]) {
-    border-radius: 0.5rem;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-
-/* Hero gradient background */
-
-.hero {
-    background: linear-gradient(135deg, rgba(63, 81, 181, 0.05), rgba(0, 150, 136, 0.05));
-    border-radius: 1rem;
-    padding: 3rem 2rem !important;
-    margin: 2rem 0;
-}
-
-
-/* Icon enhancements */
-
-.md-typeset .twemoji {
-    vertical-align: text-bottom;
-}
-
 
 /* Smooth scrolling */
-
 html {
     scroll-behavior: smooth;
 }
 
+/* Header title text color fix - simple black */
+.md-header__title,
+.md-header__topic {
+    color: #2c2c2c !important;
+}
+
+[data-md-color-scheme="slate"] .md-header__title,
+[data-md-color-scheme="slate"] .md-header__topic {
+    color: #ffffff !important;
+}
 
 /* Content fade-in animation */
-
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -464,51 +93,225 @@ html {
 }
 
 .md-content {
-    animation: fadeIn 0.5s ease-out;
+    animation: fadeIn var(--chimera-transition-slow) ease-out;
 }
-
 
 /* ============================================
-   Modern Enhancements
+   Typography - Beautiful Headers
    ============================================ */
 
-
-/* Glassmorphism effect for cards */
-
-.md-typeset .admonition {
-    backdrop-filter: blur(10px);
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+/* Main heading with gradient text */
+.md-typeset h1 {
+    font-weight: 800;
+    font-size: 2.75em;
+    background: var(--chimera-gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.6em;
+    margin-top: 0.5em;
+    position: relative;
+    padding-bottom: 0.4em;
 }
 
-[data-md-color-scheme="default"] .md-typeset .admonition {
-    background: rgba(0, 0, 0, 0.02);
-    border: 1px solid rgba(0, 0, 0, 0.05);
+/* Animated underline for h1 */
+.md-typeset h1::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 120px;
+    height: 5px;
+    background: var(--chimera-gradient-accent);
+    border-radius: var(--chimera-radius-sm);
+    animation: slideIn 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-
-/* Gradient progress indicator */
-
-.md-progress {
-    background: linear-gradient(90deg, var(--md-primary-fg-color), var(--md-accent-fg-color));
-    box-shadow: 0 0 10px var(--md-primary-fg-color);
+@keyframes slideIn {
+    from {
+        width: 0;
+        opacity: 0;
+    }
+    to {
+        width: 120px;
+        opacity: 1;
+    }
 }
 
+/* Dark mode h1 */
+[data-md-color-scheme="slate"] .md-typeset h1 {
+    background: linear-gradient(135deg, #ba68c8 0%, #e1bee7 50%, #f3e5f5 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
 
-/* Enhanced copy button with pulse animation */
+/* H2 with elegant border accent */
+.md-typeset h2 {
+    position: relative;
+    padding-bottom: 0.5em;
+    padding-left: 0.8em;
+    margin-top: 2em;
+    margin-bottom: 1em;
+    font-weight: 700;
+    font-size: 2em;
+    color: var(--chimera-purple-800);
+    border-left: 5px solid var(--chimera-purple-500);
+    transition: all var(--chimera-transition-base);
+}
 
+.md-typeset h2:hover {
+    border-left-color: var(--chimera-purple-700);
+    padding-left: 1em;
+}
+
+/* H3 with refined styling */
+.md-typeset h3 {
+    position: relative;
+    padding-bottom: 0.4em;
+    padding-left: 0.6em;
+    margin-top: 1.5em;
+    margin-bottom: 0.8em;
+    font-weight: 600;
+    font-size: 1.5em;
+    color: var(--chimera-purple-700);
+    border-left: 4px solid var(--chimera-purple-400);
+    transition: all var(--chimera-transition-base);
+}
+
+.md-typeset h3:hover {
+    border-left-color: var(--chimera-purple-600);
+    padding-left: 0.8em;
+}
+
+/* Dark mode headers */
+[data-md-color-scheme="slate"] .md-typeset h2 {
+    color: var(--chimera-purple-200);
+    border-left-color: var(--chimera-purple-400);
+}
+
+[data-md-color-scheme="slate"] .md-typeset h2:hover {
+    border-left-color: var(--chimera-purple-300);
+}
+
+[data-md-color-scheme="slate"] .md-typeset h3 {
+    color: var(--chimera-purple-300);
+    border-left-color: var(--chimera-purple-500);
+}
+
+[data-md-color-scheme="slate"] .md-typeset h3:hover {
+    border-left-color: var(--chimera-purple-400);
+}
+
+/* Subtle underlines for h2 and h3 */
+.md-typeset h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100px;
+    height: 3px;
+    background: var(--chimera-gradient-accent);
+    border-radius: var(--chimera-radius-sm);
+    animation: slideIn 0.6s ease-out;
+}
+
+.md-typeset h3::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 2px;
+    background: var(--chimera-gradient-accent);
+    border-radius: var(--chimera-radius-sm);
+    animation: slideIn 0.5s ease-out;
+}
+
+/* ============================================
+   Code Blocks - Modern & Clean
+   ============================================ */
+
+/* Code block container with modern shadow */
+.md-typeset .highlight {
+    margin: var(--chimera-space-lg) 0;
+    border-radius: var(--chimera-radius-lg);
+    box-shadow: var(--chimera-shadow-md);
+    overflow: hidden;
+    border: 1px solid rgba(156, 39, 176, 0.1);
+    transition: all var(--chimera-transition-base);
+    position: relative;
+}
+
+.md-typeset .highlight:hover {
+    box-shadow: var(--chimera-shadow-lg);
+    transform: translateY(-2px);
+}
+
+[data-md-color-scheme="slate"] .md-typeset .highlight {
+    border-color: rgba(186, 104, 200, 0.2);
+    box-shadow: var(--chimera-shadow-md);
+}
+
+[data-md-color-scheme="slate"] .md-typeset .highlight:hover {
+    box-shadow: var(--chimera-shadow-lg);
+}
+
+/* Code block pre styling */
+.md-typeset .highlight pre {
+    border-radius: var(--chimera-radius-lg);
+    padding: var(--chimera-space-lg) var(--chimera-space-xl);
+    margin: 0;
+    font-size: 0.9em;
+    line-height: 1.6;
+}
+
+/* Inline code - elegant pills */
+.md-typeset code {
+    padding: 0.2em 0.5em;
+    font-size: 0.88em;
+    border-radius: var(--chimera-radius-sm);
+    background: rgba(156, 39, 176, 0.08);
+    border: 1px solid rgba(156, 39, 176, 0.15);
+    transition: all var(--chimera-transition-fast);
+}
+
+.md-typeset code:hover {
+    background: rgba(156, 39, 176, 0.12);
+    border-color: rgba(156, 39, 176, 0.25);
+}
+
+[data-md-color-scheme="slate"] .md-typeset code {
+    background: rgba(186, 104, 200, 0.12);
+    border-color: rgba(186, 104, 200, 0.2);
+}
+
+[data-md-color-scheme="slate"] .md-typeset code:hover {
+    background: rgba(186, 104, 200, 0.18);
+    border-color: rgba(186, 104, 200, 0.3);
+}
+
+/* Remove padding from code inside pre */
+.md-typeset pre > code {
+    padding: 0;
+    background: transparent;
+    border: none;
+}
+
+/* Copy button enhancement */
 .md-clipboard {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all var(--chimera-transition-base);
+    border-radius: var(--chimera-radius-sm);
 }
 
 .md-clipboard:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transform: scale(1.15);
+    background: rgba(156, 39, 176, 0.1);
 }
 
 @keyframes pulse {
-    0%,
-    100% {
+    0%, 100% {
         opacity: 1;
     }
     50% {
@@ -520,247 +323,558 @@ html {
     animation: pulse 0.5s ease-in-out;
 }
 
+/* ============================================
+   Admonitions - Beautiful Callouts
+   ============================================ */
 
-/* Modern scrollbar */
-
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+.md-typeset .admonition {
+    border-radius: var(--chimera-radius-lg);
+    border-left: 5px solid;
+    box-shadow: var(--chimera-shadow-md);
+    padding: var(--chimera-space-lg);
+    margin: var(--chimera-space-lg) 0;
+    transition: all var(--chimera-transition-base);
+    position: relative;
+    overflow: hidden;
 }
 
-::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, var(--md-primary-fg-color), var(--md-accent-fg-color));
-    border-radius: 4px;
-    transition: background 0.3s;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--md-accent-fg-color);
-}
-
-
-/* Animated anchor links */
-
-.md-typeset .headerlink {
+.md-typeset .admonition::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, currentColor, transparent);
     opacity: 0;
-    transition: opacity 0.3s, transform 0.3s;
-    transform: translateX(-8px);
+    transition: opacity var(--chimera-transition-base);
 }
 
-.md-typeset :hover>.headerlink {
-    opacity: 1;
-    transform: translateX(0);
+.md-typeset .admonition:hover {
+    box-shadow: var(--chimera-shadow-lg);
+    transform: translateY(-3px);
 }
 
+.md-typeset .admonition:hover::before {
+    opacity: 0.3;
+}
 
-/* Code block title enhancement */
+/* Specific admonition types */
+.md-typeset .admonition.note {
+    border-left-color: var(--chimera-purple-500);
+}
 
-.md-typeset .highlight code[class*="language-"]::before {
-    font-size: 0.8em;
+.md-typeset .admonition.tip,
+.md-typeset .admonition.hint {
+    border-left-color: #00c853;
+}
+
+.md-typeset .admonition.warning,
+.md-typeset .admonition.caution {
+    border-left-color: #ff9800;
+}
+
+.md-typeset .admonition.danger,
+.md-typeset .admonition.error {
+    border-left-color: #f44336;
+}
+
+.md-typeset .admonition.info,
+.md-typeset .admonition.question {
+    border-left-color: #2196f3;
+}
+
+/* ============================================
+   Navigation - Sidebar Enhancement
+   ============================================ */
+
+/* Tutorial section highlighting */
+.md-nav__item--nested > .md-nav__link {
+    font-weight: 700;
+    font-size: 0.9em;
+    position: relative;
+    padding: 0.5rem 0.8rem;
+    margin: 0.25rem 0;
+    background: var(--chimera-gradient-subtle);
+    border-radius: var(--chimera-radius-md);
+    border-left: 4px solid var(--chimera-purple-500);
+    transition: all var(--chimera-transition-base);
+}
+
+.md-nav__item--nested > .md-nav__link:hover {
+    transform: translateX(4px);
+    box-shadow: var(--chimera-shadow-sm);
+    border-left-color: var(--chimera-purple-700);
+}
+
+[data-md-color-scheme="slate"] .md-nav__item--nested > .md-nav__link {
+    background: linear-gradient(135deg, rgba(186, 104, 200, 0.15), rgba(156, 39, 176, 0.08));
+    border-left-color: var(--chimera-purple-400);
+}
+
+[data-md-color-scheme="slate"] .md-nav__item--nested > .md-nav__link:hover {
+    border-left-color: var(--chimera-purple-300);
+}
+
+/* Navigation items */
+.md-nav__item .md-nav__link {
+    position: relative;
+    padding: 0.4rem 0.6rem;
+    margin: 0.2rem 0.4rem;
     font-weight: 500;
-    color: var(--md-code-fg-color);
-    opacity: 0.6;
-    padding: 0.2em 0.5em;
-    border-radius: 4px;
-    background: rgba(0, 0, 0, 0.1);
-    margin-right: 0.5em;
+    font-size: 0.88em;
+    color: var(--chimera-purple-800);
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: var(--chimera-radius-sm);
+    border-left: 3px solid transparent;
+    transition: all var(--chimera-transition-base);
 }
 
-
-/* Keyboard key styling */
-
-.md-typeset kbd {
-    background: linear-gradient(180deg, #fff, #f0f0f0);
-    border: 1px solid #ccc;
-    border-bottom-width: 2px;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 0.1em 0.4em;
-    font-family: 'Roboto Mono', monospace;
+.md-nav__item .md-nav__link:hover {
+    background: rgba(156, 39, 176, 0.08);
+    border-left-color: var(--chimera-purple-400);
+    transform: translateX(4px);
 }
 
-[data-md-color-scheme="slate"] .md-typeset kbd {
-    background: linear-gradient(180deg, #3a3a3a, #2a2a2a);
-    border-color: #555;
+[data-md-color-scheme="slate"] .md-nav__item .md-nav__link {
+    color: var(--chimera-purple-200);
+    background: rgba(30, 30, 30, 0.4);
 }
 
+[data-md-color-scheme="slate"] .md-nav__item .md-nav__link:hover {
+    background: rgba(186, 104, 200, 0.15);
+    border-left-color: var(--chimera-purple-500);
+}
 
-/* Improved table styling with hover effects */
+/* Active navigation item */
+.md-nav__item .md-nav__link--active {
+    font-weight: 700;
+    color: #ffffff;
+    background: var(--chimera-gradient-primary);
+    border-left: 4px solid var(--chimera-purple-900);
+    box-shadow: var(--chimera-shadow-purple);
+}
+
+[data-md-color-scheme="slate"] .md-nav__item .md-nav__link--active {
+    background: var(--chimera-gradient-accent);
+    border-left-color: var(--chimera-purple-700);
+}
+
+/* ============================================
+   Buttons - Modern & Interactive
+   ============================================ */
+
+.md-button {
+    border-radius: var(--chimera-radius-md);
+    box-shadow: var(--chimera-shadow-sm);
+    transition: all var(--chimera-transition-base);
+    font-weight: 600;
+    padding: 0.6em 1.5em;
+}
+
+.md-button:hover {
+    box-shadow: var(--chimera-shadow-md);
+    transform: translateY(-2px);
+}
+
+.md-button--primary {
+    background: var(--chimera-gradient-primary);
+    color: white;
+}
+
+.md-button--primary:hover {
+    box-shadow: var(--chimera-shadow-purple);
+}
+
+/* ============================================
+   Tables - Clean & Modern
+   ============================================ */
+
+.md-typeset table:not([class]) {
+    border-radius: var(--chimera-radius-lg);
+    overflow: hidden;
+    box-shadow: var(--chimera-shadow-md);
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.md-typeset table:not([class]) thead {
+    background: var(--chimera-gradient-primary);
+    color: white;
+}
 
 .md-typeset table:not([class]) tbody tr {
-    transition: background-color 0.2s ease;
+    transition: all var(--chimera-transition-fast);
 }
 
 .md-typeset table:not([class]) tbody tr:hover {
-    background-color: rgba(var(--md-primary-fg-color--rgb), 0.05);
-    transform: scale(1.01);
+    background: rgba(156, 39, 176, 0.05);
+    transform: scale(1.005);
 }
 
-
-/* Enhanced footer navigation */
-
-.md-footer-meta {
-    background: linear-gradient(135deg, rgba(var(--md-primary-fg-color--rgb), 0.05), rgba(var(--md-accent-fg-color--rgb), 0.05));
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) tbody tr:hover {
+    background: rgba(186, 104, 200, 0.1);
 }
 
+/* ============================================
+   Cards & Feature Grids
+   ============================================ */
 
-/* Animated navigation tabs */
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--chimera-space-lg);
+    margin: var(--chimera-space-xl) 0;
+}
+
+.feature-item {
+    padding: var(--chimera-space-xl);
+    border-radius: var(--chimera-radius-lg);
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(156, 39, 176, 0.1);
+    transition: all var(--chimera-transition-base);
+    box-shadow: var(--chimera-shadow-sm);
+    position: relative;
+    overflow: hidden;
+}
+
+.feature-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--chimera-gradient-primary);
+    transform: scaleX(0);
+    transition: transform var(--chimera-transition-base);
+}
+
+.feature-item:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--chimera-shadow-lg);
+    border-color: rgba(156, 39, 176, 0.3);
+}
+
+.feature-item:hover::before {
+    transform: scaleX(1);
+}
+
+[data-md-color-scheme="slate"] .feature-item {
+    background: rgba(30, 30, 30, 0.6);
+    border-color: rgba(186, 104, 200, 0.2);
+}
+
+[data-md-color-scheme="slate"] .feature-item:hover {
+    border-color: rgba(186, 104, 200, 0.4);
+}
+
+/* ============================================
+   Navigation Tabs - Elevated Design
+   ============================================ */
+
+.md-tabs {
+    box-shadow: var(--chimera-shadow-md);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.95));
+}
+
+[data-md-color-scheme="slate"] .md-tabs {
+    background: linear-gradient(180deg, rgba(30, 30, 30, 0.9), rgba(30, 30, 30, 0.95));
+}
 
 .md-tabs__item {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all var(--chimera-transition-base);
 }
 
 .md-tabs__item:hover {
     transform: translateY(-2px);
 }
 
-
-/* Modern badge styles */
-
-.md-typeset .badge {
-    display: inline-block;
-    padding: 0.2em 0.6em;
-    font-size: 0.85em;
-    font-weight: 500;
-    line-height: 1;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--md-primary-fg-color), var(--md-accent-fg-color));
-    color: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+/* Navigation tab titles - make them visible */
+.md-tabs__link {
+    color: #2c2c2c !important;
 }
 
-
-/* Back to top button enhancement */
-
-.md-top {
-    background: linear-gradient(135deg, var(--md-primary-fg-color), var(--md-accent-fg-color));
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+[data-md-color-scheme="slate"] .md-tabs__link {
+    color: #ffffff !important;
 }
 
-.md-top:hover {
-    transform: translateY(-4px) scale(1.1);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+/* ============================================
+   Search - Modern Enhancement
+   ============================================ */
+
+.md-search__input {
+    border-radius: var(--chimera-radius-lg);
+    box-shadow: var(--chimera-shadow-sm);
+    transition: all var(--chimera-transition-base);
 }
-
-
-/* Search box modern styling */
 
 .md-search__form {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.3s;
+    border: 1px solid rgba(156, 39, 176, 0.15);
+    border-radius: var(--chimera-radius-lg);
+    transition: all var(--chimera-transition-base);
 }
 
 .md-search__form:hover {
-    background: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: var(--chimera-shadow-md);
+    border-color: rgba(156, 39, 176, 0.25);
 }
 
 .md-search__form:focus-within {
-    box-shadow: 0 0 0 3px rgba(var(--md-primary-fg-color--rgb), 0.2);
+    box-shadow: 0 0 0 3px rgba(156, 39, 176, 0.2);
+    border-color: var(--chimera-purple-500);
 }
 
+[data-md-color-scheme="slate"] .md-search__form {
+    background: rgba(30, 30, 30, 0.8);
+    border-color: rgba(186, 104, 200, 0.2);
+}
+
+[data-md-color-scheme="slate"] .md-search__form:hover {
+    background: rgba(30, 30, 30, 0.95);
+    border-color: rgba(186, 104, 200, 0.3);
+}
 
 /* ============================================
-   FIX: Edit/View Source Buttons - Override Blocking Styles
+   Scrollbar - Custom Styling
    ============================================ */
 
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: var(--chimera-radius-sm);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--chimera-gradient-primary);
+    border-radius: var(--chimera-radius-sm);
+    transition: background var(--chimera-transition-base);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--chimera-gradient-accent);
+}
+
+[data-md-color-scheme="slate"] ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* ============================================
+   Back to Top Button
+   ============================================ */
+
+.md-top {
+    background: var(--chimera-gradient-primary);
+    box-shadow: var(--chimera-shadow-lg);
+    transition: all var(--chimera-transition-base);
+    border-radius: 50%;
+}
+
+.md-top:hover {
+    transform: translateY(-6px) scale(1.1);
+    box-shadow: var(--chimera-shadow-xl);
+}
+
+/* ============================================
+   Footer Enhancement
+   ============================================ */
+
+.md-footer-meta {
+    background: var(--chimera-gradient-subtle);
+    border-top: 2px solid rgba(156, 39, 176, 0.1);
+}
+
+[data-md-color-scheme="slate"] .md-footer-meta {
+    background: linear-gradient(135deg, rgba(186, 104, 200, 0.08), rgba(156, 39, 176, 0.05));
+    border-top-color: rgba(186, 104, 200, 0.2);
+}
+
+/* ============================================
+   Anchor Links
+   ============================================ */
+
+.md-typeset .headerlink {
+    opacity: 0;
+    transition: all var(--chimera-transition-base);
+    transform: translateX(-8px);
+    color: var(--chimera-purple-500);
+}
+
+.md-typeset :hover > .headerlink {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.md-typeset .headerlink:hover {
+    color: var(--chimera-purple-700);
+}
+
+/* ============================================
+   Keyboard Keys
+   ============================================ */
+
+.md-typeset kbd {
+    background: linear-gradient(180deg, #ffffff, #f5f5f5);
+    border: 1px solid #d0d0d0;
+    border-bottom-width: 3px;
+    border-radius: var(--chimera-radius-sm);
+    box-shadow: var(--chimera-shadow-sm);
+    padding: 0.15em 0.5em;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.9em;
+}
+
+[data-md-color-scheme="slate"] .md-typeset kbd {
+    background: linear-gradient(180deg, #4a4a4a, #3a3a3a);
+    border-color: #606060;
+}
+
+/* ============================================
+   Progress Bar
+   ============================================ */
+
+.md-progress {
+    background: var(--chimera-gradient-primary);
+    box-shadow: 0 0 12px rgba(156, 39, 176, 0.5);
+}
+
+/* ============================================
+   Badges
+   ============================================ */
+
+.md-typeset .badge {
+    display: inline-block;
+    padding: 0.3em 0.8em;
+    font-size: 0.85em;
+    font-weight: 600;
+    line-height: 1;
+    border-radius: var(--chimera-radius-lg);
+    background: var(--chimera-gradient-primary);
+    color: white;
+    box-shadow: var(--chimera-shadow-sm);
+    transition: all var(--chimera-transition-base);
+}
+
+.md-typeset .badge:hover {
+    box-shadow: var(--chimera-shadow-md);
+    transform: scale(1.05);
+}
+
+/* ============================================
+   Hero Section
+   ============================================ */
+
+.hero {
+    background: var(--chimera-gradient-subtle);
+    border-radius: var(--chimera-radius-xl);
+    padding: var(--chimera-space-2xl) var(--chimera-space-xl) !important;
+    margin: var(--chimera-space-xl) 0;
+    border: 1px solid rgba(156, 39, 176, 0.1);
+    box-shadow: var(--chimera-shadow-md);
+    text-align: center;
+}
+
+[data-md-color-scheme="slate"] .hero {
+    background: linear-gradient(135deg, rgba(186, 104, 200, 0.12), rgba(156, 39, 176, 0.08));
+    border-color: rgba(186, 104, 200, 0.2);
+}
+
+/* ============================================
+   Icons & Emoji
+   ============================================ */
+
+.md-typeset .twemoji {
+    vertical-align: text-bottom;
+}
+
+/* ============================================
+   FIX: Edit/View Source Buttons
+   ============================================ */
 
 /* Force buttons to be interactive and above everything */
-
 .md-content__button {
     pointer-events: auto !important;
     z-index: 1000 !important;
     position: relative !important;
     cursor: pointer !important;
+    transition: all var(--chimera-transition-base);
 }
 
-
 /* Ensure button links are clickable */
-
-.md-content__button>a {
+.md-content__button > a {
     pointer-events: auto !important;
     cursor: pointer !important;
     display: inline-flex !important;
     z-index: 1001 !important;
 }
 
-
 /* Make SVG icons pass clicks through to parent link */
-
 .md-content__button svg,
 .md-content__button svg * {
     pointer-events: none !important;
 }
 
-
-/* Override any transforms or filters that might interfere */
-
-.md-content__button,
-.md-content__button>* {
-    transform: none !important;
-    filter: none !important;
-    backdrop-filter: none !important;
-}
-
-
 /* Ensure the button container doesn't block clicks */
-
 .md-content__inner {
     isolation: auto !important;
 }
 
-
 /* Remove any overlays from animations that might block */
-
 .md-content::before,
 .md-content::after {
     pointer-events: none !important;
 }
 
-
-/* Fix for the fade-in animation potentially blocking interaction */
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-        pointer-events: none;
-        /* Add this */
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-        pointer-events: auto;
-        /* Add this */
-    }
-}
-
-
 /* Make buttons visible and interactive with nice hover effect */
-
 .md-content__button.md-icon {
     opacity: 0.6;
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transition: all var(--chimera-transition-base);
 }
 
 .md-content__button.md-icon:hover {
     opacity: 1;
-    transform: scale(1.15) !important;
+    transform: scale(1.2);
+    color: var(--chimera-purple-500);
 }
 
-
 /* Specific targeting for edit and view buttons */
-
 a[href*="edit/main/docs/"],
 a[href*="/blob/main/docs/"] {
     pointer-events: auto !important;
     z-index: 1001 !important;
+}
+
+/* ============================================
+   Responsive Enhancements
+   ============================================ */
+
+@media screen and (max-width: 76.1875em) {
+    .md-typeset h1 {
+        font-size: 2.2em;
+    }
+
+    .md-typeset h2 {
+        font-size: 1.7em;
+    }
+
+    .md-typeset h3 {
+        font-size: 1.3em;
+    }
+}
+
+@media screen and (max-width: 44.9375em) {
+    .feature-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hero {
+        padding: var(--chimera-space-xl) var(--chimera-space-lg) !important;
+    }
 }

@@ -15,16 +15,16 @@ theme:
     # Light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: indigo
-      accent: teal
+      primary: deep purple
+      accent: purple
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     # Dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: indigo
-      accent: teal
+      primary: deep purple
+      accent: purple
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
@@ -147,7 +147,7 @@ plugins:
   - social:  # Requires mkdocs-material[imaging] - optional enhancement
       cards: true
       cards_layout_options:
-        background_color: "#3f51b5"  # Indigo
+        background_color: "#6b2c91"  # Deep Purple
         color: "#ffffff"
   - git-revision-date-localized:
       type: date
