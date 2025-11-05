@@ -7,6 +7,7 @@
 A deep learning-powered tool to identify artificial chimeric reads arising from whole genome amplification (WGA) processes.
 
 [Get Started](getting-started/quick-start.md){ .md-button .md-button--primary }
+[Try Web Demo :material-open-in-new:](https://huggingface.co/spaces/yangliz5/ChimeraLM){ .md-button }
 [View on GitHub](https://github.com/ylab-hi/chimera){ .md-button }
 
 </div>
@@ -39,7 +40,7 @@ Batch inference with configurable parallelism for large-scale genomic datasets
 
 <div class="feature-item" markdown>
 ### :material-web: Web Interface
-Interactive web UI for visualization and analysis
+[Try the interactive demo](https://huggingface.co/spaces/yangliz5/ChimeraLM) on HuggingFace Spaces - no installation needed!
 </div>
 
 <div class="feature-item" markdown>
@@ -67,6 +68,21 @@ chimeralm predict your_data.bam --gpus 1 --batch-size 24
 ```
 
 Ready to dive in? Check out our [Quick Start Guide](getting-started/quick-start.md).
+
+!!! tip "Try ChimeraLM Online - No Installation Required!"
+
+    Want to test ChimeraLM before installing? Try our interactive web demo:
+
+    **[:material-rocket-launch: Launch Web Demo on HuggingFace Spaces](https://huggingface.co/spaces/yangliz5/ChimeraLM){ .md-button .md-button--primary }**
+
+    Perfect for:
+
+    - :material-test-tube: Testing with individual DNA sequences
+    - :material-chart-bar: Visualizing prediction confidence scores
+    - :material-school: Learning about chimeric artifact detection
+    - :material-flash: Quick validation before batch processing
+
+    The web demo runs the same model as the CLI tool but provides an intuitive visual interface for single-sequence analysis.
 
 ______________________________________________________________________
 

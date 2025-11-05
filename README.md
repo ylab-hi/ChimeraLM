@@ -10,6 +10,7 @@
 [![pypi](https://img.shields.io/pypi/v/chimeralm.svg?style=for-the-badge)][pypi]
 [![pyversion](https://img.shields.io/pypi/pyversions/chimeralm?style=for-the-badge)][pypi]
 [![download](https://img.shields.io/pypi/dm/chimeralm?logo=pypi&label=downloads&style=for-the-badge)][pypi]
+[![hf-space](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-yellow.svg?style=for-the-badge)][hf-space]
 [![ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg?style=for-the-badge)](https://github.com/charliermarsh/ruff)
 
 [![release](https://img.shields.io/github/release-date/ylab-hi/ChimeraLM?style=for-the-badge)](https://github.com/ylab-hi/ChimeraLM/releases)
@@ -17,13 +18,28 @@
 [![activity](https://img.shields.io/github/commit-activity/m/ylab-hi/chimeralm?style=for-the-badge)][repo]
 [![lastcommit](https://img.shields.io/github/last-commit/ylab-hi/chimeralm?style=for-the-badge)][repo]
 
-[Installation](#installation) • [Quick Start](#quick-start) • [Documentation](https://ylab-hi.github.io/ChimeraLM/) • [Citation](#citation)
+[Installation](#installation) • [Quick Start](#quick-start) • [Web Demo](https://huggingface.co/spaces/yangliz5/ChimeraLM) • [Documentation](https://ylab-hi.github.io/ChimeraLM/) • [Citation](#citation)
 
 </div>
 
 ______________________________________________________________________
 
 A deep learning-powered tool to identify chimeric artifacts introduced by whole genome amplification (WGA).
+
+## 🌐 Try it Online
+
+**No installation required!** Try ChimeraLM instantly in your browser:
+
+**🤗 [Launch Web Demo on Hugging Face Spaces](https://huggingface.co/spaces/yangliz5/ChimeraLM)**
+
+Perfect for:
+
+- 🧪 Testing with individual sequences
+- 📊 Visualizing prediction confidence scores
+- 🎓 Learning about chimeric artifact detection
+- 🔬 Quick validation before batch processing
+
+For production use with BAM files and batch processing, install the CLI tool below.
 
 ## Installation
 
@@ -70,12 +86,13 @@ Full documentation is available at **[ylab-hi.github.io/ChimeraLM](https://ylab-
 
 ## Features
 
-- **High Accuracy**: Deep learning model trained on real WGA data
-- **GPU Accelerated**: Optimized for CUDA, MPS (Apple Silicon), and CPU
-- **Easy to Use**: Simple CLI with sensible defaults
-- **Fast Processing**: Batch inference with configurable parallelism
-- **Web Interface**: Interactive web UI for visualization and analysis
-- **Production Ready**: Includes filtering, sorting, and indexing of BAM files
+- **🌐 Interactive Web Demo**: Try it online at [HuggingFace Spaces](https://huggingface.co/spaces/yangliz5/ChimeraLM) - no installation needed!
+- **🎯 High Accuracy**: Deep learning model trained on real WGA data
+- **⚡ GPU Accelerated**: Optimized for CUDA, MPS (Apple Silicon), and CPU
+- **🚀 Easy to Use**: Simple CLI with sensible defaults
+- **📦 Fast Processing**: Batch inference with configurable parallelism
+- **🖥️ Local Web Interface**: Run the web UI locally with `chimeralm ui`
+- **🏭 Production Ready**: Includes filtering, sorting, and indexing of BAM files
 
 ## Contributing
 
@@ -98,5 +115,6 @@ If you use ChimeraLM in your research, please cite:
 
 Apache License 2.0 - see [LICENSE](LICENSE) for details.
 
+[hf-space]: https://huggingface.co/spaces/yangliz5/ChimeraLM
 [pypi]: https://pypi.org/project/chimeralm/
 [repo]: https://github.com/ylab-hi/chimeralm

@@ -90,6 +90,9 @@ extra:
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/chimeralm/
       name: ChimeraLM on PyPI
+    - icon: fontawesome/brands/docker
+      link: https://huggingface.co/spaces/yangliz5/ChimeraLM
+      name: Try ChimeraLM Web Demo on HuggingFace Spaces
     - icon: fontawesome/solid/envelope
       link: mailto:yangyang.li@northwestern.edu
       name: Email me
