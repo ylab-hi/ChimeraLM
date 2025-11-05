@@ -7,7 +7,6 @@ site_description: Documentation for the ChimeraLM project
 site_author: Yangyang Li
 copyright: Copyright &copy; 2025 Yangyang Li
 
-
 # Theme configuration with Material for MkDocs
 theme:
   name: material
@@ -144,10 +143,10 @@ plugins:
   - git-committers:
       repository: ylab-hi/ChimeraLM
       branch: main
-  - social:  # Requires mkdocs-material[imaging] - optional enhancement
+  - social: # Requires mkdocs-material[imaging] - optional enhancement
       cards: true
       cards_layout_options:
-        background_color: "#6b2c91"  # Deep Purple
+        background_color: "#6b2c91" # Deep Purple
         color: "#ffffff"
   - git-revision-date-localized:
       type: date

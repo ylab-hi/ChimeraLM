@@ -49,6 +49,7 @@ chimeralm filter your_data.bam your_data.predictions
 ```
 
 **Output:**
+
 - Predictions: Tab-separated file with read names and labels (0=biological, 1=chimeric)
 - Filtered BAM: `{input}.filtered.sorted.bam` with chimeric reads removed
 
@@ -59,6 +60,7 @@ chimeralm filter your_data.bam your_data.predictions
 Full documentation is available at **[ylab-hi.github.io/ChimeraLM](https://ylab-hi.github.io/ChimeraLM/)**
 
 **Key Resources:**
+
 - [Installation Guide](https://ylab-hi.github.io/ChimeraLM/getting-started/installation/) - Setup with pip, conda, uv, or from source
 - [Quick Start Tutorial](https://ylab-hi.github.io/ChimeraLM/getting-started/quick-start/) - Your first prediction in 15 minutes
 - [CLI Reference](https://ylab-hi.github.io/ChimeraLM/reference/cli/) - Complete command documentation
