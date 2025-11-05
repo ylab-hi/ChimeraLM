@@ -1,7 +1,6 @@
 """Gradio Web UI for ChimeraLM - Hugging Face Spaces Version."""
 
 import logging
-import os
 
 import gradio as gr
 import plotly.graph_objects as go
@@ -22,6 +21,7 @@ class ChimeraLMPredictor:
     """ChimeraLM predictor for web interface."""
 
     def __init__(self):
+        """Initialize the predictor with model and tokenizer."""
         self.model = None
         self.tokenizer = None
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -148,7 +148,7 @@ def create_interface():
 
             # Create individual bars with appropriate text colors
             bars = []
-            for i, (class_name, prob, color, text_color) in enumerate(zip(classes, probabilities, colors, text_colors)):
+            for class_name, prob, color, text_color in zip(classes, probabilities, colors, text_colors, strict=True):
                 bars.append(
                     go.Bar(
                         x=[class_name],
@@ -763,7 +763,14 @@ def create_interface():
     return interface
 
 
+# Create demo instance for Gradio auto-reload compatibility
+demo = create_interface()
+
+# Enable queueing to handle requests properly and avoid Content-Length issues
+demo.queue(max_size=20)
+
 if __name__ == "__main__":
     logger.info("🚀 Starting ChimeraLM Web Interface...")
-    interface = create_interface()
-    interface.launch(share=False)
+
+    # Launch with proper server configuration
+    demo.launch(share=False, show_error=True)
