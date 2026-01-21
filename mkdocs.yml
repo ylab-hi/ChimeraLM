@@ -143,9 +143,11 @@ plugins:
       htmlmin_opts:
         remove_comments: true
       cache_safe: true
+
   - git-committers:
       repository: ylab-hi/ChimeraLM
       branch: main
+
   - social: # Requires mkdocs-material[imaging] - optional enhancement
       cards: true
       cards_layout_options:
