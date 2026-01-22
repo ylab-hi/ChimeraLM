@@ -4,7 +4,7 @@
 
 # ChimeraLM
 
-**A Genomic Language Model for Detecting WGA Chimeric Artifacts**
+**A language model enables accurate structural variant detection in whole-genome amplified long-read sequencing**
 
 [![python](https://img.shields.io/badge/Python-3776AB.svg?style=for-the-badge&logo=Python&logoColor=white)](https://www.python.org/)
 [![pypi](https://img.shields.io/pypi/v/chimeralm.svg?style=for-the-badge)][pypi]
