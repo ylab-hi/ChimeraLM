@@ -94,6 +94,10 @@ Full documentation is available at **[ylab-hi.github.io/ChimeraLM](https://ylab-
 - **🖥️ Local Web Interface**: Run the web UI locally with `chimeralm ui`
 - **🏭 Production Ready**: Includes filtering, sorting, and indexing of BAM files
 
+## Related Projects
+
+- **[DeepChopper](https://ylab-hi.github.io/DeepChopper/)** - Identify chimera artifacts induced by internal adapter sequences in Nanopore direct RNA sequencing
+
 ## Contributing
 
 Contributions are welcome! See our [Contributing Guide](https://ylab-hi.github.io/ChimeraLM/contributing/development-setup/) for development setup and guidelines.

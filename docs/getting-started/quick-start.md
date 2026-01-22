@@ -15,6 +15,9 @@ Get started with ChimeraLM in under 15 minutes! This tutorial will guide you thr
 - Basic command-line experience
 - A BAM file to analyze (we'll provide sample data)
 
+!!! note "Working with RNA sequencing data?"
+    ChimeraLM is designed for DNA sequencing with whole genome amplification (WGA). If you need to identify chimera artifacts from Nanopore direct RNA sequencing, please see [**DeepChopper**](https://ylab-hi.github.io/DeepChopper/).
+
 ## Step 1: Get Sample Data
 
 ChimeraLM includes test data in the repository. If you installed from source:
@@ -96,10 +99,10 @@ head -10 mk1c_test.predictions/0_0.txt
 
 ```text
 read_name<TAB>label
-e5f89040-2898-41d9-9ee4-3022168216f0	1
-b76512a7-5a74-405b-8ac3-adde6a7ea5e1	0
-5b830fb3-6bb7-42a4-ad18-142b9474ed7d	1
-edab7cd5-831c-4f51-8ada-c9b4620307c1	0
+e5f89040-2898-41d9-9ee4-3022168216f0 1
+b76512a7-5a74-405b-8ac3-adde6a7ea5e1 0
+5b830fb3-6bb7-42a4-ad18-142b9474ed7d 1
+edab7cd5-831c-4f51-8ada-c9b4620307c1 0
 ...
 ```
 

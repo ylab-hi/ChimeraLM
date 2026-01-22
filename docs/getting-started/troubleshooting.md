@@ -13,6 +13,7 @@ Common issues and solutions for ChimeraLM users.
    **Cause**: Wrong Python environment or installation failed
 
    **Solution**:
+
    ```bash
    # Check Python version (must be 3.10 or 3.11)
    python --version
@@ -32,6 +33,7 @@ Common issues and solutions for ChimeraLM users.
    **Cause**: ChimeraLM doesn't support Python 3.12 yet
 
    **Solution**:
+
    ```bash
    # Create environment with Python 3.11
    conda create -n chimeralm python=3.11
@@ -46,6 +48,7 @@ Common issues and solutions for ChimeraLM users.
    **Symptom**: Pip reports dependency conflicts during installation
 
    **Solution**:
+
    ```bash
    # Install in a clean environment
    python -m venv chimeralm_env
@@ -220,6 +223,19 @@ Common issues and solutions for ChimeraLM users.
     # If count is 0, no chimeric reads detected
     # This could be normal for high-quality data
     ```
+
+## Working with RNA Sequencing Data?
+
+!!! note "ChimeraLM is for WGA DNA Sequencing"
+
+    ChimeraLM is specifically designed for detecting chimeric artifacts from **whole genome amplification (WGA)** in DNA sequencing data.
+    
+    **For RNA sequencing data**, you should use [**DeepChopper**](https://ylab-hi.github.io/DeepChopper/), a specialized tool designed to identify chimera artifacts caused by internal adapter sequences in Nanopore direct RNA sequencing (dRNA-seq).
+    
+    **Key Differences:**
+    
+    - **ChimeraLM**: DNA sequencing, WGA-induced chimeras
+    - **DeepChopper**: RNA sequencing, adapter-induced chimeras
 
 ## General Help
 
