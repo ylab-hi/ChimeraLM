@@ -98,7 +98,7 @@ ______________________________________________________________________
 
 ## Related Tools
 
-- **[DeepChopper](https://ylab-hi.github.io/DeepChopper/)** - For identifying chimeric reads caused by internal adapter sequences in Nanopore direct RNA sequencing (dRNA-seq) data
+- **[DeepChopper](https://ylab-hi.github.io/DeepChopper/)** - For identifying chimera artifacts caused by internal adapter sequences in Nanopore direct RNA sequencing (dRNA-seq) data
 
 ______________________________________________________________________
 
