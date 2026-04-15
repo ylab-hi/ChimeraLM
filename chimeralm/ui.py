@@ -16,6 +16,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Suppress noisy third-party loggers (httpx, huggingface_hub, etc.)
+for _lib in ("httpx", "huggingface_hub", "transformers", "urllib3"):
+    logging.getLogger(_lib).setLevel(logging.WARNING)
+
 
 class ChimeraLMPredictor:
     """ChimeraLM predictor for web interface."""
@@ -97,10 +101,16 @@ class ChimeraLMPredictor:
 
 def create_interface():
     """Create the Gradio interface."""
-    predictor = ChimeraLMPredictor()
+    # Lazy initialization - only load model on first prediction
+    predictor_cache: dict[str, ChimeraLMPredictor] = {}
+
+    def _get_predictor() -> ChimeraLMPredictor:
+        if "instance" not in predictor_cache:
+            predictor_cache["instance"] = ChimeraLMPredictor()
+        return predictor_cache["instance"]
 
     def predict_sequence(sequence):
-        prediction, confidence, breakdown = predictor.predict(sequence)
+        prediction, confidence, breakdown = _get_predictor().predict(sequence)
 
         # Format output with enhanced styling
         if (

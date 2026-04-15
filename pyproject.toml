@@ -10,8 +10,8 @@ authors = [
   { name = "Qingxiang Guo", email = "qingxiang.guo@northwestern.edu" },
 ]
 readme = "README.md"
-requires-python = ">=3.10,<3.13"
-version = "1.0.4"
+requires-python = ">=3.10,<3.14"
+version = "1.0.5"
 license = { file = "LICENSE" }
 keywords = ["deep learning", "bioinformatics", "rust"]
 classifiers = [
@@ -26,6 +26,7 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Programming Language :: Rust",
   "Topic :: Scientific/Engineering",
 ]
