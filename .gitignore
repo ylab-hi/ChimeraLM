@@ -158,6 +158,7 @@ analysis/
 slurmlog
 *.txt
 CLAUDE.md
+AGENTS.md
 .claude
 .specify
 
@@ -166,3 +167,4 @@ site/
 specs/
 .mcp.json
 hfspace/
+
