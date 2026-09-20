@@ -416,10 +416,10 @@ Model loaded successfully on cpu
 
 ```python
 # Simplified version of what happens
-logits = model(sequence)                    # Raw model output
-probabilities = softmax(logits)             # Convert to probabilities
-predicted_class = argmax(probabilities)     # Get predicted class (0 or 1)
-confidence = probabilities[predicted_class] # Confidence of prediction
+logits = model(sequence)  # Raw model output
+probabilities = softmax(logits)  # Convert to probabilities
+predicted_class = argmax(probabilities)  # Get predicted class (0 or 1)
+confidence = probabilities[predicted_class]  # Confidence of prediction
 ```
 
 ## Next Steps

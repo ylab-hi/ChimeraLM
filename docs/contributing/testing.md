@@ -90,13 +90,16 @@ def test_model_loads_pretrained_checkpoint():
     """Test that model loads from pretrained checkpoint."""
     pass
 
+
 def test_prediction_returns_correct_shape():
     """Test prediction output shape."""
     pass
 
+
 # Bad naming
 def test_model():  # Too vague
     pass
+
 
 def test1():  # Not descriptive
     pass
@@ -109,6 +112,7 @@ def test1():  # Not descriptive
 ```python
 import pytest
 from chimeralm.models.lm import ChimeraLM
+
 
 def test_model_loading():
     """Test model loads successfully."""
@@ -130,15 +134,18 @@ def test_model_loading():
 import pytest
 from chimeralm.models.lm import ChimeraLM
 
+
 @pytest.fixture
 def pretrained_model():
     """Load pretrained model for testing."""
     return ChimeraLM.from_pretrained("yangliz5/chimeralm")
 
+
 # test_models.py
 def test_model_inference(pretrained_model):
     """Test model inference."""
     import torch
+
     x = torch.randint(0, 5, (4, 1024))
     output = pretrained_model(x)
     assert output.shape == (4, 2)
@@ -149,14 +156,19 @@ def test_model_inference(pretrained_model):
 ```python
 import pytest
 
-@pytest.mark.parametrize("batch_size,seq_len", [
-    (4, 512),
-    (8, 1024),
-    (16, 2048),
-])
+
+@pytest.mark.parametrize(
+    "batch_size,seq_len",
+    [
+        (4, 512),
+        (8, 1024),
+        (16, 2048),
+    ],
+)
 def test_model_with_different_shapes(pretrained_model, batch_size, seq_len):
     """Test model with various input shapes."""
     import torch
+
     x = torch.randint(0, 5, (batch_size, seq_len))
     output = pretrained_model(x)
     assert output.shape == (batch_size, 2)
@@ -166,6 +178,7 @@ def test_model_with_different_shapes(pretrained_model, batch_size, seq_len):
 
 ```python
 import pytest
+
 
 def test_invalid_input_raises_error():
     """Test that invalid input raises ValueError."""
@@ -207,10 +220,7 @@ def test_end_to_end_prediction():
     model = ChimeraLM.from_pretrained("yangliz5/chimeralm")
 
     # Load data
-    data_module = BamDataModule(
-        train_data_path="tests/data/mk1c_test.bam",
-        batch_size=8
-    )
+    data_module = BamDataModule(train_data_path="tests/data/mk1c_test.bam", batch_size=8)
     data_module.setup("predict")
 
     # Run prediction
@@ -227,6 +237,7 @@ def test_end_to_end_prediction():
 ```python
 import pytest
 import torch
+
 
 @pytest.mark.gpu
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA not available")
@@ -273,6 +284,7 @@ Focus on:
 ```python
 import pytest
 from unittest.mock import Mock, patch
+
 
 def test_bam_file_loading(tmp_path):
     """Test BAM file loading with mock."""
@@ -368,7 +380,9 @@ uv run pytest tests/ -l
 ```python
 def test_with_debug():
     """Test with debugging."""
-    import pdb; pdb.set_trace()  # Debugger breakpoint
+    import pdb
+
+    pdb.set_trace()  # Debugger breakpoint
     # Test code
 ```
 

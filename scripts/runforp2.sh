@@ -65,9 +65,9 @@ run_eval() {
         trainer=$TRAINER \
         data.num_workers=$NUM_WORKERS \
         data.batch_size=$BATCH_SIZE \
-        +data.predict_data_path=$data_file \
-        paths.output_dir=$output_dir \
-        paths.log_dir=$output_dir
+        +data.predict_data_path="$data_file" \
+        paths.output_dir="$output_dir" \
+        paths.log_dir="$output_dir"
 
     local exit_code=$?
     if [[ $exit_code -eq 0 ]]; then
@@ -114,15 +114,10 @@ while [[ $# -gt 0 ]]; do
             DRY_RUN=true
             shift
             ;;
-        --parallel)
-            PARALLEL=true
-            shift
-            ;;
         --help|-h)
             echo "Usage: $0 [options]"
             echo "Options:"
             echo "  --dry-run    Show commands without executing"
-            echo "  --parallel   Run evaluations in parallel (experimental)"
             echo "  --help       Show this help message"
             exit 0
             ;;

@@ -94,7 +94,8 @@ class ChimeraLMPredictor:
             logger.info(f"Prediction: {prediction} (confidence: {confidence:.3f})")
             return prediction, confidence, confidence_breakdown
 
-        except Exception as e:
+        # UI boundary: report any prediction failure to the user instead of crashing the app.
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Prediction error: {e}")
             return f"Prediction failed: {e}", 0.0, {}
 

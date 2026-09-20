@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Any
 
 import hydra
 import lightning as L  # noqa: N812
+import multiprocess.context as ctx
 import torch
 from lightning import Callback, LightningDataModule, LightningModule, Trainer
 from omegaconf import DictConfig
@@ -79,8 +80,6 @@ def train(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
     set_tensor_core_precision()
 
     if SET_SPAWN:
-        import multiprocess.context as ctx
-
         ctx._force_start_method("spawn")
 
     if cfg.get("train"):

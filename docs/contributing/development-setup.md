@@ -191,10 +191,12 @@ uv run pytest tests/ -v
 import pytest
 from chimeralm.models.lm import ChimeraLM
 
+
 def test_model_loading():
     """Test model loads correctly."""
     model = ChimeraLM.from_pretrained("yangliz5/chimeralm")
     assert model is not None
+
 
 def test_prediction():
     """Test prediction works."""

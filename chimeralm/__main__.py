@@ -22,6 +22,9 @@ console = Console()
 
 log = RankedLogger(__name__, rank_zero_only=True)
 
+# A prediction line is exactly "<read name>\t<label>".
+_PREDICTION_FIELD_COUNT = 2
+
 
 def load_predicts(path: Path | str) -> dict[str, int]:
     """Load predictions from a text file.
@@ -41,13 +44,13 @@ def load_predicts(path: Path | str) -> dict[str, int]:
             raise FileNotFoundError(msg)
 
         with path.open(encoding="utf-8") as f:
-            for line_num, line in enumerate(f, 1):
-                line = line.strip()
+            for line_num, raw_line in enumerate(f, 1):
+                line = raw_line.strip()
                 if not line:
                     continue
 
                 parts = line.split("\t")
-                if len(parts) != 2:
+                if len(parts) != _PREDICTION_FIELD_COUNT:
                     msg = f"Invalid line format at line {line_num}: {line}"
                     raise ValueError(msg)
 
@@ -118,7 +121,7 @@ def filter_bam_by_predcition(
 
     log.info(f"Loaded {len(predictions)} predictions from {prediction_path}")
 
-    # summar 0 and 1 predictions
+    # summarize 0 and 1 predictions
     counter = Counter(predictions.values())
     log.info(
         f"Biological: {counter.get(0, 0)} ({counter.get(0, 0) / len(predictions) * 100:.1f}%), Chimera artifact: {counter.get(1, 0)} ({counter.get(1, 0) / len(predictions) * 100:.1f}%)"
@@ -158,9 +161,8 @@ def filter_bam_by_predcition(
 def set_logging_level(level: int = logging.INFO):
     """Set the logging level.
 
-    Parameters
-    ----------
-        level (int): The logging level to set.
+    Args:
+        level: The logging level to set, e.g. ``logging.INFO``.
 
     """
     FORMAT = "%(message)s"
@@ -209,7 +211,7 @@ def print_logo():
 app = typer.Typer(
     cls=OrderCommands,
     context_settings={"help_option_names": ["-h", "--help"]},
-    help="ChimeraLM: A genomic lanuage model to identify chimera artifact introduced by whole genome amplification (WGA).",
+    help="ChimeraLM: A genomic language model to identify chimera artifact introduced by whole genome amplification (WGA).",
 )
 
 

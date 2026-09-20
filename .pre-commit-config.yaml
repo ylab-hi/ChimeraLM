@@ -27,21 +27,23 @@ repos:
 
   # shell scripts linter
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.11.0.1
+    rev: v0.11.0.1-1
     hooks:
       - id: shellcheck
 
   # word spelling linter
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
+    rev: v2.4.3
     hooks:
       - id: codespell
         args:
-          - --skip=logs/**,data/**,*.ipynb
+          # `tests/data/**` holds encoded BAM/FASTQ/parquet fixtures: quality strings
+          # and read payloads are random characters, not prose.
+          - --skip=logs/**,data/**,tests/data/**,*.ipynb
           # - --ignore-words-list=abc,def
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.14.13
+    rev: v0.16.8
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix, --unsafe-fixes]

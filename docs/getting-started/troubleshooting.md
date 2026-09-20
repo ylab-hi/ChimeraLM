@@ -229,11 +229,11 @@ Common issues and solutions for ChimeraLM users.
 !!! note "ChimeraLM is for WGA DNA Sequencing"
 
     ChimeraLM is specifically designed for detecting chimeric artifacts from **whole genome amplification (WGA)** in DNA sequencing data.
-    
+
     **For RNA sequencing data**, you should use [**DeepChopper**](https://ylab-hi.github.io/DeepChopper/), a specialized tool designed to identify chimera artifacts caused by internal adapter sequences in Nanopore direct RNA sequencing (dRNA-seq).
-    
+
     **Key Differences:**
-    
+
     - **ChimeraLM**: DNA sequencing, WGA-induced chimeras
     - **DeepChopper**: RNA sequencing, adapter-induced chimeras
 

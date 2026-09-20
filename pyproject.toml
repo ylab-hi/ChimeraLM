@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "chimeralm"
-description = "ChimeraLM: A genomic lanuage model to identify chimera artifact introduced by whole genome amplification (WGA)."
+description = "ChimeraLM: A genomic language model to identify chimera artifact introduced by whole genome amplification (WGA)."
 authors = [
   { name = "Yangyang Li", email = "yangyang.li@northwestern.edu" },
   { name = "Qingxiang Guo", email = "qingxiang.guo@northwestern.edu" },
@@ -135,7 +135,9 @@ exclude = [
   "node_modules",
   "venv",
   "tasks.py",
-  "notebooks/data.ipynb",
+  # Exploratory analysis notebooks: not shipped, contain scratch cells and
+  # cross-cell state that the linter/formatter cannot parse reliably.
+  "notebooks/*.ipynb",
 ]
 
 [tool.ruff.lint]
@@ -236,7 +238,44 @@ indent-style = "space"
 line-ending = "auto"
 
 
+[tool.ruff.lint.flake8-bugbear]
+# Typer builds immutable, lazily-evaluated option objects in argument defaults.
+extend-immutable-calls = ["typer.Argument", "typer.Option"]
+
+# Per-file ignores mirror the framework contracts each file has to satisfy:
+# Hydra builds datamodules/backbones from YAML `_target_` entries (every keyword of
+# the constructor and the long option lists are part of the public config API),
+# Lightning calls the hooks with fixed positional signatures, Typer derives the CLI
+# from the command signatures, and the Gradio layout is a single declarative builder.
 [tool.ruff.lint.per-file-ignores]
+"chimeralm/data/bam.py" = ["ARG002", "PLR0913", "PLR0917", "C901"]
+"chimeralm/data/fq.py" = ["ARG002", "PLR0913", "PLR0917", "C901", "PLR0912"]
+"chimeralm/data/only_fq.py" = ["ARG002", "PLR0913", "PLR0917", "C901"]
+"chimeralm/data/tokenizer.py" = ["PLR0913", "PLR0917"]
+"chimeralm/models/basic_module.py" = ["ARG002", "A002"]
+"chimeralm/models/callbacks.py" = [
+  "ANN401",
+  "ARG002",
+  "PLR0913",
+  "PLR0917",
+  "C901",
+]
+"chimeralm/models/components/*.py" = ["ARG002", "PLR0913", "PLR0917"]
+"chimeralm/__main__.py" = [
+  "A001",
+  "ARG001",
+  "ARG002",
+  "FBT001",
+  "FBT002",
+  "FBT003",
+  "PLR0913",
+  "PLR0917",
+]
+"chimeralm/ui.py" = ["C901", "PLR0915"]
+# Import-time deferral of heavy (`ui`) and optional (`wandb`) dependencies.
+"chimeralm/__init__.py" = ["PLC0415"]
+"chimeralm/utils/utils.py" = ["PLC0415"]
+# Template code, kept for parity with the upstream lightning-hydra-template.
 "chimeralm/data/mnist_datamodule.py" = ["ARG002", "PLR0913", "D205", "D402"]
 "chimeralm/models/mnist_module.py" = ["ARG002", "A002"]
 "chimeralm/utils/pylogger.py" = ["D205", "PLR5501", "SIM114"]

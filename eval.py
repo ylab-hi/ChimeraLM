@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Any
 
 import hydra
+import multiprocess.context as ctx
 import torch
 from omegaconf import DictConfig
 
@@ -40,7 +41,9 @@ def evaluate(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
     :param cfg: DictConfig configuration composed by Hydra.
     :return: Tuple[dict, dict] with metrics and dict with all instantiated objects.
     """
-    assert cfg.ckpt_path
+    if not cfg.ckpt_path:
+        msg = "Checkpoint path is required for evaluation. Pass `ckpt_path=<path>`."
+        raise ValueError(msg)
 
     log.info(f"Instantiating datamodule <{cfg.data._target_}>")
     datamodule: LightningDataModule = hydra.utils.instantiate(cfg.data)
@@ -76,8 +79,6 @@ def evaluate(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
         trainer.test(model=model, datamodule=datamodule, ckpt_path=cfg.ckpt_path)
     else:
         # for predictions use trainer.predict(...)
-        import multiprocess.context as ctx
-
         ctx._force_start_method("spawn")
         trainer.predict(model=model, dataloaders=datamodule, ckpt_path=cfg.ckpt_path, return_predictions=False)
 

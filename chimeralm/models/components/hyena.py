@@ -1,3 +1,5 @@
+"""HyenaDNA backbone wrapper and classifier heads for DNA sequence tasks."""
+
 import torch
 from torch import nn
 from transformers import AutoModel
@@ -252,6 +254,11 @@ class HyenaDna(nn.Module):
         input_ids: torch.Tensor,
         input_quals: torch.Tensor | None = None,
     ):
+        """Run the HyenaDNA backbone and classify its hidden states.
+
+        ``input_ids`` holds token indices of shape ``[batch_size, seq_len]``; the returned logits come from the
+        configured classification head. ``input_quals`` is accepted for interface compatibility and ignored.
+        """
         transformer_outputs = self.backbone(
             input_ids,
             inputs_embeds=None,

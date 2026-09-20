@@ -1,3 +1,5 @@
+"""Hyena operator and classifier components for DNA sequence classification."""
+
 import math
 
 import torch
@@ -19,6 +21,7 @@ class HyenaOperator(nn.Module):
         num_blocks: int = 1,
         dropout: float = 0.0,
     ):
+        """Initialize the Hyena operator projections, filters, and position embeddings."""
         super().__init__()
         self.d_model = d_model
         self.l_max = l_max
@@ -54,6 +57,7 @@ class HyenaOperator(nn.Module):
         self.register_buffer("filters", torch.stack(filters))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply the FFT-domain Hyena filter and output projection to the input sequence."""
         _B, L, _D = x.shape
         H = self.num_heads
 
@@ -85,6 +89,8 @@ class HyenaOperator(nn.Module):
 
 
 class HyenaBlock(nn.Module):
+    """Pre-norm Hyena operator followed by a feed-forward MLP, both with residual connections."""
+
     def __init__(
         self,
         d_model: int,
@@ -95,6 +101,7 @@ class HyenaBlock(nn.Module):
         inner_factor: float = 2.0,
         dropout: float = 0.1,
     ):
+        """Initialize the layer norms, Hyena operator, and feed-forward MLP."""
         super().__init__()
         self.norm1 = nn.LayerNorm(d_model)
         self.hyena = HyenaOperator(
@@ -116,6 +123,7 @@ class HyenaBlock(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply the Hyena operator and MLP with residual connections."""
         # Hyena operator with residual
         x = x + self.hyena(self.norm1(x))
         # MLP with residual
@@ -123,6 +131,8 @@ class HyenaBlock(nn.Module):
 
 
 class HyenaDNAClassifier(nn.Module):
+    """DNA sequence classifier stacking Hyena blocks and mean pooling."""
+
     def __init__(
         self,
         seq_len: int,
@@ -137,6 +147,7 @@ class HyenaDNAClassifier(nn.Module):
         dropout: float = 0.1,
         padding_idx: int = 4,
     ):
+        """Initialize the embedding, normalization, Hyena blocks, and classification head."""
         super().__init__()
         self.number_of_classes = num_classes
 
@@ -166,6 +177,7 @@ class HyenaDNAClassifier(nn.Module):
         self.classifier = nn.Sequential(nn.LayerNorm(d_model), nn.Dropout(dropout), nn.Linear(d_model, num_classes))
 
     def forward(self, input_ids: torch.Tensor, input_quals: torch.Tensor | None = None) -> torch.Tensor:
+        """Classify DNA sequences from token ids, ignoring optional quality scores."""
         # Embed sequences
         x = self.embedding(input_ids)
         x = self.norm(x)

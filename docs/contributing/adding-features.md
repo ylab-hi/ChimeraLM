@@ -103,11 +103,7 @@ Description and usage examples...
 **Example:**
 
 ```python
-def predict_batch(
-    sequences: List[str],
-    model: torch.nn.Module,
-    batch_size: int = 32
-) -> List[int]:
+def predict_batch(sequences: List[str], model: torch.nn.Module, batch_size: int = 32) -> List[int]:
     """
     Predict labels for a batch of sequences.
 
@@ -170,6 +166,7 @@ Before submitting:
 # chimeralm/models/components/new_model.py
 from torch import nn
 
+
 class NewModel(nn.Module):
     """New model architecture."""
 
@@ -188,6 +185,7 @@ class NewModel(nn.Module):
 ```python
 # chimeralm/data/new_format.py
 import lightning as L
+
 
 class NewFormatDataModule(L.LightningDataModule):
     """Data module for new format."""
@@ -212,10 +210,11 @@ class NewFormatDataModule(L.LightningDataModule):
 # chimeralm/__main__.py
 import typer
 
+
 @app.command()
 def new_command(
     input_file: str = typer.Argument(..., help="Input file"),
-    output_dir: str = typer.Option("output/", help="Output directory")
+    output_dir: str = typer.Option("output/", help="Output directory"),
 ):
     """
     New command description.

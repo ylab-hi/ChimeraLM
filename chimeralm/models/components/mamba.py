@@ -1,4 +1,7 @@
+"""Mamba sequence classification models built on the Mamba2 backbone."""
+
 import contextlib
+import math
 
 import torch
 from torch import Tensor, nn
@@ -25,6 +28,7 @@ class MambaSequenceClassification(nn.Module):
         headdim: int = 64,
         padding_idx: int = 4,
     ):
+        """Initialize the embeddings, Mamba2 layer stack, pooling, and classification heads."""
         super().__init__()
         self.number_of_classes = number_of_classes
 
@@ -130,6 +134,7 @@ class MambaSequenceClassificationSP(nn.Module):
         headdim: int = 64,
         padding_idx: int = 4,
     ):
+        """Initialize the token embedding, plain Mamba2 layer stack, and classification heads."""
         super().__init__()
         self.number_of_classes = number_of_classes
         # Embedding layers
@@ -212,6 +217,7 @@ class MambaSequenceClassificationPositional(nn.Module):
         padding_idx: int = 4,
         pos_embedding_type: str = "learned",  # "learned", "sinusoidal", or "none"
     ):
+        """Initialize the embeddings, optional positional encoding, Mamba2 layer stack, and heads."""
         super().__init__()
         self.number_of_classes = number_of_classes
         self.max_seq_length = max_seq_length

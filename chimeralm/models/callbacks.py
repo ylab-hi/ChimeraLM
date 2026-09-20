@@ -8,13 +8,27 @@ from chimeralm.utils import RankedLogger
 
 logger = RankedLogger(__name__, rank_zero_only=True)
 
+# Printable ASCII range kept when decoding a stored read name.
+_PRINTABLE_ASCII_MIN = 32
+_PRINTABLE_ASCII_MAX = 126
+
 
 class CustomWriter(BasePredictionWriter):
+    """Prediction writer that stores raw prediction tensors to a folder."""
+
     def __init__(self, output_dir, write_interval="epoch"):
+        """Initialize the writer with the folder that receives the predictions.
+
+        Args:
+            output_dir: Folder the tensors are saved to. Created on first write.
+            write_interval: Lightning write interval, ``"batch"`` or ``"epoch"``.
+
+        """
         super().__init__(write_interval)
         self.output_dir = Path(output_dir)
 
     def write_on_batch_end(self, trainer, pl_module, prediction, batch_indices, batch, batch_idx, dataloader_idx):
+        """Save one batch of predictions as `{rank}_{batch_idx}.pt`."""
         folder = self.output_dir
         if not folder.exists():
             folder.mkdir(parents=True, exist_ok=True)
@@ -28,6 +42,7 @@ class CustomWriter(BasePredictionWriter):
         torch.save(save_prediction, folder / f"{trainer.global_rank}_{batch_idx}.pt")
 
     def write_on_epoch_end(self, trainer, pl_module, predictions, batch_indices):
+        """Save all epoch predictions into a single `predictions.pt` file."""
         # WARN: This is a simple implementation that saves all predictions in a single file
         if not self.output_dir.exists():
             self.output_dir.mkdir(parents=False, exist_ok=True)
@@ -59,7 +74,7 @@ def resume_read_name(bytes_data: torch.Tensor | list[int]) -> str:
             raise ValueError("Invalid read name length")
         # More efficient string building
         read_name_bytes = bytes_data[1 : 1 + read_name_length]
-        return "".join(chr(b) for b in read_name_bytes if 32 <= b <= 126)
+        return "".join(chr(b) for b in read_name_bytes if _PRINTABLE_ASCII_MIN <= b <= _PRINTABLE_ASCII_MAX)
     except (IndexError, TypeError, ValueError) as e:
         raise ValueError("Invalid read name data") from e
 
@@ -126,7 +141,7 @@ class PredictionWriter(BasePredictionWriter):
                         read_name = f"unknown_read_{i}"
                         logger.warning(f"Empty read name for index {i} in batch {batch_idx}")
                     read_names.append(read_name)
-                except Exception as e:
+                except (IndexError, TypeError, ValueError) as e:
                     logger.error(f"Error processing read name at index {i}: {e}")
                     read_names.append(f"error_read_{i}")
 
@@ -145,8 +160,9 @@ class PredictionWriter(BasePredictionWriter):
 
             except OSError as e:
                 logger.error(f"Failed to write predictions to {output_file}: {e}")
-            except Exception as e:
+            except (RuntimeError, TypeError, ValueError) as e:
                 logger.error(f"Unexpected error writing batch {batch_idx}: {e}")
 
-        except Exception as e:
+        # Last-resort boundary: a failing writer must not abort the prediction run.
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Critical error in write_on_batch_end for batch {batch_idx}: {e}")

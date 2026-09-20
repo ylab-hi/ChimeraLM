@@ -5,7 +5,6 @@ from functools import partial
 import torch
 
 import typer
-import ipdb
 
 app = typer.Typer()
 

@@ -10,6 +10,7 @@ class RankedLogger(logging.LoggerAdapter):
     def __init__(
         self,
         name: str = __name__,
+        *,
         rank_zero_only: bool = False,
         extra: Mapping[str, object] | None = None,
     ) -> None:

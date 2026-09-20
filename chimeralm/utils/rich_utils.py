@@ -17,6 +17,7 @@ log = pylogger.RankedLogger(__name__, rank_zero_only=True)
 @rank_zero_only
 def print_config_tree(
     cfg: DictConfig,
+    *,
     print_order: Sequence[str] = (
         "data",
         "model",
@@ -70,12 +71,12 @@ def print_config_tree(
 
     # save config tree to file
     if save_to_file:
-        with open(Path(cfg.paths.output_dir, "config_tree.log"), "w") as file:
+        with Path(cfg.paths.output_dir, "config_tree.log").open("w") as file:
             rich.print(tree, file=file)
 
 
 @rank_zero_only
-def enforce_tags(cfg: DictConfig, save_to_file: bool = False) -> None:
+def enforce_tags(cfg: DictConfig, *, save_to_file: bool = False) -> None:
     """Prompts user to input tags from command line if no tags are provided in config.
 
     :param cfg: A DictConfig composed by Hydra.

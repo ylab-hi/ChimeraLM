@@ -1,5 +1,7 @@
 # ruff: noqa: S107
 
+from typing import ClassVar
+
 import torch
 from transformers import (
     AutoTokenizer,
@@ -190,7 +192,7 @@ class DataCollator(DataCollatorWithPadding):
 class CharacterTokenizer(PreTrainedTokenizer):
     """Character tokenizer."""
 
-    model_input_names = [MODEL_SEQ_INPUT]
+    model_input_names: ClassVar[list[str]] = [MODEL_SEQ_INPUT]
 
     def __init__(
         self,
@@ -209,20 +211,22 @@ class CharacterTokenizer(PreTrainedTokenizer):
     ):
         """Character tokenizer for Hugging Face transformers.
 
+        Characters outside ``A/C/G/T/N`` are mapped to `unk_token`. Special tokens
+        keep the ids assigned by ``PreTrainedTokenizer`` and every character gets an
+        id starting at 7.
+
         Args:
-            characters (Sequence[str]): List of desired characters. Any character which
-                is not included in this list will be replaced by a special token called
-                [UNK] with id=6. Following are list of all of the special tokens with
-                their corresponding ids:
-                    "[CLS]": 0
-                    "[SEP]": 1
-                    "[BOS]": 2
-                    "[MASK]": 3
-                    "[PAD]": 4
-                    "[RESERVED]": 5
-                    "[UNK]": 6
-                an id (starting at 7) will be assigned to each character.
-            model_max_length (int): Model maximum sequence length.
+            model_max_length: Maximum sequence length accepted by the tokenizer.
+            padding_side: Side used when padding, ``"right"`` or ``"left"``.
+            add_prefix_space: Whether a leading space is kept before tokenization.
+            bos_token: Beginning-of-sequence token.
+            eos_token: End-of-sequence token.
+            sep_token: Separator token used when pairing sequences.
+            cls_token: Classification token.
+            pad_token: Padding token.
+            mask_token: Token predicted in masked-language-modelling mode.
+            unk_token: Token used for unknown characters.
+            **kwargs: Additional arguments forwarded to ``PreTrainedTokenizer``.
 
         """
         self.characters = ("A", "C", "G", "T", "N")
@@ -310,7 +314,7 @@ class CharacterTokenizer(PreTrainedTokenizer):
         """Get the vocabulary."""
         return self._vocab_str_to_int
 
-    def decode(self, token_ids, *, skip_special_tokens=True, **kwargs):
+    def decode(self, token_ids, *, skip_special_tokens=True, **_kwargs):
         """Decode ids back to sequence string."""
         if isinstance(token_ids, dict):
             token_ids = token_ids[MODEL_SEQ_INPUT]
@@ -345,7 +349,7 @@ class KmerTokenizer(PreTrainedTokenizer):
 
     """
 
-    model_input_names = [MODEL_SEQ_INPUT]
+    model_input_names: ClassVar[list[str]] = [MODEL_SEQ_INPUT]
 
     def __init__(
         self,
@@ -366,9 +370,18 @@ class KmerTokenizer(PreTrainedTokenizer):
         """K-mer tokenizer for Hugging Face transformers.
 
         Args:
-            k (int): Length of k-mers (default: 6)
-            model_max_length (int): Maximum sequence length
-            **kwargs: Additional arguments passed to PreTrainedTokenizer
+            k: Length of the k-mers.
+            model_max_length: Maximum sequence length accepted by the tokenizer.
+            padding_side: Side used when padding, ``"right"`` or ``"left"``.
+            add_prefix_space: Whether a leading space is kept before tokenization.
+            bos_token: Beginning-of-sequence token.
+            eos_token: End-of-sequence token.
+            sep_token: Separator token used when pairing sequences.
+            cls_token: Classification token.
+            pad_token: Padding token.
+            mask_token: Token predicted in masked-language-modelling mode.
+            unk_token: Token used for k-mers outside the ``A/C/G/T/N`` vocabulary.
+            **kwargs: Additional arguments forwarded to ``PreTrainedTokenizer``.
 
         """
         self.k = k
@@ -484,7 +497,7 @@ class KmerTokenizer(PreTrainedTokenizer):
         """Get the vocabulary."""
         return self._vocab_str_to_int
 
-    def decode(self, token_ids, *, skip_special_tokens=True, **kwargs):
+    def decode(self, token_ids, *, skip_special_tokens=True, **_kwargs):
         """Decode ids back to sequence string."""
         if isinstance(token_ids, dict):
             token_ids = token_ids[MODEL_SEQ_INPUT]

@@ -33,11 +33,7 @@ model = ChimeraLM.from_pretrained("/path/to/checkpoint.ckpt")
 from chimeralm.models.lm import ChimeraLM
 
 # Create new ChimeraLM instance
-model = ChimeraLM.new(
-    model_name="hyena",
-    num_classes=2,
-    optimizer_config={"lr": 1e-4, "weight_decay": 0.01}
-)
+model = ChimeraLM.new(model_name="hyena", num_classes=2, optimizer_config={"lr": 1e-4, "weight_decay": 0.01})
 ```
 
 ### Methods
@@ -67,7 +63,7 @@ model = ChimeraLM.from_pretrained("logs/train/runs/2025-10-25/checkpoints/best.c
 # With custom config
 model = ChimeraLM.from_pretrained(
     "yangliz5/chimeralm",
-    map_location="cpu"  # Load on CPU
+    map_location="cpu",  # Load on CPU
 )
 ```
 
@@ -90,18 +86,10 @@ Create a new ChimeraLM model instance.
 
 ```python
 # HyenaDNA model
-model = ChimeraLM.new(
-    model_name="hyena",
-    num_classes=2,
-    optimizer_config={"lr": 1e-4}
-)
+model = ChimeraLM.new(model_name="hyena", num_classes=2, optimizer_config={"lr": 1e-4})
 
 # CNN model
-model = ChimeraLM.new(
-    model_name="cnn",
-    num_classes=2,
-    optimizer_config={"lr": 1e-3}
-)
+model = ChimeraLM.new(model_name="cnn", num_classes=2, optimizer_config={"lr": 1e-3})
 ```
 
 ______________________________________________________________________
@@ -223,10 +211,7 @@ from chimeralm.models.callbacks import PredictionWriter
 import lightning as L
 
 # Create callback
-writer = PredictionWriter(
-    output_dir="predictions/",
-    write_interval="batch"
-)
+writer = PredictionWriter(output_dir="predictions/", write_interval="batch")
 
 # Use with trainer
 trainer = L.Trainer(callbacks=[writer])

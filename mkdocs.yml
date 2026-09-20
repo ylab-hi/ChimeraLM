@@ -193,9 +193,7 @@ markdown_extensions:
   # Icons and emojis
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
-      emoji_generator:
-        !!python/name:material.extensions.emoji.to_svg # Admonitions with collapsible support
-
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg  # Admonitions with collapsible support
 
   - admonition
   - pymdownx.details

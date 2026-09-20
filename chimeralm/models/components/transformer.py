@@ -1,3 +1,5 @@
+"""CNN-transformer sequence classifier with sinusoidal positional encoding."""
+
 import math
 
 import torch
@@ -8,6 +10,7 @@ class SinusoidalPositionalEncoding(nn.Module):
     """Sine-cosine positional encoding for transformer models."""
 
     def __init__(self, d_model: int, max_len: int = 32768):
+        """Precompute the sine-cosine encoding table up to ``max_len`` positions."""
         super().__init__()
         pe = torch.zeros(max_len, d_model)
         position = torch.arange(0, max_len, dtype=torch.float32).unsqueeze(1)
@@ -18,14 +21,19 @@ class SinusoidalPositionalEncoding(nn.Module):
         self.register_buffer("pe", pe)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        assert x.size(1) <= self.pe.size(1), f"Sequence too long ({x.size(1)} > {self.pe.size(1)})"
+        """Add the positional encoding to the input embeddings."""
+        if x.size(1) > self.pe.size(1):
+            msg = f"Sequence too long ({x.size(1)} > {self.pe.size(1)})"
+            raise ValueError(msg)
 
-        # x: [B, L, D]
+        # Input layout is [batch, length, dim].
         pe = self.pe[:, : x.size(1), :].to(x.device)
         return x + pe
 
 
 class SequenceCNNTransformer(nn.Module):
+    """CNN downsampler feeding a transformer encoder with attention pooling."""
+
     def __init__(
         self,
         vocab_size: int,
@@ -39,6 +47,7 @@ class SequenceCNNTransformer(nn.Module):
         number_of_classes: int = 2,
         padding_idx: int = 4,
     ):
+        """Initialize the token embedding, CNN stack, positional encoder, transformer encoder, and heads."""
         super().__init__()
 
         self.number_of_classes = number_of_classes
@@ -80,6 +89,7 @@ class SequenceCNNTransformer(nn.Module):
         self.apply(self._init_weights)
 
     def forward(self, input_ids: torch.Tensor, input_quals: torch.Tensor | None = None):
+        """Classify sequences from token ids, ignoring optional quality scores."""
         x = self.embedding(input_ids)
 
         # CNN downsampling

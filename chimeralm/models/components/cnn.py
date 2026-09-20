@@ -1,8 +1,12 @@
+"""1D convolutional network for DNA sequence classification."""
+
 import torch
 from torch import nn
 
 
 class DNAConvNet(nn.Module):
+    """Convolutional classifier over learned DNA token embeddings."""
+
     def __init__(
         self,
         vocab_size: int,  # Size of vocabulary including special tokens
@@ -15,6 +19,7 @@ class DNAConvNet(nn.Module):
         dropout: float = 0.1,
         padding_idx: int = 4,  # Padding token ID
     ):
+        """Initialize the embedding, convolutional blocks, and classifier head."""
         super().__init__()
         self.number_of_classes = number_of_classes
         # Embedding layer instead of one-hot encoding
@@ -48,6 +53,11 @@ class DNAConvNet(nn.Module):
         )
 
     def forward(self, input_ids: torch.Tensor, input_quals: torch.Tensor | None = None) -> torch.Tensor:
+        """Classify a batch of DNA sequences.
+
+        ``input_ids`` holds token indices of shape ``[batch_size, seq_len]``; the returned logits have shape
+        ``[batch_size, number_of_classes]``. ``input_quals`` is accepted for interface compatibility and ignored.
+        """
         # Embed the sequence [batch_size, seq_len] -> [batch_size, seq_len, embed_dim]
         x = self.embedding(input_ids)
 
