@@ -46,7 +46,7 @@ num-traits = { version = "0.2" }
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
-rand = "0.10.2"
+rand = "0.10.3"
 rand_distr = "0.6"
 bitvec = "1.1"
 itertools = "0.15.0"
