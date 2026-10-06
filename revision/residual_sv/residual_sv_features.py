@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pandas as pd
 
-SIZE_BINS = [(50, 100), (100, 500), (500, 1000), (1000, 5000), (5000, 10000), (10000, 50000), (50000, 10**12)]
+SIZE_BINS = [(50, 100), (100, 500), (500, 1000), (1000, 5000), (5000, 10000), (10000, 50000), (50000, 10**12)]  # [lo, hi)
 SIZE_LABELS = ["50–100 bp", "100–500 bp", "500 bp–1 kb", "1–5 kb", "5–10 kb", "10–50 kb", ">50 kb"]
 SUP_BINS = [(3, 3), (4, 4), (5, 5), (6, 10), (11, 20), (21, 50), (51, 10**9)]
 SUP_LABELS = ["3", "4", "5", "6–10", "11–20", "21–50", ">50"]
@@ -41,10 +41,11 @@ def read_vcf(path: Path) -> pd.DataFrame:
     return pd.DataFrame(rows, columns=["chrom", "pos", "svtype", "svlen", "support"])
 
 
-def binned(series: pd.Series, bins, labels) -> pd.Series:
+def binned(series: pd.Series, bins, labels, *, closed: bool = False) -> pd.Series:
+    """Count values per bin; bins are [lo, hi) unless closed=True (integer ranges [lo, hi])."""
     out = pd.Series(0, index=labels, dtype=int)
     for (lo, hi), lab in zip(bins, labels, strict=True):
-        out[lab] = int(((series >= lo) & (series <= hi)).sum())
+        out[lab] = int(((series >= lo) & ((series <= hi) if closed else (series < hi))).sum())
     return out
 
 
@@ -68,7 +69,7 @@ def main() -> None:
             md.append(f"- {name} size: median {int(df['svlen'].median()):,} bp, <500 bp {(df['svlen']<500).mean()*100:.1f}%")
             md.append(f"- {name} SUPPORT: median {int(df['support'].median())}, ≤5 reads {(df['support']<=5).mean()*100:.1f}%")
             for col, bins, labels, kind in (("svlen", SIZE_BINS, SIZE_LABELS, "size"), ("support", SUP_BINS, SUP_LABELS, "support")):
-                b = binned(df[col], bins, labels)
+                b = binned(df[col], bins, labels, closed=(kind == "support"))
                 tables.append(pd.DataFrame({"set": label, "class": name, "feature": kind, "bin": b.index, "count": b.values, "pct": b.values / len(df) * 100}))
             tables.append(pd.DataFrame({"set": label, "class": name, "feature": "svtype", "bin": t.index, "count": t.values, "pct": t.values / len(df) * 100}))
         md.append("\n| SUPPORT ≥ | unsupported kept | unsupported removed (%) | supported kept | supported removed (%) | unsupported:supported |\n|---|---|---|---|---|---|")
