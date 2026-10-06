@@ -174,22 +174,49 @@ def main() -> None:
     (out / "summary.md").write_text("\n".join(md) + "\n")
     print("\n".join(md))
 
-    # ---- figure ----
+    # ---- figure: combined placeholder + one PDF per panel (for manual assembly in Inkscape) ----
+    panels = {
+        "a": ("Length of chimeric reads", lambda ax: panel_length(ax, data)),
+        "b": ("Artifact call rate by read length", lambda ax: panel_artifact_rate(ax, data)),
+        "c": ("Test-set performance by read length", lambda ax: panel_test_metrics(ax, met)),
+        "d": ("Retained vs removed chimeric reads", lambda ax: panel_retained_removed(ax, data)),
+    }
     fig, axes = plt.subplots(2, 2, figsize=(11, 8.5))
-    ax = axes[0, 0]
-    edges = np.logspace(np.log10(50), np.log10(300_000), 80)
+    for ax, (letter, (title, draw)) in zip(axes.flat, panels.items(), strict=True):
+        draw(ax)
+        ax.set_title(f"{letter}  {title}", loc="left", fontweight="bold")
+        ax.spines[["top", "right"]].set_visible(False)
+    fig.tight_layout()
+    fig.savefig(out / "sf_read_length.pdf")
+    fig.savefig(out / "sf_read_length.png", dpi=200)
+    plt.close(fig)
+    for letter, (title, draw) in panels.items():
+        fig, ax = plt.subplots(figsize=(5.2, 4.0))
+        draw(ax)
+        ax.set_title(title, loc="left")
+        ax.spines[["top", "right"]].set_visible(False)
+        fig.tight_layout()
+        fig.savefig(out / f"sf_read_length_{letter}.pdf")
+        plt.close(fig)
+    print(f"figures -> {out / 'sf_read_length.pdf'} + sf_read_length_[abcd].pdf")
+
+
+LOG_EDGES = np.logspace(np.log10(50), np.log10(300_000), 80)
+
+
+def panel_length(ax, data: dict[str, pd.DataFrame]) -> None:
     for plat, df in data.items():
-        ax.hist(df["read_len"], bins=edges, histtype="step", lw=1.6, color=C_PLATFORM[plat],
+        ax.hist(df["read_len"], bins=LOG_EDGES, histtype="step", lw=1.6, color=C_PLATFORM[plat],
                 label=f"WGA {PLATFORM_NAME[plat]} (n = {len(df):,})", density=True)
     ax.axvline(MAX_LEN, color="k", ls="--", lw=1)
     ax.text(MAX_LEN * 1.1, ax.get_ylim()[1] * 0.45, "32,768 bp\n(model input limit)", fontsize=8, va="top")
     ax.set_xscale("log")
     ax.set_xlabel("Chimeric read length (bp)")
     ax.set_ylabel("Density")
-    ax.set_title("a  Length of chimeric reads", loc="left", fontweight="bold")
     ax.legend(frameon=False, fontsize=8, loc="upper right")
 
-    ax = axes[0, 1]
+
+def panel_artifact_rate(ax, data: dict[str, pd.DataFrame]) -> None:
     w = 0.38
     x = np.arange(len(BIN_LABELS))
     for i, (plat, df) in enumerate(data.items()):
@@ -203,10 +230,10 @@ def main() -> None:
     ax.set_ylim(0, 115)
     ax.set_ylabel("Chimeric reads called artifact (%)")
     ax.set_xlabel("Read length bin (bp)")
-    ax.set_title("b  Artifact call rate by read length", loc="left", fontweight="bold")
     ax.legend(frameon=False, fontsize=8, loc="lower left")
 
-    ax = axes[1, 0]
+
+def panel_test_metrics(ax, met: pd.DataFrame) -> None:
     mb = met[(met["bin"] != "all") & (met["n"] >= 10)]  # bins with <10 reads are not informative
     xb = np.arange(len(mb))
     for j, (col, c) in enumerate([("precision", "#4c72b0"), ("recall", "#dd8452"), ("f1", "#55a868")]):
@@ -217,29 +244,21 @@ def main() -> None:
     ax.set_ylim(0, 1.12)
     ax.set_ylabel("Score (held-out test set)")
     ax.set_xlabel("Read length bin (bp)")
-    ax.set_title("c  Test-set performance by read length", loc="left", fontweight="bold")
     ax.legend(frameon=False, fontsize=8, ncol=3, loc="lower left")
 
-    ax = axes[1, 1]
+
+def panel_retained_removed(ax, data: dict[str, pd.DataFrame]) -> None:
     for plat, df in data.items():
         ls = "-" if plat == "p2" else "--"
-        ax.hist(df.loc[df["pred"] == 0, "read_len"], bins=edges, histtype="step", lw=1.5, ls=ls, color=C_RETAIN,
+        ax.hist(df.loc[df["pred"] == 0, "read_len"], bins=LOG_EDGES, histtype="step", lw=1.5, ls=ls, color=C_RETAIN,
                 density=True, label=f"{PLATFORM_NAME[plat]} retained (genuine)")
-        ax.hist(df.loc[df["pred"] == 1, "read_len"], bins=edges, histtype="step", lw=1.5, ls=ls, color=C_REMOVE,
+        ax.hist(df.loc[df["pred"] == 1, "read_len"], bins=LOG_EDGES, histtype="step", lw=1.5, ls=ls, color=C_REMOVE,
                 density=True, label=f"{PLATFORM_NAME[plat]} removed (artifact)")
     ax.axvline(MAX_LEN, color="k", ls="--", lw=1)
     ax.set_xscale("log")
     ax.set_xlabel("Chimeric read length (bp)")
     ax.set_ylabel("Density")
-    ax.set_title("d  Retained vs removed chimeric reads", loc="left", fontweight="bold")
     ax.legend(frameon=False, fontsize=7.5)
-
-    for a in axes.flat:
-        a.spines[["top", "right"]].set_visible(False)
-    fig.tight_layout()
-    fig.savefig(out / "sf_read_length.pdf")
-    fig.savefig(out / "sf_read_length.png", dpi=200)
-    print(f"figure -> {out / 'sf_read_length.pdf'}")
 
 
 if __name__ == "__main__":
