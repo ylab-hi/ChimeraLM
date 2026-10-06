@@ -30,3 +30,9 @@ All runs on Quest `qgpu0517` (job 8732745) unless noted. Code repo `ylab-hi/Chim
 - Transfer: ENA wget 1.4 MB/s and Aspera (auth refused) abandoned; NCBI `prefetch` (sratoolkit 3.0.0) → `vdb-validate` → `fasterq-dump --threads 16` to plain FASTQ. Command (qgpu0517, nohup): `revision/external/hcc78/download_hcc78.sh` → `revision/external/hcc78/raw/<name>_<run>.fastq`; log `logs/revision/hcc78_download.log` (ALL_DONE at end).
 - Not yet run: alignment / prediction (awaiting PI approval).
 - Other candidates evaluated and parked: PRJNA935844 (NA12878 MDA, PacBio CLR, 3rd-ChimeraMiner authors); EGAS50000001156 (brain dMDA ONT, controlled); SciLifeLab 10.17044/scilifelab.22730684 (T-cell dMDA HiFi, controlled).
+
+## 2026-10-06 — residual_sv (R3.Q6, R3.Q11)
+
+- Commit `4911567` (+ bin fix). Login node, seconds. Inputs: Truvari outputs of QG's SUPPORT≥3 benchmark (`20260401_R2Q1_.../2_cross_platform_strict_GT_truvari_benchmark/3{b,c}_right_*/truvari_output/{fp,tp-comp}.vcf.gz`).
+- Command: `uv run --no-sync python revision/residual_sv/residual_sv_features.py PromethION=<3b_right> MinION=<3c_right> --out revision/residual_sv/out_20261006`
+- Result: P2 unsupported 4,332 (INV 24.0 %, median 189 bp, median SUPPORT 4) vs supported 4,490 (1 INV, median SUPPORT 10); SUPPORT≥5 removes 56.3 % unsupported / 20.1 % supported; ≥10: 80.3 % / 48.6 %. Mk1c 606 vs 1,450; stricter thresholds remove both classes similarly. → Ext Data Fig 4.
