@@ -182,12 +182,12 @@ def main() -> None:
         ax.hist(df["read_len"], bins=edges, histtype="step", lw=1.6, color=C_PLATFORM[plat],
                 label=f"WGA {PLATFORM_NAME[plat]} (n = {len(df):,})", density=True)
     ax.axvline(MAX_LEN, color="k", ls="--", lw=1)
-    ax.text(MAX_LEN * 1.1, ax.get_ylim()[1] * 0.9, "32,768 bp", fontsize=8, va="top")
+    ax.text(MAX_LEN * 1.1, ax.get_ylim()[1] * 0.45, "32,768 bp\n(model input limit)", fontsize=8, va="top")
     ax.set_xscale("log")
     ax.set_xlabel("Chimeric read length (bp)")
     ax.set_ylabel("Density")
     ax.set_title("a  Length of chimeric reads", loc="left", fontweight="bold")
-    ax.legend(frameon=False, fontsize=8)
+    ax.legend(frameon=False, fontsize=8, loc="upper right")
 
     ax = axes[0, 1]
     w = 0.38
@@ -207,7 +207,7 @@ def main() -> None:
     ax.legend(frameon=False, fontsize=8, loc="lower left")
 
     ax = axes[1, 0]
-    mb = met[met["bin"] != "all"]
+    mb = met[(met["bin"] != "all") & (met["n"] >= 10)]  # bins with <10 reads are not informative
     xb = np.arange(len(mb))
     for j, (col, c) in enumerate([("precision", "#4c72b0"), ("recall", "#dd8452"), ("f1", "#55a868")]):
         ax.bar(xb + (j - 1) * 0.27, mb[col], 0.27, color=c, label=col.capitalize() if col != "f1" else "F1")

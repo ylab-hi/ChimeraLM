@@ -19,3 +19,5 @@ All runs on Quest `qgpu0517` (job 8732745) unless noted. Code repo `ylab-hi/Chim
   ```
 - Predictions used downstream (local, not re-run): `chimeralm_paper/figures/data/prediction_and_chimeric/hyena_p2_765108_bulk_{p2,mk1c}_predicts.txt` (class 1 = artifact; model ckpt `logs/train/runs/2025-08-14_21-53-45/checkpoints/epoch_005_f1_0.8037.ckpt`)
 - CPU only; GPUs idle.
+- Result (2026-10-06, 345 s for P2, 45 s for Mk1c): P2 12,963,576 chimeric reads, median 2,100 bp, 1,211 (0.009 %) > 32,768 bp, 2 with all junctions beyond 32,768; Mk1c 1,666,427, median 1,469 bp, 6 > 32,768. Test-set (WGA-derived, n = 58,636) P/R/F1 by bin in `chimeralm_paper/figures/data/revision/read_length/analysis/`. Figure → manuscript Extended Data Fig. 2 (`figures/final_figures/sf_read_length.pdf`).
+- Note: TSVs were produced with the pre-fix junction definition (soft-clip boundaries counted); `analyze.py` recomputes junctions from the `segments` column, so results use the corrected definition. Script fixed in `56fde1f`.
