@@ -1,0 +1,9 @@
+run	sample	strategy	selection	bytes	md5	url
+SRR21397275	sample_1	WGS	RANDOM	11735837992	65a48d4cafbca94e732a619249b64f33	https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR213/075/SRR21397275/SRR21397275_1.fastq.gz
+SRR21397274	sample_2	WGS	RANDOM	22967536831	d2617a402b81480b44937477146f55fa	https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR213/074/SRR21397274/SRR21397274_1.fastq.gz
+SRR21397273	sample_3	WGA	MDA	17313462450	22c057410456276622764b5eb2ddfd76	https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR213/073/SRR21397273/SRR21397273_1.fastq.gz
+SRR21397272	sample_4	WGA	MDA	26132402368	7dffdc05d4b42273f730a3bad42f3a0f	https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR213/072/SRR21397272/SRR21397272_1.fastq.gz
+SRR21397271	sample_5	WGA	MDA	4012315178	5a86ac395ae1deae1c7a2bcb38371191	https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR213/071/SRR21397271/SRR21397271_1.fastq.gz
+SRR21397270	sample_6	WGA	MDA	4539193492	3153a220f5830199e0b58c219d9fa7dc	https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR213/070/SRR21397270/SRR21397270_1.fastq.gz
+SRR21397269	sample_7	WGA	MDA	928795769	0e89b1191bdca5e58b00aac98ed3bc57	https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR213/069/SRR21397269/SRR21397269_1.fastq.gz
+SRR21397268	sample_8	WGA	other	530011569	ad15cfc1d156b133f449984f64eb3859	https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR213/068/SRR21397268/SRR21397268_1.fastq.gz
