@@ -36,3 +36,8 @@ All runs on Quest `qgpu0517` (job 8732745) unless noted. Code repo `ylab-hi/Chim
 - Commit `4911567` (+ bin fix). Login node, seconds. Inputs: Truvari outputs of QG's SUPPORT≥3 benchmark (`20260401_R2Q1_.../2_cross_platform_strict_GT_truvari_benchmark/3{b,c}_right_*/truvari_output/{fp,tp-comp}.vcf.gz`).
 - Command: `uv run --no-sync python revision/residual_sv/residual_sv_features.py PromethION=<3b_right> MinION=<3c_right> --out revision/residual_sv/out_20261006`
 - Result: P2 unsupported 4,332 (INV 24.0 %, median 189 bp, median SUPPORT 4) vs supported 4,490 (1 INV, median SUPPORT 10); SUPPORT≥5 removes 56.3 % unsupported / 20.1 % supported; ≥10: 80.3 % / 48.6 %. Mk1c 606 vs 1,450; stricter thresholds remove both classes similarly. → Ext Data Fig 4.
+
+## 2026-10-06 — context_bench (R3.Q8)
+
+- Commit `3f64602`; qgpu0517 GPU 1 (A100 80GB), `CUDA_VISIBLE_DEVICES=1 uv run --no-sync python revision/context_bench/bench.py --out revision/context_bench/out_20261006`; log `logs/revision/context_bench.log`.
+- Result: released model (4.26 M params) batch 12: 1,512 / 787 / 402 / 200 / 96 reads/s at 2/4/8/16/32 kb, peak 0.38/0.73/1.42/2.81/5.58 GB. hyenadna-medium-160k (7.54 M) at 160 kb: 8.2 reads/s, 31.1 GB (batch 12). No retraining performed (PI decision: 32 k sufficient; longer contexts as future upgrade).
