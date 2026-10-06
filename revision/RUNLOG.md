@@ -41,3 +41,15 @@ All runs on Quest `qgpu0517` (job 8732745) unless noted. Code repo `ylab-hi/Chim
 
 - Commit `3f64602`; qgpu0517 GPU 1 (A100 80GB), `CUDA_VISIBLE_DEVICES=1 uv run --no-sync python revision/context_bench/bench.py --out revision/context_bench/out_20261006`; log `logs/revision/context_bench.log`.
 - Result: released model (4.26 M params) batch 12: 1,512 / 787 / 402 / 200 / 96 reads/s at 2/4/8/16/32 kb, peak 0.38/0.73/1.42/2.81/5.58 GB. hyenadna-medium-160k (7.54 M) at 160 kb: 8.2 reads/s, 31.1 GB (batch 12). No retraining performed (PI decision: 32 k sufficient; longer contexts as future upgrade).
+
+## 2026-10-06 — hcc78 preprocessing (R2.Q2, R3.Q2/Q3/Q5)
+
+- Download complete 16:35 CDT (prefetch/vdb-validate/fasterq-dump): sample_3 scWGA MDA R10.4 38.0 GB, sample_8 MALBAC 1.3 GB, sample_1 bulk R10.4 26.0 GB, sample_2 bulk R9.4.1 53.1 GB (plain FASTQ).
+- Commit `eeb8147`. Launched 16:47 CDT on qgpu0517 (nohup): `revision/external/hcc78/run_preprocess_all.sh` → `preprocess_sample.sh <name> <threads>`: chopper -q10 -l500 → porechop_abi -abi → cutadapt (LSK adapters, e=0.1, times=2) → minimap2 -ax map-ont --MD -Y (GRCh38.p13 mmi, same as PC3) → samtools sort/index/flagstat. Two samples at a time, 24 threads each (wave 1: sample_3 + sample_8; wave 2: sample_1 + sample_2).
+- Tools: conda env `/projects/b1171/ylk4626/mambaforge/envs/deepchopper` (samtools 1.19.2, minimap2 2.28-r1209, chopper 0.8.0, porechop_abi 0.5.0); cutadapt 5.2 (`uv tool install`). PC3 used minimap2 2.26 / samtools 1.16 / cutadapt 4.4.
+- Logs: `logs/revision/hcc78_pre_sample{3,8,1,2}.log`, driver `hcc78_pre_driver.log`, flag `hcc78_pre_done.flag`. Outputs: `revision/external/hcc78/bam/<sample>.bam`.
+- Next (needs approval): `annotate` labels (prebuilt `target/x86_64-unknown-linux-gnu/release/annotate`, 2025-08-18) → `chimeralm predict` → metrics.
+
+## 2026-10-06 — artifact_scaling data (R3.Q9)
+
+- Commit `4a35bf5`; built on qgpu0517 (`logs/revision/artifact_scaling_build.log`): `data/train_data/p2_765108_bulk/train_art2x.parquet` (740,801 rows = 330,349 genuine + 410,452 artifacts) and `train_art4x.parquet` (1,151,253 = 330,349 + 820,904); validation/test untouched; seed 12345; artifacts sampled from the 12,377,216 unused support-0 reads (nested: 2x ⊂ 4x). Training NOT launched.
