@@ -25,7 +25,8 @@ All runs on Quest `qgpu0517` (job 8732745) unless noted. Code repo `ylab-hi/Chim
 ## 2026-10-06 — external/hcc78 download (R2.Q2, R3.Q2, R3.Q3, R3.Q5)
 
 - Dataset: PRJNA875576, Ni et al. 2023 CSBJ (doi 10.1016/j.csbj.2023.03.038), City Univ. Hong Kong. Single HCC78 cells, REPLI-g Single Cell MDA (sample_3–7) + MALBAC (sample_8), ONT MinION R10.4 (LSK112) / R9.4.1 (LSK110), Guppy 6; bulk HCC78 WGS R10.4 (sample_1) and R9.4.1 (sample_2).
-- Manifest (ENA FASTQ URLs + md5): `revision/external/hcc78/manifest.tsv` (8 ONT runs, 88.2 GB; Illumina run sample_9 skipped).
-- Command (qgpu0517, nohup): `revision/external/hcc78/download_hcc78.sh` → `revision/external/hcc78/raw/<sample>_<run>_<strategy>_<selection>.fastq.gz`; log `logs/revision/hcc78_download.log` (md5 OK/MISMATCH per file, ALL_DONE at end).
+- Manifest of all 8 ONT runs (ENA URLs + md5) kept for reference: `revision/external/hcc78/manifest.tsv`.
+- PI decision: download only the runs needed — SRR21397273 (sample_3, scWGA MDA R10.4, test), SRR21397275 (sample_1, bulk R10.4), SRR21397274 (sample_2, bulk R9.4.1; both bulks ≈13× for labelling), SRR21397268 (sample_8, MALBAC). ≈52 GB gz.
+- Transfer: ENA wget 1.4 MB/s and Aspera (auth refused) abandoned; NCBI `prefetch` (sratoolkit 3.0.0) → `vdb-validate` → `fasterq-dump --threads 16` to plain FASTQ. Command (qgpu0517, nohup): `revision/external/hcc78/download_hcc78.sh` → `revision/external/hcc78/raw/<name>_<run>.fastq`; log `logs/revision/hcc78_download.log` (ALL_DONE at end).
 - Not yet run: alignment / prediction (awaiting PI approval).
 - Other candidates evaluated and parked: PRJNA935844 (NA12878 MDA, PacBio CLR, 3rd-ChimeraMiner authors); EGAS50000001156 (brain dMDA ONT, controlled); SciLifeLab 10.17044/scilifelab.22730684 (T-cell dMDA HiFi, controlled).
