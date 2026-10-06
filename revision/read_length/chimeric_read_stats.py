@@ -101,9 +101,11 @@ def main() -> None:
                     continue
                 segs.append(sa_query_interval(f[3], f[2], read_len))
             segs.sort()
-            bounds = sorted({p for s, e in segs for p in (s, e)} - {0, read_len})
-            first_j = bounds[0] if bounds else -1
-            last_j = bounds[-1] if bounds else -1
+            # junction = boundary between consecutive segments (midpoint of overlap/gap);
+            # leading/trailing soft clips are not junctions
+            junctions = [(segs[i][1] + segs[i + 1][0]) // 2 for i in range(len(segs) - 1)]
+            first_j = min(junctions) if junctions else -1
+            last_j = max(junctions) if junctions else -1
             out.write(
                 f"{read.query_name}\t{read_len}\t{read.mapping_quality}\t{len(segs)}\t{first_j}\t{last_j}\t"
                 + ";".join(f"{s}-{e}" for s, e in segs)
