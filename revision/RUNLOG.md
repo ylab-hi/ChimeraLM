@@ -61,3 +61,9 @@ All runs on Quest `qgpu0517` (job 8732745) unless noted. Code repo `ylab-hi/Chim
 - Evaluation (`revision/external/hcc78/eval_20261007/`): MDA R10.4 — 81.7 % of chimeric reads called artifact; chimeric fraction 66.6 % → 26.8 % (bulk R10.4 21.0 %, R9.4.1 7.9 %); P/R/F1 0.997/0.817/0.898; bulk-supported reads retained 293/7,018 (4.2 %). MALBAC — 87.3 % called artifact; 6.8 % → 0.9 %; P/R/F1 0.955/0.873/0.912; retained 164/1,225 (13.4 %).
 - Diagnostic launched (`run_predict_bulk.sh`, both GPUs, GPFS caches): frozen model on the two bulk BAMs; flag `hcc78_predict_bulk_done.flag`.
 - 2026-10-07 09:14 PREDICT_BULK_DONE (diagnostic, not in manuscript): frozen model on HCC78 bulk chimeric reads — R10.4: 411,285 / 654,895 (62.8 %) called artifact; R9.4.1: 207,313 / 359,374 (57.7 %). Bulk libraries are 21.0 % / 7.9 % chimeric (PC3 bulk 2.3 %); interpretation: large share of HCC78 bulk chimeras are likely library/informatic chimeras → bulk-support labels noisy; low WGA retention (4.2 % / 13.4 %) not WGA-specific. PI decision: retention not reported in manuscript/letter.
+
+## 2026-10-07 — artifact_scaling training (R3.Q9)
+
+- Commit `367f15e` (configs: stale `chimera.` targets → `chimeralm.`; first launch 09:33 failed on this). Relaunched 09:35 CDT on qgpu0517 (both GPUs, DDP): `revision/artifact_scaling/run_training.sh` → `train.py experiment=hyena seed=12345 data.train_data_path=train_art{2,4}x.parquet (val/test unchanged) data.batch_size=16 trainer.min_epochs=6 trainer.max_epochs=8 callbacks.early_stopping.patience=3`; HF caches on GPFS.
+- Outputs: `revision/artifact_scaling/art2x_20261007_0935/`, then `art4x_20261007_0935/` (checkpoints under `checkpoints/`); logs `logs/revision/artifact_scaling_art{2,4}x.log`; flag `logs/revision/artifact_scaling_done.flag`. Estimated ≈1.8 d + 2.8 d.
+- Next: test-set P/R/F1 for released / art2x / art4x (same test split) and Mk1c chimeric-read reduction per model.
