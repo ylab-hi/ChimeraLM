@@ -1,7 +1,7 @@
 _target_: chimeralm.data.fq.DataModule
 
 tokenizer:
-  # _target_: chimera.data.tokenizer.CharacterTokenizer
+  # _target_: chimeralm.data.tokenizer.CharacterTokenizer
   # model_max_length: 32768
   # padding_side: "right"
 

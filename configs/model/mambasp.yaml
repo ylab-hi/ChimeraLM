@@ -1,7 +1,7 @@
-_target_: chimera.models.basic_module.ClassificationLit
+_target_: chimeralm.models.basic_module.ClassificationLit
 
 net:
-  _target_: chimera.models.mamba.MambaSequenceClassificationSP
+  _target_: chimeralm.models.mamba.MambaSequenceClassificationSP
   vocab_size: 12
   embedding_dim: 512
   number_of_layers: 3

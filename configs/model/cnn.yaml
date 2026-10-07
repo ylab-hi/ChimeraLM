@@ -1,7 +1,7 @@
-_target_: chimera.models.basic_module.ClassificationLit
+_target_: chimeralm.models.basic_module.ClassificationLit
 
 net:
-  _target_: chimera.models.cnn.DNAConvNet
+  _target_: chimeralm.models.cnn.DNAConvNet
   vocab_size: 12
   embedding_dim: 256
   num_filters: [256, 256, 256]

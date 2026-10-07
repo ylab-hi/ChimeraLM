@@ -1,7 +1,7 @@
-_target_: chimera.models.basic_module.ClassificationLit
+_target_: chimeralm.models.basic_module.ClassificationLit
 
 net:
-  _target_: chimera.models.transformer.SequenceCNNTransformer
+  _target_: chimeralm.models.transformer.SequenceCNNTransformer
   vocab_size: 12
   max_len: 32768
   d_model: 256
