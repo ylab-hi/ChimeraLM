@@ -53,3 +53,5 @@ All runs on Quest `qgpu0517` (job 8732745) unless noted. Code repo `ylab-hi/Chim
 ## 2026-10-06 — artifact_scaling data (R3.Q9)
 
 - Commit `4a35bf5`; built on qgpu0517 (`logs/revision/artifact_scaling_build.log`): `data/train_data/p2_765108_bulk/train_art2x.parquet` (740,801 rows = 330,349 genuine + 410,452 artifacts) and `train_art4x.parquet` (1,151,253 = 330,349 + 820,904); validation/test untouched; seed 12345; artifacts sampled from the 12,377,216 unused support-0 reads (nested: 2x ⊂ 4x). Training NOT launched.
+- 19:56 CDT: count-chimeric done — sample_3: 3,033,649 chimeric reads (66.6 % of 4,552,015 mapped primary); sample_8 MALBAC: 26,916 (6.8 % of 394,385). sample_8 predictions complete (26,916). sample_3 predict FAILED: `OSError: Disk quota exceeded` (HF datasets cache in $HOME).
+- 20:00 CDT: relaunched sample_3 with `HF_HOME/HF_DATASETS_CACHE/TMPDIR` under `tmp/` on GPFS (`run_predict_s3.sh`, GPU 0); flag `hcc78_predict_s3_done.flag`.
