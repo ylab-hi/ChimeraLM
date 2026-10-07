@@ -57,3 +57,6 @@ All runs on Quest `qgpu0517` (job 8732745) unless noted. Code repo `ylab-hi/Chim
 - 20:00 CDT: relaunched sample_3 with `HF_HOME/HF_DATASETS_CACHE/TMPDIR` under `tmp/` on GPFS (`run_predict_s3.sh`, GPU 0); flag `hcc78_predict_s3_done.flag`.
 - 22:54 CDT: PREPROCESS_ALL_DONE (sample_1 20:55, sample_2 22:54).
 - 2026-10-07 00:23 CDT: launched `run_annotate.sh` (prebuilt `annotate`, --ovr-threshold 1000, -t 32, cbam = both bulk BAMs, dbam = sample_3 + sample_8); log `logs/revision/hcc78_annotate.log`, flag `hcc78_annotate_done.flag`. Bulk chimeric events: sample_1 654,895; sample_2 359,374.
+- 2026-10-07 01:03 ANNOTATE_DONE; 02:50 sample_3 predict done (252,805 batches). Labels: sample_3 support≥1 = 7,018 of 3,033,649 (0.23 %); MALBAC 1,225 of 26,916 (4.6 %).
+- Evaluation (`revision/external/hcc78/eval_20261007/`): MDA R10.4 — 81.7 % of chimeric reads called artifact; chimeric fraction 66.6 % → 26.8 % (bulk R10.4 21.0 %, R9.4.1 7.9 %); P/R/F1 0.997/0.817/0.898; bulk-supported reads retained 293/7,018 (4.2 %). MALBAC — 87.3 % called artifact; 6.8 % → 0.9 %; P/R/F1 0.955/0.873/0.912; retained 164/1,225 (13.4 %).
+- Diagnostic launched (`run_predict_bulk.sh`, both GPUs, GPFS caches): frozen model on the two bulk BAMs; flag `hcc78_predict_bulk_done.flag`.
