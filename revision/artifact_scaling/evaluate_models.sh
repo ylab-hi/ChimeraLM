@@ -14,7 +14,7 @@ echo "released=$CK1" > $O/checkpoints.txt; echo "art2x=$CK2" >> $O/checkpoints.t
 # (a) test-split metrics (trainer.test; no predict_data_path => test mode)
 for name in released art2x; do
   ck=$([ $name = released ] && echo $CK1 || echo $CK2)
-  CUDA_VISIBLE_DEVICES=0 ~/.local/bin/uv run --no-sync python eval.py experiment=hyena tags="[eval,$name]" \
+  CUDA_VISIBLE_DEVICES=0 ~/.local/bin/uv run --no-sync python eval.py +experiment=hyena tags="[eval,$name]" \
     ckpt_path=$ck data.test_data_path=$D/test.parquet data.batch_size=24 data.num_workers=16 \
     trainer.devices=1 hydra.run.dir=$O/test_$name > $L/artifact_scaling_eval_test_$name.log 2>&1
   echo "[$(date)] test $name rc=$?"
