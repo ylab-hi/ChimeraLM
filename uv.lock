@@ -712,13 +712,13 @@ requires-dist = [
     { name = "plotly", specifier = ">=5.0.0" },
     { name = "pyfastx", specifier = ">=2.2.0" },
     { name = "pysam", specifier = ">=0.24.1" },
-    { name = "rich", specifier = ">=13.9.4" },
+    { name = "rich", specifier = ">=15.0.0" },
     { name = "torch", specifier = "==2.14.0" },
     { name = "torchaudio", specifier = ">=2.5.0" },
-    { name = "torchmetrics", specifier = ">=1.6.0" },
+    { name = "torchmetrics", specifier = ">=1.9.0" },
     { name = "torchvision", specifier = ">=0.20.1" },
     { name = "transformers", specifier = ">=5.18.0" },
-    { name = "typer", specifier = ">=0.15.1" },
+    { name = "typer", specifier = ">=0.27.2" },
 ]
 
 [package.metadata.requires-dev]
@@ -740,15 +740,15 @@ dev = [
     { name = "seaborn", specifier = ">=0.13.2" },
     { name = "sqlalchemy", specifier = ">=2.0.37" },
     { name = "statsmodels", specifier = ">=0.15.0" },
-    { name = "wandb", specifier = ">=0.19.0" },
+    { name = "wandb", specifier = ">=0.30.0" },
 ]
 docs = [
     { name = "mkdocs", specifier = ">=1.5.0" },
     { name = "mkdocs-git-committers-plugin-2", specifier = ">=2.5.0" },
     { name = "mkdocs-git-revision-date-localized-plugin", specifier = ">=1.4.7" },
     { name = "mkdocs-jupyter", specifier = ">=0.24.0" },
-    { name = "mkdocs-material", specifier = ">=9.0.0" },
-    { name = "mkdocs-material", extras = ["imaging"], specifier = ">=9.0.0" },
+    { name = "mkdocs-material", specifier = ">=9.7.7" },
+    { name = "mkdocs-material", extras = ["imaging"], specifier = ">=9.7.7" },
     { name = "mkdocs-minify-plugin", specifier = ">=0.8.0" },
     { name = "mkdocstrings", extras = ["python"], specifier = ">=1.0.6" },
     { name = "pymdown-extensions", specifier = ">=10.0" },
