@@ -59,7 +59,7 @@ chimeralm = "chimeralm.__main__:app"
 
 [dependency-groups]
 dev = [
-  "fire>=0.7.0",
+  "fire>=0.7.1",
   "hydra-colorlog>=1.2.0",
   "hydra-optuna-sweeper>=1.3.0",
   "hydra-submitit-launcher>=1.2.0",
