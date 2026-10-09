@@ -61,11 +61,7 @@ fn check_overlap(
 
     let start_diff = interval1.start.abs_diff(interval2.start);
     let end_diff = interval1.end.abs_diff(interval2.end);
-    if start_diff <= threshold && end_diff <= threshold {
-        return true;
-    }
-
-    false
+    start_diff <= threshold && end_diff <= threshold
 }
 
 fn is_same_chimeric_event(

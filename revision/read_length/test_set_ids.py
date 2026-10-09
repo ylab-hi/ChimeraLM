@@ -16,6 +16,16 @@ import pyarrow.parquet as pq
 
 
 def main(parquet: str, out: str) -> None:
+    """Extract id, label, and sequence length from a parquet file.
+
+    Reads a parquet file with "id" column ("<read_name>|<label>") and "seq" column.
+    Writes tab-separated output with name, label, and sequence length.
+
+    Args:
+        parquet: Path to input parquet file.
+        out: Path to output gzipped TSV file.
+
+    """
     pf = pq.ParquetFile(parquet)
     n = 0
     with gzip.open(out, "wt") as fh:
@@ -28,7 +38,6 @@ def main(parquet: str, out: str) -> None:
                 name, _, label = rid.rpartition("|")
                 fh.write(f"{name}\t{label}\t{ln}\n")
                 n += 1
-    print(f"wrote {n:,} rows to {out}", file=sys.stderr)
 
 
 if __name__ == "__main__":

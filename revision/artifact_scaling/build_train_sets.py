@@ -15,7 +15,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import glob
+import logging
 import random
 import sys
 from pathlib import Path
@@ -24,8 +24,19 @@ import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.parquet as pq
 
+logger = logging.getLogger(__name__)
+
 
 def split_ids(path: Path) -> tuple[set[str], int, int]:
+    """Read IDs and artifact/genuine counts from a parquet file.
+
+    Args:
+        path: Path to parquet file.
+
+    Returns:
+        Tuple of (set of read IDs, artifact count, genuine count).
+
+    """
     names, n_art, n_gen = set(), 0, 0
     pf = pq.ParquetFile(path)
     for rg in range(pf.num_row_groups):
@@ -39,57 +50,52 @@ def split_ids(path: Path) -> tuple[set[str], int, int]:
     return names, n_art, n_gen
 
 
-def main() -> None:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--support", required=True)
-    ap.add_argument("--split-dir", required=True)
-    ap.add_argument("--chunks", required=True)
-    ap.add_argument("--multipliers", nargs="+", type=int, default=[2, 4])
-    ap.add_argument("--seed", type=int, default=12345)
-    args = ap.parse_args()
-    split_dir = Path(args.split_dir)
+def load_artifact_pool(support_path: str, used: set[str]) -> list[str]:
+    """Load unused artifacts from support file.
 
-    used: set[str] = set()
-    for s in ("train", "validation", "test"):
-        names, n_art, n_gen = split_ids(split_dir / f"{s}.parquet")
-        used |= names
-        print(f"{s}: artifacts {n_art:,} genuine {n_gen:,}", file=sys.stderr)
-        if s == "train":
-            train_art, train_gen = n_art, n_gen
-    print(f"reads already used: {len(used):,}", file=sys.stderr)
+    Args:
+        support_path: Path to support file.
+        used: Set of read IDs already used in splits.
 
+    Returns:
+        List of unused artifact read IDs.
+
+    """
     pool = []
-    with open(args.support) as fh:
+    with Path(support_path).open() as fh:
         for line in fh:
             name, sup = line.split()[:2]
             if sup == "0" and name not in used:
                 pool.append(name)
-    print(f"unused artifact pool: {len(pool):,}", file=sys.stderr)
+    logger.info("unused artifact pool: %d", len(pool))
+    return pool
 
-    rng = random.Random(args.seed)
-    rng.shuffle(pool)
-    need_max = train_art * (max(args.multipliers) - 1)
-    if need_max > len(pool):
-        raise SystemExit(f"pool too small: need {need_max:,}, have {len(pool):,}")
-    # nested sampling: the 2x set is a subset of the 4x set
-    picks = {m: set(pool[: train_art * (m - 1)]) for m in args.multipliers}
-    all_picked = picks[max(args.multipliers)]
 
-    schema = pq.ParquetFile(split_dir / "train.parquet").schema_arrow
-    writers = {m: pq.ParquetWriter(split_dir / f"train_art{m}x.parquet", schema) for m in args.multipliers}
-    counts = {m: 0 for m in args.multipliers}
+def append_sampled_artifacts(
+    writers: dict[int, pq.ParquetWriter],
+    chunks_pattern: str,
+    picks: dict[int, set[str]],
+    schema: pa.Schema,
+) -> dict[int, int]:
+    """Stream chunks and append the sampled artifacts (label 1) to the open per-multiplier writers.
 
-    # 1) copy original training split verbatim
-    pf = pq.ParquetFile(split_dir / "train.parquet")
-    for rg in range(pf.num_row_groups):
-        tbl = pf.read_row_group(rg)
-        for m in args.multipliers:
-            writers[m].write_table(tbl)
-            counts[m] += tbl.num_rows
+    Args:
+        writers: Open ParquetWriter per multiplier (already holding the original train split).
+        chunks_pattern: Glob pattern for chunk files (wildcard in the final path component).
+        picks: Mapping of multiplier to picked read IDs.
+        schema: Arrow schema for output files.
 
-    # 2) stream chunks, append sampled artifacts with label 1
+    Returns:
+        Mapping of multiplier to number of appended rows.
+
+    """
+    multipliers = list(writers)
+    all_picked = picks[max(multipliers)]
+    counts = dict.fromkeys(multipliers, 0)
     value_set = pa.array(list(all_picked), pa.string())
-    for path in sorted(glob.glob(args.chunks)):
+
+    pattern = Path(chunks_pattern)
+    for path in sorted(pattern.parent.glob(pattern.name)):
         cf = pq.ParquetFile(path)
         for rg in range(cf.num_row_groups):
             tbl = cf.read_row_group(rg)
@@ -98,7 +104,7 @@ def main() -> None:
             if sub.num_rows == 0:
                 continue
             ids = sub["id"].to_pylist()
-            for m in args.multipliers:
+            for m in multipliers:
                 keep = [i for i, rid in enumerate(ids) if rid in picks[m]]
                 if not keep:
                     continue
@@ -106,11 +112,79 @@ def main() -> None:
                 part = part.set_column(0, "id", pa.array([f"{rid}|1" for rid in part["id"].to_pylist()], pa.string()))
                 writers[m].write_table(part.cast(schema))
                 counts[m] += part.num_rows
-        print(f"{Path(path).name} done", file=sys.stderr, flush=True)
+        logger.info("%s done", path.name)
+
+    return counts
+
+
+def main() -> None:
+    """Build training sets with artifact augmentation.
+
+    Parse arguments, load artifact pool, and create augmented training sets.
+    """
+    ap = argparse.ArgumentParser(
+        description="Build training sets with 2x/4x WGA-artifact augmentation.",
+    )
+    ap.add_argument("--support", required=True, help="Support file path")
+    ap.add_argument("--split-dir", required=True, help="Directory with split files")
+    ap.add_argument("--chunks", required=True, help="Glob pattern for chunk files")
+    ap.add_argument("--multipliers", nargs="+", type=int, default=[2, 4])
+    ap.add_argument("--seed", type=int, default=12345)
+    args = ap.parse_args()
+
+    logging.basicConfig(level=logging.INFO, format="%(message)s", stream=sys.stderr)
+
+    split_dir = Path(args.split_dir)
+
+    used: set[str] = set()
+    for s in ("train", "validation", "test"):
+        names, n_art, n_gen = split_ids(split_dir / f"{s}.parquet")
+        used |= names
+        logger.info("%s: artifacts %d genuine %d", s, n_art, n_gen)
+        if s == "train":
+            train_art, train_gen = n_art, n_gen
+    logger.info("reads already used: %d", len(used))
+
+    pool = load_artifact_pool(args.support, used)
+
+    # Use seeded random for reproducibility
+    rng = random.Random(args.seed)  # noqa: S311
+    rng.shuffle(pool)
+    need_max = train_art * (max(args.multipliers) - 1)
+    if need_max > len(pool):
+        msg = f"pool too small: need {need_max:,}, have {len(pool):,}"
+        raise SystemExit(msg)
+    # nested sampling: the 2x set is a subset of the 4x set
+    picks = {m: set(pool[: train_art * (m - 1)]) for m in args.multipliers}
+
+    schema = pq.ParquetFile(split_dir / "train.parquet").schema_arrow
+
+    # 1) copy original training split verbatim
+    pf = pq.ParquetFile(split_dir / "train.parquet")
+    writers = {m: pq.ParquetWriter(split_dir / f"train_art{m}x.parquet", schema) for m in args.multipliers}
+    counts = dict.fromkeys(args.multipliers, 0)
+    for rg in range(pf.num_row_groups):
+        tbl = pf.read_row_group(rg)
+        for m in args.multipliers:
+            writers[m].write_table(tbl)
+            counts[m] += tbl.num_rows
+
+    # 2) stream chunks, append sampled artifacts with label 1
+    chunk_counts = append_sampled_artifacts(writers, args.chunks, picks, schema)
     for m, w in writers.items():
         w.close()
-        print(f"train_art{m}x.parquet: {counts[m]:,} rows = {train_gen:,} genuine + {train_art * m:,} artifacts "
-              f"(expected {train_gen + train_art * m:,})", file=sys.stderr)
+        counts[m] += chunk_counts[m]
+
+    # Log final statistics
+    for m in args.multipliers:
+        logger.info(
+            "train_art%dx.parquet: %d rows = %d genuine + %d artifacts (expected %d)",
+            m,
+            counts[m],
+            train_gen,
+            train_art * m,
+            train_gen + train_art * m,
+        )
 
 
 if __name__ == "__main__":

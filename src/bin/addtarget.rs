@@ -67,7 +67,7 @@ fn worker<P: AsRef<Path>>(fq: P, pos: P, neg: P, threads: Option<usize>) -> Resu
         fq.as_ref().file_stem().unwrap().to_string_lossy()
     );
 
-    info!("write to {}", &result_path);
+    info!("write to {}", result_path);
 
     deepbiop::fastq::io::write_bgzip_fq_parallel_for_noodle_record(
         &records,

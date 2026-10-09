@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import time
 from pathlib import Path
 
@@ -22,12 +23,38 @@ from chimeralm.models.components import hyena
 
 TOKENS = torch.tensor([7, 8, 9, 10])  # A C G T
 
+_log = logging.getLogger(__name__)
+
 
 def make_batch(batch: int, length: int, device) -> torch.Tensor:
+    """Generate a random batch of token sequences for benchmarking.
+
+    Args:
+        batch: Batch size.
+        length: Sequence length.
+        device: Device to place tensors on.
+
+    Returns:
+        A tensor of random tokens (A/C/G/T encoded as 7/8/9/10).
+
+    """
     return TOKENS[torch.randint(0, 4, (batch, length))].to(device)
 
 
 def bench(net: torch.nn.Module, batch: int, length: int, device, n_iter: int = 10) -> dict:
+    """Benchmark inference time and GPU memory usage.
+
+    Args:
+        net: Model to benchmark.
+        batch: Batch size.
+        length: Sequence length.
+        device: Device to run on.
+        n_iter: Number of iterations to average over.
+
+    Returns:
+        Dictionary with timing and memory statistics.
+
+    """
     net.eval()
     x = make_batch(batch, length, device)
     torch.cuda.reset_peak_memory_stats(device)
@@ -51,6 +78,18 @@ def bench(net: torch.nn.Module, batch: int, length: int, device, n_iter: int = 1
 
 
 def try_bench(net, batch, length, device):
+    """Attempt benchmarking with OOM handling.
+
+    Args:
+        net: Model to benchmark.
+        batch: Batch size.
+        length: Sequence length.
+        device: Device to run on.
+
+    Returns:
+        Benchmark results dict, or dict with 'oom': True on OutOfMemoryError.
+
+    """
     try:
         return bench(net, batch, length, device)
     except torch.cuda.OutOfMemoryError:
@@ -59,9 +98,11 @@ def try_bench(net, batch, length, device):
 
 
 def main() -> None:
+    """Run benchmarking suite for ChimeraLM models at various configurations."""
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
     args = ap.parse_args()
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     device = torch.device("cuda:0")
@@ -71,12 +112,12 @@ def main() -> None:
     model = chimeralm.models.ChimeraLM.from_pretrained("yangliz5/chimeralm").to(device)
     net = model.net
     n_params = sum(p.numel() for p in net.parameters())
-    print(f"released model params: {n_params:,}")
+    _log.info(f"released model params: {n_params:,}")
     for batch in (12, 1):
         for length in (2_048, 4_096, 8_192, 16_384, 32_768):
             r = try_bench(net, batch, length, device) | {"model": "hyenadna-small-32k (released ChimeraLM)", "params": n_params}
             results["runs"].append(r)
-            print(r, flush=True)
+            _log.info("%s", r)
     del model, net
     torch.cuda.empty_cache()
 
@@ -87,21 +128,21 @@ def main() -> None:
                                             pooling_type="attention", activation="gelu", use_residual=True),
     ).to(device)
     n160 = sum(p.numel() for p in net160.parameters())
-    print(f"160k backbone params: {n160:,}")
+    _log.info(f"160k backbone params: {n160:,}")
     for batch, length in ((12, 32_768), (1, 32_768), (12, 160_000), (4, 160_000), (1, 160_000)):
         r = try_bench(net160, batch, length, device) | {"model": "hyenadna-medium-160k (untrained head)", "params": n160}
         results["runs"].append(r)
-        print(r, flush=True)
+        _log.info("%s", r)
 
     (out / "bench.json").write_text(json.dumps(results, indent=2))
-    with open(out / "bench.md", "w") as fh:
+    with (out / "bench.md").open("w") as fh:
         fh.write("| model | batch | input length | s/batch | reads/s | peak GPU mem (GB) |\n|---|---|---|---|---|---|\n")
         for r in results["runs"]:
             if r.get("oom"):
                 fh.write(f"| {r['model']} | {r['batch']} | {r['length']:,} | OOM | OOM | >80 |\n")
             else:
                 fh.write(f"| {r['model']} | {r['batch']} | {r['length']:,} | {r['sec_per_batch']:.3f} | {r['reads_per_sec']:.1f} | {r['peak_mem_GB']:.2f} |\n")
-    print(open(out / "bench.md").read())
+    _log.info((out / "bench.md").read_text())
 
 
 if __name__ == "__main__":

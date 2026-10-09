@@ -30,6 +30,7 @@ import pysam
 
 CIGAR_RE = re.compile(r"(\d+)([MIDNSHP=X])")
 QUERY_CONSUMING = set("MIS=XH")  # H included so clipped coordinates refer to the full read
+MIN_SA_FIELDS = 6  # minimum fields in SA tag (rname, pos, strand, cigar, mapq, nl)
 
 
 def sa_query_interval(cigar: str, strand: str, read_len: int) -> tuple[int, int]:
@@ -38,8 +39,8 @@ def sa_query_interval(cigar: str, strand: str, read_len: int) -> tuple[int, int]
     aligned = 0
     right = 0
     seen_aligned = False
-    for n, op in CIGAR_RE.findall(cigar):
-        n = int(n)
+    for n_match, op in CIGAR_RE.findall(cigar):
+        n = int(n_match)
         if op in "SH":
             if seen_aligned:
                 right += n
@@ -76,6 +77,7 @@ def primary_query_interval(read: pysam.AlignedSegment, read_len: int) -> tuple[i
 
 
 def main() -> None:
+    """Process BAM file and write chimeric read statistics to output TSV."""
     ap = argparse.ArgumentParser()
     ap.add_argument("bam")
     ap.add_argument("out")
@@ -97,7 +99,7 @@ def main() -> None:
             segs = [primary_query_interval(read, read_len)]
             for entry in read.get_tag("SA").rstrip(";").split(";"):
                 f = entry.split(",")
-                if len(f) < 6:
+                if len(f) < MIN_SA_FIELDS:
                     continue
                 segs.append(sa_query_interval(f[3], f[2], read_len))
             segs.sort()
@@ -112,8 +114,9 @@ def main() -> None:
                 + "\n"
             )
             if n_chim % 1_000_000 == 0:
-                print(f"{n_chim:,} chimeric / {n_total:,} records, {time.time() - t0:.0f}s", file=sys.stderr, flush=True)
-    print(f"done: {n_chim:,} chimeric reads from {n_total:,} records in {time.time() - t0:.0f}s", file=sys.stderr)
+                sys.stderr.write(f"{n_chim:,} chimeric / {n_total:,} records, {time.time() - t0:.0f}s\n")
+                sys.stderr.flush()
+    sys.stderr.write(f"done: {n_chim:,} chimeric reads from {n_total:,} records in {time.time() - t0:.0f}s\n")
 
 
 if __name__ == "__main__":

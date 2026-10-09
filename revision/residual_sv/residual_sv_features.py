@@ -12,19 +12,30 @@ from __future__ import annotations
 
 import argparse
 import gzip
-import re
 from pathlib import Path
 
 import pandas as pd
 
 SIZE_BINS = [(50, 100), (100, 500), (500, 1000), (1000, 5000), (5000, 10000), (10000, 50000), (50000, 10**12)]  # [lo, hi)
-SIZE_LABELS = ["50–100 bp", "100–500 bp", "500 bp–1 kb", "1–5 kb", "5–10 kb", "10–50 kb", ">50 kb"]
+SIZE_LABELS = ["50-100 bp", "100-500 bp", "500 bp-1 kb", "1-5 kb", "5-10 kb", "10-50 kb", ">50 kb"]
 SUP_BINS = [(3, 3), (4, 4), (5, 5), (6, 10), (11, 20), (21, 50), (51, 10**9)]
-SUP_LABELS = ["3", "4", "5", "6–10", "11–20", "21–50", ">50"]
+SUP_LABELS = ["3", "4", "5", "6-10", "11-20", "21-50", ">50"]
 THRESHOLDS = [3, 5, 10, 20]
+# Magic value constants
+SIZE_THRESHOLD_500 = 500
+SUPPORT_THRESHOLD_5 = 5
 
 
 def read_vcf(path: Path) -> pd.DataFrame:
+    """Read a gzipped VCF file and extract SV information.
+
+    Args:
+        path: Path to the gzipped VCF file.
+
+    Returns:
+        DataFrame with columns: chrom, pos, svtype, svlen, support.
+
+    """
     rows = []
     with gzip.open(path, "rt") as fh:
         for line in fh:
@@ -50,6 +61,11 @@ def binned(series: pd.Series, bins, labels, *, closed: bool = False) -> pd.Serie
 
 
 def main() -> None:
+    """Analyze residual unsupported SV calls after ChimeraLM filtering.
+
+    Generates a summary markdown report and a TSV table of SV features
+    (type, size, support distributions) for unsupported and supported calls.
+    """
     ap = argparse.ArgumentParser()
     ap.add_argument("sets", nargs="+", help="label=truvari_output_dir")
     ap.add_argument("--out", required=True)
@@ -66,12 +82,12 @@ def main() -> None:
         for name, df in (("unsupported", fp), ("supported", tp)):
             t = df["svtype"].value_counts()
             md.append(f"- {name} SV type: " + ", ".join(f"{k} {v:,} ({v/len(df)*100:.1f}%)" for k, v in t.items()))
-            md.append(f"- {name} size: median {int(df['svlen'].median()):,} bp, <500 bp {(df['svlen']<500).mean()*100:.1f}%")
-            md.append(f"- {name} SUPPORT: median {int(df['support'].median())}, ≤5 reads {(df['support']<=5).mean()*100:.1f}%")
+            md.append(f"- {name} size: median {int(df['svlen'].median()):,} bp, <{SIZE_THRESHOLD_500} bp {(df['svlen']<SIZE_THRESHOLD_500).mean()*100:.1f}%")
+            md.append(f"- {name} SUPPORT: median {int(df['support'].median())}, ≤{SUPPORT_THRESHOLD_5} reads {(df['support']<=SUPPORT_THRESHOLD_5).mean()*100:.1f}%")
             for col, bins, labels, kind in (("svlen", SIZE_BINS, SIZE_LABELS, "size"), ("support", SUP_BINS, SUP_LABELS, "support")):
                 b = binned(df[col], bins, labels, closed=(kind == "support"))
-                tables.append(pd.DataFrame({"set": label, "class": name, "feature": kind, "bin": b.index, "count": b.values, "pct": b.values / len(df) * 100}))
-            tables.append(pd.DataFrame({"set": label, "class": name, "feature": "svtype", "bin": t.index, "count": t.values, "pct": t.values / len(df) * 100}))
+                tables.append(pd.DataFrame({"set": label, "class": name, "feature": kind, "bin": b.index, "count": b.to_numpy(), "pct": b.to_numpy() / len(df) * 100}))
+            tables.append(pd.DataFrame({"set": label, "class": name, "feature": "svtype", "bin": t.index, "count": t.to_numpy(), "pct": t.to_numpy() / len(df) * 100}))
         md.append("\n| SUPPORT ≥ | unsupported kept | unsupported removed (%) | supported kept | supported removed (%) | unsupported:supported |\n|---|---|---|---|---|---|")
         for thr in THRESHOLDS:
             fk, tk = int((fp["support"] >= thr).sum()), int((tp["support"] >= thr).sum())
@@ -80,7 +96,6 @@ def main() -> None:
         md.append("")
     pd.concat(tables).to_csv(out / "residual_sv_tables.tsv", sep="\t", index=False)
     (out / "summary.md").write_text("\n".join(md) + "\n")
-    print("\n".join(md))
 
 
 if __name__ == "__main__":

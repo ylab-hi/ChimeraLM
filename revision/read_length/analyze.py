@@ -1,4 +1,4 @@
-"""Read-length / 32 k-truncation analysis for revision R1 (R1.Q2, R1.Q3, R1.Q4, R3.Q8, R3.Q13).
+r"""Read-length / 32 k-truncation analysis for revision R1 (R1.Q2, R1.Q3, R1.Q4, R3.Q8, R3.Q13).
 
 Inputs
   --stats  <platform>=<tsv.gz>   output of chimeric_read_stats.py (one per platform)
@@ -19,28 +19,30 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-import matplotlib
+import matplotlib as mpl
 
-matplotlib.use("Agg")
+mpl.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
 MAX_LEN = 32_768
 BINS = [0, 2_000, 8_000, 16_000, MAX_LEN, np.inf]
-BIN_LABELS = ["≤2 k", "2–8 k", "8–16 k", "16–32 k", ">32 k"]
+BIN_LABELS = ["≤2 k", "2-8 k", "8-16 k", "16-32 k", ">32 k"]
 PLATFORM_NAME = {"p2": "PromethION", "mk1c": "MinION"}
 C_RETAIN, C_REMOVE = "#1b7f79", "#d1495b"
 C_PLATFORM = {"p2": "#1b7f79", "mk1c": "#e9a03b"}
 
 
 def n50(x: np.ndarray) -> int:
+    """Calculate the N50 statistic for a sequence length array."""
     s = np.sort(x)[::-1]
     c = np.cumsum(s)
     return int(s[np.searchsorted(c, c[-1] / 2)])
 
 
 def kv(pairs: list[str]) -> dict[str, Path]:
+    """Parse key=value pairs into a dictionary with Path values."""
     return {p.split("=", 1)[0]: Path(p.split("=", 1)[1]) for p in pairs}
 
 
@@ -52,6 +54,7 @@ def junctions_from_segments(segments: str) -> tuple[int, int]:
 
 
 def load_stats(path: Path) -> pd.DataFrame:
+    """Load chimeric read statistics from a CSV file."""
     df = pd.read_csv(
         path,
         sep="\t",
@@ -66,10 +69,12 @@ def load_stats(path: Path) -> pd.DataFrame:
 
 
 def load_pred(path: Path) -> pd.DataFrame:
+    """Load ChimeraLM predictions from a file."""
     return pd.read_csv(path, sep="\t", header=None, names=["name", "pred"], dtype={"name": "string", "pred": "int8"})
 
 
 def prf(y: np.ndarray, p: np.ndarray) -> tuple[float, float, float, int, int, int, int]:
+    """Calculate precision, recall, F1, and confusion matrix values."""
     tp = int(((p == 1) & (y == 1)).sum())
     fp = int(((p == 1) & (y == 0)).sum())
     fn = int(((p == 0) & (y == 1)).sum())
@@ -81,6 +86,7 @@ def prf(y: np.ndarray, p: np.ndarray) -> tuple[float, float, float, int, int, in
 
 
 def main() -> None:
+    """Analyze read-length distributions and model performance on chimeric reads."""
     ap = argparse.ArgumentParser()
     ap.add_argument("--stats", action="append", required=True)
     ap.add_argument("--pred", action="append", required=True)
@@ -143,8 +149,17 @@ def main() -> None:
     test = pd.read_csv(args.test, sep="\t", dtype={"name": "string", "label": "int8", "seq_len": "int64"})
     tp_plat = args.test_platform
     merged = test.merge(data[tp_plat][["name", "pred", "read_len", "first_junction"]], on="name", how="left")
+    met, md = _compute_test_metrics(out, merged, tp_plat, md)
+    (out / "summary.md").write_text("\n".join(md) + "\n")
+    _generate_figures(out, data, met)
+
+
+def _compute_test_metrics(
+    out: Path, merged: pd.DataFrame, tp_plat: str, md: list[str]
+) -> tuple[pd.DataFrame, list[str]]:
+    """Compute test set metrics and update markdown list."""
     covered = merged["pred"].notna() & (merged["pred"] >= 0)
-    md.append(f"## Held-out test split ({len(test):,} reads), predictions from {PLATFORM_NAME[tp_plat]} WGA run\n")
+    md.append(f"## Held-out test split ({len(merged):,} reads), predictions from {PLATFORM_NAME[tp_plat]} WGA run\n")
     md.append(f"- covered by WGA predictions: {covered.sum():,} ({covered.mean()*100:.1f}%); label 1 (artifact) among covered: {int(merged.loc[covered,'label'].sum()):,}")
     md.append(f"- uncovered (bulk-sampled genuine reads, not in WGA BAM): {(~covered).sum():,}, of which label 0: {int((merged.loc[~covered,'label']==0).sum()):,}")
     mt = merged[covered].copy()
@@ -170,11 +185,11 @@ def main() -> None:
     if over_t.any():
         blind_t = over_t & (mt["first_junction"] >= MAX_LEN)
         md.append(f"\n- test reads > 32 k: {over_t.sum():,}; junction-free window: {blind_t.sum():,}")
+    return met, md
 
-    (out / "summary.md").write_text("\n".join(md) + "\n")
-    print("\n".join(md))
 
-    # ---- figure: combined placeholder + one PDF per panel (for manual assembly in Inkscape) ----
+def _generate_figures(out: Path, data: dict[str, pd.DataFrame], met: pd.DataFrame) -> None:
+    """Generate analysis figures with combined panel and individual PDFs."""
     panels = {
         "a": ("Length of chimeric reads", lambda ax: panel_length(ax, data)),
         "b": ("Artifact call rate by read length", lambda ax: panel_artifact_rate(ax, data)),
@@ -198,13 +213,14 @@ def main() -> None:
         fig.tight_layout()
         fig.savefig(out / f"sf_read_length_{letter}.pdf")
         plt.close(fig)
-    print(f"figures -> {out / 'sf_read_length.pdf'} + sf_read_length_[abcd].pdf")
 
 
+MIN_BIN_SIZE = 10  # minimum reads in a bin for informative metrics
 LOG_EDGES = np.logspace(np.log10(50), np.log10(300_000), 80)
 
 
 def panel_length(ax, data: dict[str, pd.DataFrame]) -> None:
+    """Plot histogram of chimeric read lengths with model input limit."""
     for plat, df in data.items():
         ax.hist(df["read_len"], bins=LOG_EDGES, histtype="step", lw=1.6, color=C_PLATFORM[plat],
                 label=f"WGA {PLATFORM_NAME[plat]} (n = {len(df):,})", density=True)
@@ -217,6 +233,7 @@ def panel_length(ax, data: dict[str, pd.DataFrame]) -> None:
 
 
 def panel_artifact_rate(ax, data: dict[str, pd.DataFrame]) -> None:
+    """Plot artifact call rate as a function of read length bin."""
     w = 0.38
     x = np.arange(len(BIN_LABELS))
     for i, (plat, df) in enumerate(data.items()):
@@ -234,7 +251,8 @@ def panel_artifact_rate(ax, data: dict[str, pd.DataFrame]) -> None:
 
 
 def panel_test_metrics(ax, met: pd.DataFrame) -> None:
-    mb = met[(met["bin"] != "all") & (met["n"] >= 10)]  # bins with <10 reads are not informative
+    """Plot precision, recall, and F1 by read length bin on held-out test set."""
+    mb = met[(met["bin"] != "all") & (met["n"] >= MIN_BIN_SIZE)]  # bins with insufficient reads are not informative
     xb = np.arange(len(mb))
     for j, (col, c) in enumerate([("precision", "#4c72b0"), ("recall", "#dd8452"), ("f1", "#55a868")]):
         ax.bar(xb + (j - 1) * 0.27, mb[col], 0.27, color=c, label=col.capitalize() if col != "f1" else "F1")
@@ -248,6 +266,7 @@ def panel_test_metrics(ax, met: pd.DataFrame) -> None:
 
 
 def panel_retained_removed(ax, data: dict[str, pd.DataFrame]) -> None:
+    """Plot distribution of retained vs removed chimeric reads by length."""
     for plat, df in data.items():
         ls = "-" if plat == "p2" else "--"
         ax.hist(df.loc[df["pred"] == 0, "read_len"], bins=LOG_EDGES, histtype="step", lw=1.5, ls=ls, color=C_RETAIN,

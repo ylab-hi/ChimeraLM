@@ -14,6 +14,10 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
+// Type aliases to reduce complexity
+type SvRecord = (sv::StructuralVariant, Vec<String>);
+type SvFileData = HashMap<PathBuf, Vec<SvRecord>>;
+
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Cli {
@@ -194,14 +198,14 @@ fn write_result<P: AsRef<Path>>(
 
 fn worker(cvcfs: &[PathBuf], dvcfs: &[PathBuf], threshold: usize) -> Result<()> {
     // Load clean SVs with error handling
-    let clean_svs: Result<HashMap<PathBuf, Vec<(sv::StructuralVariant, Vec<String>)>>> = cvcfs
+    let clean_svs: Result<SvFileData> = cvcfs
         .par_iter()
         .map(|cvcf| get_sv_from_vcf(cvcf).map(|svs| (cvcf.clone(), svs)))
         .collect();
     let clean_svs = clean_svs?;
 
     // Load dirty SVs with error handling
-    let dirty_svs: Result<HashMap<PathBuf, Vec<(sv::StructuralVariant, Vec<String>)>>> = dvcfs
+    let dirty_svs: Result<SvFileData> = dvcfs
         .par_iter()
         .map(|dvcf| get_sv_from_vcf(dvcf).map(|svs| (dvcf.clone(), svs)))
         .collect();
