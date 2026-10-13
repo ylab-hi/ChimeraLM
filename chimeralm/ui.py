@@ -100,180 +100,10 @@ class ChimeraLMPredictor:
             return f"Prediction failed: {e}", 0.0, {}
 
 
-def create_interface():
-    """Create the Gradio interface."""
-    # Lazy initialization - only load model on first prediction
-    predictor_cache: dict[str, ChimeraLMPredictor] = {}
+THEME = gr.themes.Default(primary_hue="blue", secondary_hue="gray", neutral_hue="slate")
 
-    def _get_predictor() -> ChimeraLMPredictor:
-        if "instance" not in predictor_cache:
-            predictor_cache["instance"] = ChimeraLMPredictor()
-        return predictor_cache["instance"]
-
-    def predict_sequence(sequence):
-        prediction, confidence, breakdown = _get_predictor().predict(sequence)
-
-        # Format output with enhanced styling
-        if (
-            "❌" in prediction
-            or "⚠️" in prediction
-            or "Please" in prediction
-            or "Invalid" in prediction
-            or "Prediction failed" in prediction
-        ):
-            result_text = f"### {prediction}"
-        else:
-            # Color-coded results with better styling
-            color = "#4CAF50" if prediction == "Biological" else "#F44336"
-            icon = "✅" if prediction == "Biological" else "⚠️"
-            result_text = f"""
-### {icon} Prediction Result
-
-<div style="background: {color}; color: white; padding: 1.5rem; border-radius: 15px; text-align: center; margin: 1rem 0; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
-    <h2 style="margin: 0; font-size: 2rem; font-weight: 700; color: white;">{prediction}</h2>
-    <p style="margin: 0.5rem 0 0 0; font-size: 1.2rem; color: rgba(255,255,255,0.95);">Confidence: {confidence:.1%}</p>
-</div>
-"""
-
-        if breakdown:
-            result_text += "\n\n### 📊 Detailed Confidence Scores:\n"
-            for class_name, prob in breakdown.items():
-                emoji = "✅" if class_name == "Biological" else "⚠️"
-                prob_value = float(prob)
-                result_text += f"- {emoji} **{class_name}**: {prob_value:.1%}\n"
-
-        # Create bar plot with proper contrast
-        if breakdown:
-            classes = list(breakdown.keys())
-            probabilities = [float(prob) for prob in breakdown.values()]
-
-            # Create colors based on prediction with better contrast
-            colors = []
-            text_colors = []
-            for class_name in classes:
-                if class_name == prediction:
-                    # Vibrant colors for predicted class with white text
-                    if prediction == "Biological":
-                        colors.append("#4CAF50")  # Green
-                    else:
-                        colors.append("#F44336")  # Red
-                    text_colors.append("white")
-                else:
-                    # Medium gray for non-predicted class with dark text
-                    colors.append("#BDBDBD")
-                    text_colors.append("#424242")
-
-            # Create individual bars with appropriate text colors
-            bars = []
-            for class_name, prob, color, text_color in zip(classes, probabilities, colors, text_colors, strict=True):
-                bars.append(
-                    go.Bar(
-                        x=[class_name],
-                        y=[prob],
-                        marker_color=color,
-                        text=[f"{prob:.1%}"],
-                        textposition="auto",
-                        textfont={"size": 20, "color": text_color, "family": "Inter, sans-serif", "weight": 600},
-                        marker_line={"width": 2, "color": "rgba(255,255,255,0.3)"},
-                        width=0.5,
-                        opacity=0.95,
-                        name=class_name,
-                        showlegend=False,
-                    )
-                )
-
-            fig = go.Figure(data=bars)
-
-            fig.update_layout(
-                title={
-                    "text": "🎯 Prediction Confidence",
-                    "font": {"size": 20, "color": "#424242", "family": "Arial, sans-serif"},
-                    "x": 0.5,
-                    "xanchor": "center",
-                },
-                xaxis={
-                    "title": {"text": "Classification", "font": {"size": 14, "color": "#616161"}},
-                    "tickfont": {"size": 12, "color": "#424242"},
-                    "gridcolor": "rgba(0,0,0,0.05)",
-                    "linecolor": "rgba(0,0,0,0.1)",
-                    "showgrid": True,
-                    "zeroline": False,
-                },
-                yaxis={
-                    "title": {"text": "Probability", "font": {"size": 14, "color": "#616161"}},
-                    "tickfont": {"size": 12, "color": "#424242"},
-                    "range": [0, 1.1],
-                    "gridcolor": "rgba(0,0,0,0.05)",
-                    "linecolor": "rgba(0,0,0,0.1)",
-                    "showgrid": True,
-                    "zeroline": True,
-                    "zerolinecolor": "rgba(0,0,0,0.1)",
-                },
-                height=450,
-                showlegend=False,
-                plot_bgcolor="rgba(255,255,255,1)",
-                paper_bgcolor="rgba(255,255,255,1)",
-                margin={"l": 60, "r": 60, "t": 80, "b": 60},
-                font={"family": "Arial, sans-serif"},
-            )
-
-            fig.update_traces(
-                textfont_size=16,
-                textfont_color="white",
-                textfont_family="Arial, sans-serif",
-                marker_line={"width": 1, "color": "rgba(255,255,255,0.8)"},
-                width=0.6,
-                opacity=0.9,
-            )
-        else:
-            # Create empty plot for error cases
-            fig = go.Figure()
-            fig.update_layout(
-                title={
-                    "text": "🎯 Prediction Confidence",
-                    "font": {"size": 20, "color": "#424242", "family": "Arial, sans-serif"},
-                    "x": 0.5,
-                    "xanchor": "center",
-                },
-                xaxis={
-                    "title": {"text": "Classification", "font": {"size": 14, "color": "#616161"}},
-                    "tickfont": {"size": 12, "color": "#424242"},
-                    "gridcolor": "rgba(0,0,0,0.05)",
-                    "linecolor": "rgba(0,0,0,0.1)",
-                },
-                yaxis={
-                    "title": {"text": "Probability", "font": {"size": 14, "color": "#616161"}},
-                    "tickfont": {"size": 12, "color": "#424242"},
-                    "range": [0, 1.1],
-                    "gridcolor": "rgba(0,0,0,0.05)",
-                    "linecolor": "rgba(0,0,0,0.1)",
-                },
-                height=450,
-                showlegend=False,
-                plot_bgcolor="rgba(255,255,255,1)",
-                paper_bgcolor="rgba(255,255,255,1)",
-                margin={"l": 60, "r": 60, "t": 80, "b": 60},
-                font={"family": "Arial, sans-serif"},
-            )
-
-        return result_text, fig
-
-    # Example sequences - more realistic with varied patterns
-    # 1, 1, 0
-    examples = [
-        [
-            "TTGTGTGCCTTCATTAGTTATATACTAGTTCCTGATAAATTCATTTATAGAACAGAAAGACCACAGATTCAATTATATGGAATAGATCTGCTGGTGAATGTAAGAAAGTCTTCTGAACTGCGAAGGGAAAATAAATGATTTAATTCCCACCACCTCTCAACAGCTACCTTCTGTTTTAGAGACACTGGTAAAACTTCTGGGGCTCTTACTTGACATACCTACATCGTATTATAGGCCTATTGGTTTTATCAGAATAATATGCTTTCCTCACATAAGTTATTTCTTTCTGTTACTTGCTTGCAGTACAGATTTAAAGGGGCATTCAGGCAGCCTCCAGATGCCATGATGGATTAACTCTCATGTTACACAGTAATGTAGAAGCTTCTCTTCATTCTCAGACTTTATCTGACAATGAAGAGAAGCTTCTAATTATACTGTGTAAGTTGATCATGTAACACATCTGGAGGCTGCCTGAATGCCCCTTAAATCTGTACTGCAAGCAAGTAACAGAAAGAAATAACTTATGTGAGGAAAGCATATTATTCTGATAAAACCAATACACCCTTATAATACGATGTAGGTATGTCAAGTAAGAGCCCCAGAAGTTTGCAGTATCTAAAACAAAGGTGTTTGTTGAGGTAGTGAGGAAAATAAATCATTTATTTTCCCTTCGCAGTTCAGGCAACACTTTCTTTACATTCACCACCAGATTCCATATAATCTGTGGGAGTCTTTGGCTGTTCTATAAAATGAATTTATCAGTAAATGA"
-        ],
-        [
-            "CAATGGTAAATGAATTCAATAAATATTTGAGGTGATTAAATTTCCTTTCCTAACACATTTTATTTCAAATTCTATTTGAAAGAAAAAATGCTAACAACATAAGAGATCAAATTCAGCTACCTATTTTTTCAACATTCAAATATGCATTAATTGTCTACACTTTGCTAAGCTTGGGCTGATTTCTAGGGCTATAAACATAAATTAAATTTATTCATGGATCTTAAGTGGCTCATGAGCATTAGTACAGCATATTTATAAGCCGAGCATAGTGTCTCATACCTATAATCCCAACACTGGGAGGCTGAGGTGGGAGGATCTCTTGAAGCCGGGAGTTCAAGAACTGCCTGGAAAACATAGCAAGACCCTGTCTCTACCAAAAACAAACAAATAAAACTTAGCCGGGAGTGGCTGCACCTGTAGCTACTCAGGAGTCTGTGATTGGAGGGTAATTTGAACACAGGAGTTTGAGATAGCAGCAAGCTATGATCATGCCACTGTACTCCAGCCTAATTGACAGAACAAGAGCCTGTCTCTAAAATCATTCCATATGTCTATATATAGATATATATATCAAGAAAACTTTACTTTCTAGATTCTAGTTTGTTTTATTGCTCATTCTTTTCTAAATTTATTCATTAGGAGGTATATACAATGTGTTTCAGAGATATAAGAATAGTAAACTTAGAGTGAAAAGGGAAAGATATTTCTTGTTAAAATTCCTAAAATAAAGTATTAAACTTATCTATGAAAAGGCATACATTTCTGTCTGATATTTTATATAAAATAATGGGAACATAATCATATATAATATTTTCTATAAAATGCTTAACAGGTTTTCATAACTTAAATTGTACTTAATATTTTAGGAATTTTAACAATATTCTTCCCTTTTCACTCTAAGTTTACTGTCTTAACCCCCAAAAAACACATTGTCTGTACACCTCCTAATGAATAAATTTAGAAAAAGAAAAAATACAGCAATAAAACAAACTAGTAATACTGGAAGAGTCAAACTTTCTGATATTGTGTACCTCTTCTTATAAAGACATATGGAATGATTTTGAGGACAGGTATTGTTCTGATTAGGCTGGAGTACAGTGGCATGATCATAGCTTACTGCTATCTCGAACTCCTGTGTTAAATTCTCTCCAATCACAGACTCCTGAGTAGCTACAGGTGAGCCACTGCCCGGCTAAGTTTTATTTGTTTTGTTTTTGGTAGAGACAGGGTCTTGCTATGTTTGCCAGGCTGGTCTTGAACTCCCGGCTTCAAGAGATCCTCCCACCTCAGCCTCCCAGTGTTGGGATTATAGGTATGAGACACTATGCTCAGCTAACAAATATATAATGCTCATGAGCCACTAATCAAGTCAAGAATTTAAATTTATGTTTATAGCCCCATCAGCCCCAAGCTTAGCAAAGTGTAGACAATTAATGTAACATTTGAATGCTGAAAAAATAGGTATAGAAATTTGATCTTACCCTATATTGTAGCATTTTTTTCTTTCAAATAAATTTGAAATAAAATGTGTAGGGAAAAGGAAATTAAATCACCTCAACATTTTATAAAAATCATTTACCATTGGCTAT"
-        ],
-        [
-            "ATGTTGTGTACCTGGTTCGGTTCGTCTATGGTATGCACCTTGGCTATCATCACCCGATGAGGCAACCAGCCGGGAGACACCTAAACCCATCATCTCCTGTACCACCCTAGTAGGCTCCCTTCCCCTACTCATCGCACTAATTTACACTCACAACACCCTAGGCTCACTAAACATTCTACTACTCACTCTCACTGCCCAACTAAACTCCTGGCCATCCCCTTATGAGCGGGCGCAGTGATTATAGGCTTTCGCTCTAAGATTAAAAATGCCCTAGCCCACTTCTTACCACAAGGCACACCTACACCCCTTATCCCCATACTGGCTGTTGTGAAAACCATAGCCTACTATCGTTCAACAATAGCCCTGGCCGTACGCCTAACCGCTAACATTACTGCAGGCCACCTACTCATGCACCTAATTGGAAGCGCCACCCTAGCAATATCAACCATTAACCTTACCTACACTTATAGTCTTTCACAATTCTAATTCTACTGACTATCCTAGAAATCGCTGTCGCCTTAATCCAAGCCTACGTTTTCACACTTCTAGTAAGCCTCTACCTGCACGACAACACATAATGACCCACCAATCACATGCCTATCATGGCTAAACCCAGCCCATGACCCCTAACAGGGGCCCTCTCAGCCCTCCTAATGACCTCCGGCCTAGCCATGTGATTTCACTTCCACTCCATAACGCTCCTCATACTAGGCCTACTAACCAACACACTAACCATATACCAATAATGGCAATGTAACGCAAAGCACATACCAAGGCCACCACACACCACCTCTATTAAAAAGGCC"
-        ],
-    ]
-
-    # Custom CSS for modern, visually appealing styling
-    custom_css = """
+# Custom CSS for modern, visually appealing styling
+CUSTOM_CSS = """
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
     * {
@@ -655,17 +485,182 @@ def create_interface():
     ::-webkit-scrollbar-thumb:hover {
         background: #764ba2;
     }
-    """
+"""
 
-    with gr.Blocks(
-        title="ChimeraLM - Chimeric Read Detector",
-        theme=gr.themes.Default(
-            primary_hue="blue",
-            secondary_hue="gray",
-            neutral_hue="slate",
-        ),
-        css=custom_css,
-    ) as interface:
+
+def create_interface():
+    """Create the Gradio interface."""
+    # Lazy initialization - only load model on first prediction
+    predictor_cache: dict[str, ChimeraLMPredictor] = {}
+
+    def _get_predictor() -> ChimeraLMPredictor:
+        if "instance" not in predictor_cache:
+            predictor_cache["instance"] = ChimeraLMPredictor()
+        return predictor_cache["instance"]
+
+    def predict_sequence(sequence):
+        prediction, confidence, breakdown = _get_predictor().predict(sequence)
+
+        # Format output with enhanced styling
+        if (
+            "❌" in prediction
+            or "⚠️" in prediction
+            or "Please" in prediction
+            or "Invalid" in prediction
+            or "Prediction failed" in prediction
+        ):
+            result_text = f"### {prediction}"
+        else:
+            # Color-coded results with better styling
+            color = "#4CAF50" if prediction == "Biological" else "#F44336"
+            icon = "✅" if prediction == "Biological" else "⚠️"
+            result_text = f"""
+### {icon} Prediction Result
+
+<div style="background: {color}; color: white; padding: 1.5rem; border-radius: 15px; text-align: center; margin: 1rem 0; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
+    <h2 style="margin: 0; font-size: 2rem; font-weight: 700; color: white;">{prediction}</h2>
+    <p style="margin: 0.5rem 0 0 0; font-size: 1.2rem; color: rgba(255,255,255,0.95);">Confidence: {confidence:.1%}</p>
+</div>
+"""
+
+        if breakdown:
+            result_text += "\n\n### 📊 Detailed Confidence Scores:\n"
+            for class_name, prob in breakdown.items():
+                emoji = "✅" if class_name == "Biological" else "⚠️"
+                prob_value = float(prob)
+                result_text += f"- {emoji} **{class_name}**: {prob_value:.1%}\n"
+
+        # Create bar plot with proper contrast
+        if breakdown:
+            classes = list(breakdown.keys())
+            probabilities = [float(prob) for prob in breakdown.values()]
+
+            # Create colors based on prediction with better contrast
+            colors = []
+            text_colors = []
+            for class_name in classes:
+                if class_name == prediction:
+                    # Vibrant colors for predicted class with white text
+                    if prediction == "Biological":
+                        colors.append("#4CAF50")  # Green
+                    else:
+                        colors.append("#F44336")  # Red
+                    text_colors.append("white")
+                else:
+                    # Medium gray for non-predicted class with dark text
+                    colors.append("#BDBDBD")
+                    text_colors.append("#424242")
+
+            # Create individual bars with appropriate text colors
+            bars = []
+            for class_name, prob, color, text_color in zip(classes, probabilities, colors, text_colors, strict=True):
+                bars.append(
+                    go.Bar(
+                        x=[class_name],
+                        y=[prob],
+                        marker_color=color,
+                        text=[f"{prob:.1%}"],
+                        textposition="auto",
+                        textfont={"size": 20, "color": text_color, "family": "Inter, sans-serif", "weight": 600},
+                        marker_line={"width": 2, "color": "rgba(255,255,255,0.3)"},
+                        width=0.5,
+                        opacity=0.95,
+                        name=class_name,
+                        showlegend=False,
+                    )
+                )
+
+            fig = go.Figure(data=bars)
+
+            fig.update_layout(
+                title={
+                    "text": "🎯 Prediction Confidence",
+                    "font": {"size": 20, "color": "#424242", "family": "Arial, sans-serif"},
+                    "x": 0.5,
+                    "xanchor": "center",
+                },
+                xaxis={
+                    "title": {"text": "Classification", "font": {"size": 14, "color": "#616161"}},
+                    "tickfont": {"size": 12, "color": "#424242"},
+                    "gridcolor": "rgba(0,0,0,0.05)",
+                    "linecolor": "rgba(0,0,0,0.1)",
+                    "showgrid": True,
+                    "zeroline": False,
+                },
+                yaxis={
+                    "title": {"text": "Probability", "font": {"size": 14, "color": "#616161"}},
+                    "tickfont": {"size": 12, "color": "#424242"},
+                    "range": [0, 1.1],
+                    "gridcolor": "rgba(0,0,0,0.05)",
+                    "linecolor": "rgba(0,0,0,0.1)",
+                    "showgrid": True,
+                    "zeroline": True,
+                    "zerolinecolor": "rgba(0,0,0,0.1)",
+                },
+                height=450,
+                showlegend=False,
+                plot_bgcolor="rgba(255,255,255,1)",
+                paper_bgcolor="rgba(255,255,255,1)",
+                margin={"l": 60, "r": 60, "t": 80, "b": 60},
+                font={"family": "Arial, sans-serif"},
+            )
+
+            fig.update_traces(
+                textfont_size=16,
+                textfont_color="white",
+                textfont_family="Arial, sans-serif",
+                marker_line={"width": 1, "color": "rgba(255,255,255,0.8)"},
+                width=0.6,
+                opacity=0.9,
+            )
+        else:
+            # Create empty plot for error cases
+            fig = go.Figure()
+            fig.update_layout(
+                title={
+                    "text": "🎯 Prediction Confidence",
+                    "font": {"size": 20, "color": "#424242", "family": "Arial, sans-serif"},
+                    "x": 0.5,
+                    "xanchor": "center",
+                },
+                xaxis={
+                    "title": {"text": "Classification", "font": {"size": 14, "color": "#616161"}},
+                    "tickfont": {"size": 12, "color": "#424242"},
+                    "gridcolor": "rgba(0,0,0,0.05)",
+                    "linecolor": "rgba(0,0,0,0.1)",
+                },
+                yaxis={
+                    "title": {"text": "Probability", "font": {"size": 14, "color": "#616161"}},
+                    "tickfont": {"size": 12, "color": "#424242"},
+                    "range": [0, 1.1],
+                    "gridcolor": "rgba(0,0,0,0.05)",
+                    "linecolor": "rgba(0,0,0,0.1)",
+                },
+                height=450,
+                showlegend=False,
+                plot_bgcolor="rgba(255,255,255,1)",
+                paper_bgcolor="rgba(255,255,255,1)",
+                margin={"l": 60, "r": 60, "t": 80, "b": 60},
+                font={"family": "Arial, sans-serif"},
+            )
+
+        return result_text, fig
+
+    # Example sequences - more realistic with varied patterns
+    # 1, 1, 0
+    examples = [
+        [
+            "TTGTGTGCCTTCATTAGTTATATACTAGTTCCTGATAAATTCATTTATAGAACAGAAAGACCACAGATTCAATTATATGGAATAGATCTGCTGGTGAATGTAAGAAAGTCTTCTGAACTGCGAAGGGAAAATAAATGATTTAATTCCCACCACCTCTCAACAGCTACCTTCTGTTTTAGAGACACTGGTAAAACTTCTGGGGCTCTTACTTGACATACCTACATCGTATTATAGGCCTATTGGTTTTATCAGAATAATATGCTTTCCTCACATAAGTTATTTCTTTCTGTTACTTGCTTGCAGTACAGATTTAAAGGGGCATTCAGGCAGCCTCCAGATGCCATGATGGATTAACTCTCATGTTACACAGTAATGTAGAAGCTTCTCTTCATTCTCAGACTTTATCTGACAATGAAGAGAAGCTTCTAATTATACTGTGTAAGTTGATCATGTAACACATCTGGAGGCTGCCTGAATGCCCCTTAAATCTGTACTGCAAGCAAGTAACAGAAAGAAATAACTTATGTGAGGAAAGCATATTATTCTGATAAAACCAATACACCCTTATAATACGATGTAGGTATGTCAAGTAAGAGCCCCAGAAGTTTGCAGTATCTAAAACAAAGGTGTTTGTTGAGGTAGTGAGGAAAATAAATCATTTATTTTCCCTTCGCAGTTCAGGCAACACTTTCTTTACATTCACCACCAGATTCCATATAATCTGTGGGAGTCTTTGGCTGTTCTATAAAATGAATTTATCAGTAAATGA"
+        ],
+        [
+            "CAATGGTAAATGAATTCAATAAATATTTGAGGTGATTAAATTTCCTTTCCTAACACATTTTATTTCAAATTCTATTTGAAAGAAAAAATGCTAACAACATAAGAGATCAAATTCAGCTACCTATTTTTTCAACATTCAAATATGCATTAATTGTCTACACTTTGCTAAGCTTGGGCTGATTTCTAGGGCTATAAACATAAATTAAATTTATTCATGGATCTTAAGTGGCTCATGAGCATTAGTACAGCATATTTATAAGCCGAGCATAGTGTCTCATACCTATAATCCCAACACTGGGAGGCTGAGGTGGGAGGATCTCTTGAAGCCGGGAGTTCAAGAACTGCCTGGAAAACATAGCAAGACCCTGTCTCTACCAAAAACAAACAAATAAAACTTAGCCGGGAGTGGCTGCACCTGTAGCTACTCAGGAGTCTGTGATTGGAGGGTAATTTGAACACAGGAGTTTGAGATAGCAGCAAGCTATGATCATGCCACTGTACTCCAGCCTAATTGACAGAACAAGAGCCTGTCTCTAAAATCATTCCATATGTCTATATATAGATATATATATCAAGAAAACTTTACTTTCTAGATTCTAGTTTGTTTTATTGCTCATTCTTTTCTAAATTTATTCATTAGGAGGTATATACAATGTGTTTCAGAGATATAAGAATAGTAAACTTAGAGTGAAAAGGGAAAGATATTTCTTGTTAAAATTCCTAAAATAAAGTATTAAACTTATCTATGAAAAGGCATACATTTCTGTCTGATATTTTATATAAAATAATGGGAACATAATCATATATAATATTTTCTATAAAATGCTTAACAGGTTTTCATAACTTAAATTGTACTTAATATTTTAGGAATTTTAACAATATTCTTCCCTTTTCACTCTAAGTTTACTGTCTTAACCCCCAAAAAACACATTGTCTGTACACCTCCTAATGAATAAATTTAGAAAAAGAAAAAATACAGCAATAAAACAAACTAGTAATACTGGAAGAGTCAAACTTTCTGATATTGTGTACCTCTTCTTATAAAGACATATGGAATGATTTTGAGGACAGGTATTGTTCTGATTAGGCTGGAGTACAGTGGCATGATCATAGCTTACTGCTATCTCGAACTCCTGTGTTAAATTCTCTCCAATCACAGACTCCTGAGTAGCTACAGGTGAGCCACTGCCCGGCTAAGTTTTATTTGTTTTGTTTTTGGTAGAGACAGGGTCTTGCTATGTTTGCCAGGCTGGTCTTGAACTCCCGGCTTCAAGAGATCCTCCCACCTCAGCCTCCCAGTGTTGGGATTATAGGTATGAGACACTATGCTCAGCTAACAAATATATAATGCTCATGAGCCACTAATCAAGTCAAGAATTTAAATTTATGTTTATAGCCCCATCAGCCCCAAGCTTAGCAAAGTGTAGACAATTAATGTAACATTTGAATGCTGAAAAAATAGGTATAGAAATTTGATCTTACCCTATATTGTAGCATTTTTTTCTTTCAAATAAATTTGAAATAAAATGTGTAGGGAAAAGGAAATTAAATCACCTCAACATTTTATAAAAATCATTTACCATTGGCTAT"
+        ],
+        [
+            "ATGTTGTGTACCTGGTTCGGTTCGTCTATGGTATGCACCTTGGCTATCATCACCCGATGAGGCAACCAGCCGGGAGACACCTAAACCCATCATCTCCTGTACCACCCTAGTAGGCTCCCTTCCCCTACTCATCGCACTAATTTACACTCACAACACCCTAGGCTCACTAAACATTCTACTACTCACTCTCACTGCCCAACTAAACTCCTGGCCATCCCCTTATGAGCGGGCGCAGTGATTATAGGCTTTCGCTCTAAGATTAAAAATGCCCTAGCCCACTTCTTACCACAAGGCACACCTACACCCCTTATCCCCATACTGGCTGTTGTGAAAACCATAGCCTACTATCGTTCAACAATAGCCCTGGCCGTACGCCTAACCGCTAACATTACTGCAGGCCACCTACTCATGCACCTAATTGGAAGCGCCACCCTAGCAATATCAACCATTAACCTTACCTACACTTATAGTCTTTCACAATTCTAATTCTACTGACTATCCTAGAAATCGCTGTCGCCTTAATCCAAGCCTACGTTTTCACACTTCTAGTAAGCCTCTACCTGCACGACAACACATAATGACCCACCAATCACATGCCTATCATGGCTAAACCCAGCCCATGACCCCTAACAGGGGCCCTCTCAGCCCTCCTAATGACCTCCGGCCTAGCCATGTGATTTCACTTCCACTCCATAACGCTCCTCATACTAGGCCTACTAACCAACACACTAACCATATACCAATAATGGCAATGTAACGCAAAGCACATACCAAGGCCACCACACACCACCTCTATTAAAAAGGCC"
+        ],
+    ]
+
+    with gr.Blocks(title="ChimeraLM - Chimeric Read Detector") as interface:
         # Header Section
         with gr.Row():
             gr.HTML("""
@@ -792,8 +787,12 @@ demo = create_interface()
 # Enable queueing to handle requests properly and avoid Content-Length issues
 demo.queue(max_size=20)
 
-if __name__ == "__main__":
-    logger.info("🚀 Starting ChimeraLM Web Interface...")
 
-    # Launch with proper server configuration
-    demo.launch(share=False, show_error=True)
+def main():
+    """Launch the web interface with the app-level theme and CSS."""
+    logger.info("🚀 Starting ChimeraLM Web Interface...")
+    demo.launch(share=False, show_error=True, theme=THEME, css=CUSTOM_CSS)
+
+
+if __name__ == "__main__":
+    main()
