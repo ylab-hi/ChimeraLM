@@ -32,7 +32,7 @@ classifiers = [
 ]
 dependencies = [
   "einops>=0.8.2",
-  "datasets>=5.0.1",
+  "datasets>=5.1.0",
   "rich>=15.0.0",
   "torch==2.14.0",
   "torchvision>=0.20.1",
