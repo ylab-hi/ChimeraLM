@@ -48,7 +48,7 @@ dependencies = [
   "pysam>=0.24.1",
   "hf-xet>=1.1.10",
   "gradio>=6.30.0",
-  "joblib>=1.5.2",
+  "joblib>=1.6.0",
   "plotly>=5.0.0",
 ]
 
