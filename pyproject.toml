@@ -76,7 +76,7 @@ dev = [
   "seaborn>=0.13.2",
   "sqlalchemy>=2.0.55",
   "statsmodels>=0.15.0",
-  "wandb>=0.30.0",
+  "wandb>=0.31.0",
 ]
 docs = [
   "mkdocs>=1.6.1",
