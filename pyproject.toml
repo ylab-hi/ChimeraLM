@@ -85,7 +85,7 @@ docs = [
   "mkdocstrings[python]>=1.0.6",
   "mkdocs-jupyter>=0.26.3",
   "pymdown-extensions>=12.3",
-  "mkdocs-git-revision-date-localized-plugin>=1.6.0",
+  "mkdocs-git-revision-date-localized-plugin>=1.6.2",
   "mkdocs-minify-plugin>=0.8.0",
   "mkdocs-git-committers-plugin-2>=2.5.0",
 ]
